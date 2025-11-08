@@ -1,0 +1,3123 @@
+Published as a conference paper at ICLR 2025
+
+# PIED: P HYSICS -I NFORMED E XPERIMENTAL D ESIGN FOR I NVERSE P ROBLEMS
+
+
+**Apivich Hemachandra** _[∗†]_ **, Gregory Kang Ruey Lau** _[∗†‡]_ **,**
+
+_†_ Department of Computer Science, National University of Singapore, Singapore 117417
+
+_‡_ CNRS@CREATE, 1 Create Way, #08-01 Create Tower, Singapore 138602
+{apivich,greglau}@comp.nus.edu.sg
+
+
+**See-Kiong Ng & Bryan Kian Hsiang Low**
+Department of Computer Science, National University of Singapore, Singapore 117417
+seekiong@nus.edu.sg, lowkh@comp.nus.edu.sg
+
+
+A BSTRACT
+
+
+In many science and engineering settings, system dynamics are characterized by
+governing partial differential equations (PDEs), and a major challenge is to solve
+inverse problems (IPs) where unknown PDE parameters are inferred based on
+observational data gathered under limited budget. Due to the high costs of setting
+up and running experiments, experimental design (ED) is often done with the
+help of PDE simulations to optimize for the most informative design parameters
+(e.g., sensor placements) to solve such IPs, prior to actual data collection. This
+process of optimizing design parameters is especially critical when the budget
+and other practical constraints make it infeasible to adjust the design parameters
+between trials during the experiments. However, existing ED methods tend to
+require sequential and frequent design parameter adjustments between trials. Furthermore, they also have significant computational bottlenecks due to the need
+for complex numerical simulations for PDEs, and do not exploit the advantages
+provided by physics informed neural networks (PINNs) in solving IPs for PDEgoverned systems, such as its meshless solutions, differentiability, and amortized
+training. This work presents Physics-Informed Experimental Design (PIED), the
+first ED framework that makes use of PINNs in a fully differentiable architecture
+to perform continuous optimization of design parameters for IPs for one-shot deployments. PIED overcomes existing methods’ computational bottlenecks through
+parallelized computation and meta-learning of PINN parameter initialization, and
+proposes novel methods to effectively take into account PINN training dynamics
+in optimizing the ED parameters. Through experiments based on noisy simulated
+data and even real world experimental data, we empirically show that given limited
+observation budget, PIED significantly outperforms existing ED methods in solving
+IPs, including for challenging settings where the PDE parameters are unknown
+functions rather than just finite-dimensional.
+
+
+1 I NTRODUCTION
+
+
+The dynamics of many systems studied in science and engineering can be described via _partial_
+_differential equations_ (PDEs). Given the PDE governing the system and the properties of the system
+(which we refer to as PDE parameters), we can perform _forward simulations_ to predict how the
+system behaves. However, in practice, the true PDE parameters are often unknown, and we are
+instead interested in recovering the unknown PDE parameters based on observations of the system’s
+behaviors. This problem of recovering the unknown PDE parameters is a type of _inverse problem_ (IP)
+(Vogel, 2002; Ghattas & Willcox, 2021), and have been studied in classical mechanics (Tanaka & Bui,
+1993; Gazzola et al., 2018), quantum mechanics (Chadan et al., 1989) or geophysics (Smith et al.,
+2021; Waheed et al., 2021), and more. It is challenging to directly solve IPs given observational data
+
+
+_∗_ Equal contribution.
+
+
+1
+
+
+Published as a conference paper at ICLR 2025
+
+
+since PDE parameters can often affect the behavior of the PDE solution in complex ways. This is
+further complicated in practice where data acquisition (e.g., making measurements from experiments
+or field trials) is often costly and so only limited number of observations can be made, making the
+choice of _which observations to make given a limited budget_ also critical to solving IPs.
+
+
+Experimental design (ED) methods aim to tackle the data scarcity problem by optimizing design
+parameters, such as sensor placement locations, to yield the most informative measurements for
+estimating the unknown inverse parameters (Razavy, 2020; Alexanderian, 2021). These methods
+typically make use of forward simulations based on guesses of the true inverse parameter to find
+the best design parameter for the measurements. However, these methods are less practical in many
+PDE-informed IPs due to significant computational bottlenecks in forward simulations and solving
+IPs, especially for systems with complex forward models and PDEs. In particular, simulators using
+conventional PDE solvers often are costly to run, and return discretized (mesh-based) approximate
+solutions which are often incompatible with efficient continuous gradient-based optimization methods.
+
+
+Physics-Informed Neural Networks (PINNs) are neural networks that incorporate PDEs and their
+initial/boundary conditions (IC/BCs) into the NN loss function (Raissi et al., 2019), and have been
+successfully applied to various science problems (Chen et al., 2020; Cai et al., 2021; Jagtap et al.,
+2022). PINNs are especially well-suited to tackle ED for IPs, as they (1) allow easy incorporation
+of observational data into the inverse problem solver through the training loss function, (2) can be
+used for both running forward simulations and directly solving IPs with the same model architecture,
+(3) are continuous and differentiable w.r.t. the function inputs, and (4) have training whose costs can
+be amortized, e.g., through transfer learning. However, to our knowledge, there has not been an ED
+framework for IPs that fully utilizes these advantages from PINNs for ED problems.
+
+
+In this paper, we present Physics-Informed Experimental Design (PIED), the first ED framework
+that makes use of PINNs in a fully differentiable architecture to perform continuous optimization of
+design parameters for IPs for one-shot deployment [1] . Our contributions are summarized as follows:
+
+
+    - We propose a novel ED framework that makes use of PINNs as both forward simulators and
+inverse solvers in a fully differentiable architecture to perform continuous optimization of
+design parameters for IPs for one-shot deployments (Sec. 3).
+
+    - We introduce the use of a learned initial NN parameter which are used for all PINNs in
+PIED (Sec. 4.1), based on first-order meta-learning methods, allowing for more efficient
+PINN training over multiple PDE parameters.
+
+    - We present various effective ED criteria based on novel techniques for quantifying the
+training dynamics of PINNs (Sec. 4.2). These proposed criteria are differentiable w.r.t. the
+design parameters, and therefore can be optimized efficiently via gradient-based methods.
+
+    - We empirically demonstrate that PIED is able to outperform other ED methods on inverse problems (Sec. 5), both in the case where the PDE parameters of interest are finitedimensional and when they are unknown functions.
+
+
+2 B ACKGROUND
+
+
+In this section, we provide a formalism of the experimental design (ED) problem for PDE-based
+inverse problems (IPs), and physics-informed neural networks (PINNs) which will be used in our
+proposed framework. We also discuss existing works on ED and PINNs applied to solving IPs.
+
+
+2.1 P ROBLEM S ETUP
+
+
+**Inverse problems.** Consider a system described by a PDE [2] of the form
+_D_ [ _u, β_ ]( _x_ ) = _f_ ( _x_ ) _∀x ∈X_ and _B_ [ _u, β_ ]( _x_ _[′]_ ) = _g_ ( _x_ _[′]_ ) _∀x_ _[′]_ _∈_ _∂X_ (1)
+where _u_ : _X →_ R _[d]_ [out] describes the observable function (solution of the PDE) over a coordinate
+variable _x ∈X ⊂_ R _[d]_ [in] (where time could be a subcomponent), and _β ∈_ R _[d]_ [inv] are PDE parameters [3] .
+
+
+1
+[The code for the project can be found at https://github.com/apivich-h/pied.](https://github.com/apivich-h/pied)
+2 Examples of PDEs, specifically those in our experiments, can be found in App. D.
+3 For simplicity we assume _β_ is finite-dimensional. In our experiments, we demonstrate how our method can
+also be extended to cases where _β_ is a function of _x_ .
+
+
+2
+
+
+Published as a conference paper at ICLR 2025
+
+
+_D_ is a PDE operator and _B_ is an operator for the initial/boundary conditions (IC/BCs) at boundary
+_∂X ⊂X_ . Different PDE parameters _β_ results in different observable function _u_ that satisfies (1),
+which for convenience will be denoted by _u_ _β_ .
+
+
+For inverse problems (IPs), the operators _D_ and _B_ and functions _f_ and _g_ are known, and the task is to
+estimate the unknown PDE parameter of interest, _β_ 0, that cannot be observed directly. Instead, we
+can only make noisy measurements of the corresponding observable function _u_ _β_ 0 at _M_ observation
+inputs [4] _X_ = _{x_ _j_ _}_ _[M]_ _j_ =1 _[⊂X]_ [ to get observation values] _[ Y]_ [ =] _[ {][u]_ _[β]_ 0 [(] _[x]_ _[j]_ [) +] _[ ε]_ _[j]_ _[}]_ _[M]_ _j_ =1 [, where we assume]
+Gaussian noise _ε_ _j_ _∼N_ (0 _, σ_ [2] ) . In general, _X_ could possibly be constrained to a set of feasible
+configurations _β_ ˆ that fits best with the observed data _S ⊆X_ _[M]_ . To solve the IP, we could use an ( _X, Y_ ) where _inverse solver_ that finds the PDE parameter
+
+ˆ
+_β_ ( _X, Y_ ) _≈_ arg min _∥u_ _β_ ( _X_ ) _−_ _Y ∥_ [2] _._ (2)
+_β_
+
+
+**Experimental design.** Unfortunately, the observations _Y_ are typically expensive to obtain due
+to costly sensors or operations. In many settings, the observation inputs also have to be chosen in
+a one-shot rather than in a sequential, adaptive manner due to the costs of reinstalling sensors and
+inability to readjust the design parameters on-the-fly. Hence, the observation input _X_ should be
+carefully chosen before actual measurements are made. As we _do not_ know the true PDE parameter
+_β_ 0, a good observation input should maximize the average performance of the inverse solver over
+its distribution _p_ ( _β_ ) . In the _experimental design_ (ED) problem, the goal is therefore to find the
+observation input _X ∈S_ which minimizes
+
+
+ˆ 2 [�]
+_L_ ( _X_ ) = E _β,Y ∼p_ ( _β_ ) _p_ ( _Y |β_ ) ��� _β_ ( _X, Y_ ) _−_ _β_ �� _,_ (3)
+
+
+or the _expected_ error of the estimated PDE parameter w.r.t. the possible true PDE parameters.
+
+
+ED methods can be deployed in the _adaptive_ setting, where multiple rounds of observations are
+allowed, and the design parameter can be adjusted between each rounds based on the observed data.
+However, there are many practical scenarios where _non-adaptive_ ED are desirable. For instance,
+field scientists who incur significant cost in planning, deployment, and collection of results for each
+iteration may strongly prefer to perform a single round of sensor placement and measurements
+as opposed to sequentially making few measurements per round and frequently adjusting sensor
+placement locations. Another example is when the phenomena being observed occurs in a single
+time period, and all observations have to be decided beforehand. In these cases, it is more practical to
+optimize for a single design parameter upfront and collect all observational data for the IP in one-shot.
+Unlike past works, our work aims to optimize performance for one-shot deployment.
+
+
+**Physics-informed neural networks.** To reduce the computational costs during the ED and IP
+solving processes, we will use physics-informed neural networks (PINNs) (Raissi et al., 2019) to
+simulate PDE solutions and solve IPs. PINNs are neural networks (NNs) ˆ _u_ _θ_ with NN paramaters _θ_
+that approximates the solution _u_ to (1) by minimizing the composite loss [5]
+
+
+
+_L_ ( _θ, β_ ; _X, Y_ ) =
+
+
+
+�� _u_ ˆ _θ_ ( _X_ ) _−_ _Y_ �� 22
+2 _|X|_
+~~�~~ � ~~�~~ �
+_L_ obs ( _θ_ ; _X,Y_ )
+
+
+
++
+
+
+
+�� _D_ [ˆ _u_ _θ_ _, β_ ](2 _X|X_ _p_ ) _p_ _−|_ _f_ ( _X_ _p_ )�� 22 + �� _B_ [ˆ _u_ _θ_ _, β_ ](2 _X|X_ _b_ ) _b_ _−|_ _g_ ( _X_ _b_ )�� 22 _,_
+
+~~�~~ ~~�~~ � ~~�~~
+_L_ PDE ( _θ,β_ )
+
+
+
+�� _D_ [ˆ _u_ _θ_ _, β_ ]( _X_ _p_ ) _−_ _f_ ( _X_ _p_ )�� 22 +
+2 _|X_ _p_ _|_
+
+
+
+_,_
+
+
+
+(4)
+where ( _X, Y_ ) are observational data, and _X_ _p_ _⊂X_ and _X_ _b_ _⊂_ _∂X_ are collocation points to enforce
+PDE and IC/BC constraints respectively. PINNs can be used both as forward simulators when _β_
+is known but no observational data is available ( _L_ obs ( _θ_ ; _X, Y_ ) = 0 ), or as inverse solvers when
+observational data is available but _β_ is unknown and is learned jointly with _θ_ during PINN training.
+
+
+2.2 R ELATED WORKS
+
+
+Existing ED methods in the literature include those that adopts a Bayesian framework (Chaloner &
+Verdinelli, 1995; Long et al., 2013; Belghazi et al., 2018; Foster et al., 2019) and those that aims to
+
+
+4 We abuse notations by allowing the set of _X_ to be an argument for functions which takes in _x ∈X_ as well.
+5 For simplicity we consider one IC/BC, however the loss can be generalized to include multiple IC/BCs by
+adding similar loss terms for each constraint.
+
+
+3
+
+
+Published as a conference paper at ICLR 2025
+
+
+construct a policy for choosing the optimal experimental design (Ivanova et al., 2021; Lim et al., 2022).
+Many of these ED methods utilize forward simulations that can be easily and efficiently queried from,
+which is often unavailable in PDE-based IPs due to the need to numerically solve complex PDEs. ED
+and IP solving methods that rely on numerical simulators (Ghattas & Willcox, 2021; Alexanderian,
+2021; Alexanderian et al., 2024) are computationally expensive due to repeated forward simulations
+required during optimization, and are usually restricted to some PDEs. Furthermore, numerical
+solvers often require input discretization and cannot be easily differentiated, which restricts the
+applicable optimization techniques.
+
+
+Meanwhile, PINNs have been extensively used model systems and solve IPs across many scientific
+domains (Chen et al., 2020; Cai et al., 2021; Waheed et al., 2021; Bandai & Ghezzehei, 2022; Jagtap
+et al., 2022; Shadab et al., 2023), due to the simplicity in incorporating observational data with
+existing PDE from the respective domains, and its ability to recover PDE parameters with one round
+of PINN training. However, these works assume that the observational data to be used for IPs have
+already been provided, and do not consider the process of observational data selection and how it
+may affect the IP performance. Further material on related works are in App. C.
+
+
+3 E XPERIMENTAL D ESIGN L OOP
+
+
+In this section, we first discuss how IPs can be solved with PINNs given a set of observational
+data ( _X, Y_ ), and how the choice of observation inputs _X_ matters especially when there is limited
+observation budget. Thereafter, we present our proposed ED framework, PIED, which optimizes for
+the observation input while fully utilizing the advantages provided by PINNs.
+
+
+3.1 S OLVING I NVERSE P ROBLEMS WITH PINN S
+
+
+The process of solving the IP with PINNs is summarized in Fig. 1a. As presented in Sec. 2, the goal is
+to find the true PDE parameter _β_ _[∗]_ of the system based on (2) by conducting experiments at a limited
+number of observation input _X_ to obtain observational data ( _X, Y_ ), where _Y_ are noisy measurements
+of the observable function _u_ _β_ _∗_ . This can be directly solved using a PINN-based inverse solver that is
+trained to minimize the composite loss in (4) to find the inferred _β_ [ˆ] _[∗]_ of the system.
+
+
+However, given limited observation budget, the choice of observation input _X_ becomes important in
+achieving a good estimate _β_ [ˆ] _[∗]_ – some points are more informative than others, and allows the inverse
+solver to achieve better estimates with lower variance. Intuitively, we could interpret the limited
+observation as an information bottleneck, where the information on a system’s _β_ would be compressed
+from the entire observable function _u_ _β_ into a relatively low-dimensional, noisy representation. The
+better the choice of _X_, the better we could extract the value of _β_ _[∗]_ via the inverse solver.
+
+
+3.2 C OMPONENTS OF THE ED DESIGN LOOP
+
+
+To optimize for _X_, ED methods rely on several forward simulations of the system for different
+reference _β_ values before collecting any observational data from actual, costly experiments. Multiple
+possible _X_ would then need to be tested on all these sets of simulations, to assess the inverse solver’s
+performance. However, existing methods that rely on conventional numerical integration methods
+do not enable efficient parallel computation and differentiability for gradient-based optimization.
+Instead, we propose to fully utilize the advantages provided by PINNs to tackle the ED problem.
+
+
+To achieve this, we propose our ED framework PIED, which is visualized in Fig. 1b. We consider _N_
+_parallel threads_, each representing different reference _β_ _i_ values. Similar to existing ED methods,
+the range of _β_ values could be informed by domain knowledge. Within each thread _i_, we have three
+components: (1) a _forward simulator_ that returns an observable function ˜ _u_ _β_ _i_ which approximates
+the PDE solution _u_ _β_ _i_, (2) a _observation selector_ that generates observational data based on ˜ _u_ _β_ _i_ ( _X_ )
+at observation inputs _X_ (consistent across all threads), and (3) an _inverse solver_ that takes in the
+observational data to produce estimates of the PDE parameter _β_ [ˆ] _i_ . Finally, we require (4) a _criterion_
+that captures how good the estimates are across all threads on aggregate, and an _input optimization_
+method to select the single best observation input according to the criterion.
+
+
+4
+
+
+Published as a conference paper at ICLR 2025
+
+
+Figure 1: Comparison between observation selection and solving IPs in real life (Fig. 1a), versus the
+proess as modelled in the PIED framework (Fig. 1b).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**PINN-based forward simulator (** **F** **).** For the first component, PIED uses PINNs to simulate what
+the observable function _u_ _β_ _i_ given a reference _β_ _i_ would be in each thread. Specifically, a forward
+PINN is trained [6] with loss _L_ PDE ( _θ, β_ _i_ ) from (4) with fixed _β_ _i_ to generate ˜ _u_ _β_ _i_ over the input space _X_,
+
+
+forward simulator **F** ˜
+_β_ _i_ _−−−−−−−−−−−−−−→_ _u_ _β_ _i_ = ˆ _u_ _θ_ _i_ _≈_ _u_ _β_ _i_ _._ (5)
+
+
+Note that unlike classical simulators based on numerical integrators that require fixed discretization of
+the input space _X_, the trained PINNs ˜ _u_ _β_ _i_ represent learned _functions_ that are meshless, and therefore
+can be queried at and even differentiated w.r.t. any input _x ∈X_ . This is a major advantage for ED, as
+it allows us to flexibly test a continuous range of _X_ without having to re-run the forward simulators
+many times for different discretization, and also enables efficient gradient-based optimization.
+
+
+Our use of PINNs as forward simulators also offer significant computational advantages. First,
+modern software and hardware allows for very efficient training of multiple NNs in parallel (for
+example, using increasingly accessible and powerful GPUs and via the vmap function on J AX ),
+unlike classical simulators. Second, the various PINNs in different thread can all be initialized from a
+common pre-trained base model (which we discuss in Sec. 4.1), speeding convergence of the PINN
+during training. This will be even more advantageous if researchers start sharing open-sourced,
+pre-trained models, similar to what is currently being done for large language models. Third, we can
+reuse the trained forward PINNs to approximate the dynamics of the inverse PINNs and consequently
+boost the effectiveness of the downstream ED process, as we will describe in Sec. 4.
+
+
+**Observation selector (** **O** _X_ **).** Given the trained forward PINNs _{u_ ˜ _β_ _i_ _}_ _[N]_ _i_ =1 [, the second component]
+applies a “sieve” that queries all forward PINNs with the _same_ _M_ observation input _X_ = _{x_ _j_ _}_ _[M]_ _j_ =1 [to]
+produce the respective sets of noisy predicted observations, i.e., for each _i_ = 1 _, . . ., N_,
+
+
+
+˜ observation selector **O** _X_ _M_ ˜ _M_
+_u_ _β_ _i_ _−−−−−−−−−−−−−→_ � _X,_ _Y_ [˜] _i_ � = �� _x_ _j_ � _j_ =1 _[,]_ � _u_ _β_ _i_ ( _x_ _j_ ) + _ε_ _j_ � _j_ =1
+
+
+
+(6)
+�
+
+
+
+6 Note that no actual experimental data is required for the training of forward PINNs, as explained in Sec. 2.
+
+
+5
+
+
+Published as a conference paper at ICLR 2025
+
+
+where _ε_ _j_ _∼N_ (0 _, σ_ [2] ) are i.i.d. noise added to model the observational data generation process. The
+observation input _X_ applied here is the candidate design parameter [7] to be optimized for in the ED
+problem – different choices of _X_ will yield different sets of observational data ( _X,_ _Y_ [˜] _i_ ) that impacts
+the quality of the PDE parameter estimate, as per (3).
+
+
+**PINN-based inverse solver (** **I** **).** For each _β_ _i_, the predicted observational data ( _X,_ _Y_ [˜] _i_ ) from (6) will
+then be used to train an inverse solver PINN (inverse PINN) with loss function _L_ ( _θ, β_ ; _X,_ _Y_ [˜] _i_ ) from
+(4) to return an estimated PDE parameter _β_ [ˆ] _i_, i.e., for each _i_ = 1 _, . . ., N_,
+
+� _X,_ _Y_ [˜] _i_ � _−−−−−−−−−−−→_ inverse solver **I** _β_ [ˆ] _i_ _._ (7)
+
+
+Note that in our ED framework, both the forward simulators and inverse solvers are PINNs and
+have the same architecture. This enables us to develop effective approximation techniques based on
+predicting the dynamics of the inverse PINNs using its corresponding forward PINN, significantly
+reducing computational cost for the ED process, and also the eventual IP process in Sec. 3.2 that also
+uses the inverse PINN. We elaborate further on these techniques in Sec. 4.
+
+
+**Criterion and optimal observation input selection.** Finally, we could compute the ED criterion
+in (3) for a given _X_, which evaluates how well the estimates _β_ [ˆ] _i_ from the inverse solvers matches the
+corresponding reference parameter values _β_ _i_ across all parallel threads _i_ on average,
+
+
+
+_N_
+
+
+
+_α_ ( _X_ ) = [1]
+
+_N_
+
+
+
+_N_
+�
+
+
+
+� _α_ _i_ ( _X_ ) = _N_ [1]
+
+_i_ =1
+
+
+
+_N_
+�
+
+
+_i_ =1
+
+
+
+ˆ 2 [�]
+� _−_ �� _β_ _i_ ( _X,_ ˜ _Y_ _i_ ) _−_ _β_ _i_ �� _._ (8)
+
+
+
+We can then perform optimization using the observation selector and inverse solver components,
+where we search for the observation inputPINNs _{u_ ˜ _β_ _i_ _}_ _[N]_ _i_ =1 [could be re-used for all iterations and hence only need to be computed once. As] _X_ that maximizes _α_ ( _X_ ) . Note that the same forward
+our PINN inverse solver is differentiable, we can back-propagate through _α_ directly to compute
+_∇_ _X_ _α_ ( _X_ ) . This allows _α_ to be optimized using gradient-based optimization methods, instead of
+methods such as Bayesian optimization which do not typically perform well on high-dimensional
+problems, or require combinatorial optimization over discretized observation inputs.
+
+
+4 E FFICIENT IMPLEMENTATION OF PIED
+
+
+In this section, we introduce training and approximation methods which further boosts the efficiency
+of PIED. We first propose a meta-learning approach to learn a PINN initialization for efficient
+fine-tuning of all our forward and inverse PINNs across different threads (Sec. 4.1), before proposing
+approximations of our criterion in (8) to effectively optimize for the observation inputs (Sec. 4.2).
+
+
+4.1 S HARED META - LEARNED INITIALIZATION FOR ALL PINN- BASED COMPONENTS
+
+
+In PIED, we could significantly reduce computational time and benefit from amortized training by
+pre-training and using a shared initialization for all PINN components in our framework. We can
+efficiently achieve this with REPTILE (Nichol et al., 2018; Liu et al., 2021), a first-order metalearning algorithm. To see this, note that all PINNs (forward and inverse) in PIED are modelling the
+same system and may benefit from joint training, but have different PDE parameters _β_ _i_ leading to
+different observable functions and hence could be interpreted as different tasks to be meta-learned.
+
+
+Specifically, when implementing PIED, we first use REPTILE to learn a shared PINN initialization
+_θ_ SI for the set of reference _β_, if we do not already have a pre-trained model for the system of interest [8] .
+Given this, we can then (1) efficiently fine-tune _θ_ SI across different reference _β_ with fewer training
+steps to produce the forward PINNs _{u_ ˜ _β_ _i_ _}_ _[N]_ _i_ =1 [, (2) re-use] _[ θ]_ [SI] [ for the approximation of inverse PINNs]
+performance to optimize our ED criterion (elaborated in Sec. 4.2), and (3) re-use _θ_ SI for the final
+inverse PINN applied to actual experimental data to find the true _β_ [ˆ] _[∗]_ (Sec. 3.1). Once learnt, _θ_ SI can
+
+
+7 The observation input can either be freely chosen or constrained to certain configurations (see App. E).
+8 Note that no actual experimental data is needed for this pre-training phase, just like in the training of forward
+PINNs. Rather, training is done based on _L_ PDE ( _θ, β_ ) in (4), enforced at collocation points.
+
+
+6
+
+
+Published as a conference paper at ICLR 2025
+
+
+
+(a) Random Init.
+
+
+
+(b) Shared Init.
+
+
+
+(c) Train Loss
+
+
+
+(d) Test MSE Error
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure 2: Results for meta-learning a shared NN initialization for PINNs trained on 1D damped
+oscillator case. The shared initialization (blue line) in Fig. 2b exhibits similar structure to PDE
+solutions _u_ _β_ for different values of _β_ (faint green lines), unlike the random initialization (blue line)
+in Fig. 2a. In Figs. 2c and 2d, we show that this translates to better average train and test loss
+performance of PINNs with shared initialization compared to random initialization w.r.t. different _β_ .
+
+
+
+(a) Random Init.
+
+
+
+
+
+(c) Sample Eikonal equation solution
+
+
+
+(b) Shared Init.
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure 3: Results for learning a NN initialization for PINNs trained on Eikonal equation case. Fig. 3a
+represents a randomly initialized PINN, while Fig. 3b represents the shared initialzation for the PINN.
+Fig. 3c shows sample PDE solutions _u_ _β_ for different random PDE parameters _β_ .
+
+
+also be re-used many times on different IP instances with the same PDE setting, further reducing
+computational costs in practical applications.
+
+
+To demonstrate the benefits of learning a shared NN initialization for PINNs, we visualize various
+PDE solutions (green lines) for the 1D damped oscillator setting, along with the output of the PINN
+with random initialization and shared initialization (blue lines), in Fig. 2a and Fig. 2b respectively.
+Note how the PINN with the meta-learned, shared initialization share qualitatively similar structure
+to the PDE solutions _u_ _β_ for different values of _β_, e.g., replicating the damping effect observed in
+the various solutions. In contrast, the random initialization in Fig. 2a is dissimilar to any of the PDE
+solutions. This advantage can also be observed quantitatively in Figs. 2c and 2d, where we plot the
+train and test loss for forward PINNs when initialized with _θ_ SI versus when initialized randomly. We
+can see that PINNs initialized with the shared _θ_ SI initialization have faster training convergence with
+lower train and test loss compared to those that are random initialized.
+
+
+We also demonstrate this advantage for the 2D Eikonal equation setting, where the PDE parameters
+are functions of the input space _X_ . In Fig. 3, we visualize the shared parameters learned for the
+Eikonal equation, which again shows that the qualitative structures and even the scaling of the PDE
+solutions can be meta-learned beforehand in order to speed up the PINN training process. We provide
+further empirical results in App. I.1, which demonstrates that this also applies for inverse PINNs and
+forward PINNs trained for other PDEs.
+
+
+4.2 A PPROXIMATE C RITERIA FOR P ERFORMANCE OF THE I NVERSE S OLVER
+
+
+We now present two methods to effectively optimize for the observation inputs by approximating the
+inverse solver performance and criterion in (8).
+
+
+**Few-step Inverse Solver Training (FIST) Criterion.** Our first method stems from the insight that
+we do not need to fully solve for _β_ [ˆ] _i_ in PIED’s inverse solvers to find the observation input _X_ that
+maximizes (8). Drawing inspiration from Lau et al. (2024a) with results showing that informative
+training points that lead to faster training convergence also result in lower PINN generalization error
+bounds and better empirical performance, we propose to only partially train the inverse PINN for
+
+
+7
+
+
+Published as a conference paper at ICLR 2025
+
+
+a few training steps to get an intermediate estimate of _β_ [ˆ] _i_, and use this to perform gradient-based
+optimization for _X_ with (8) by back-propagating through the PINN inverse solver. To get more
+informative gradient signals, this is done with inverse PINNs that are closer to convergence rather
+than at early stages of training when most choices of _X_ would result in good performance gains.
+
+
+Hence, our method FIST first initializes the inverse PINNs for each thread _i_ with perturbed NN
+parameters from the corresponding converged forward PINN for _β_ _i_, before partially training them
+for _r_ training steps to obtain the estimate _β_ [ˆ] _i_, computing the criterion in (8), and performing gradient
+descent optimization for _X_ . We present the pseudocode for FIST in Alg. 1 of the Appendix.
+
+
+**Model Training Estimate (MoTE) Criterion.** Our second method involves directly approximating
+the inverse solver output _β_ [ˆ] _i_ at convergence while minimizing training. We do so by performing kernel
+regression with the empirical Neural Tangent Kernel (eNTK) of the PINN (Jacot et al., 2018; Wang
+et al., 2022; Lau et al., 2024a), given a set of observation input _X_ . Specifically, under assumptions
+that the PINN is in the linearized regime and trained via gradient descent with (4), the predicted PDE
+parameter _β_ [ˆ] _i_ at convergence can be estimated by (IC/BC terms omitted for notational simplicity)
+
+
+
+_−_ 1 _u_ ˆ _θ_ (0) ( _X_ ) _−_ _Y_ [˜]
+� � _D_ [ˆ _u_ _θ_ (0) _, β_ [(0)] ]( _X_ _p_ ) _−_ _f_ ( _X_ _p_ )�
+
+
+
+ˆ 0
+_β_ _i_ ( _X,_ ˜ _Y_ ) _≈_ _β_ [(0)] _−_ _J_ _[⊤]_
+� _p,β_
+
+
+
+_J_ obs _,θ_ _J_ obs _⊤_ _,θ_ _J_ obs _,θ_ _J_ _p,θ_ _[⊤]_
+�� _J_ _p,θ_ _J_ obs _[⊤]_ _,θ_ _J_ _p,θ_ _J_ _p,θ_ _[⊤]_ [+] _[ J]_ _[p,β]_ _[J]_ _p,β_ _[⊤]_
+
+
+
+(9)
+where ( _θ_ [(0)] _,_ _β_ [ˆ] [(0)] ) are the initialization parameters, _J_ obs _,θ_ = _∇_ _θ_ _u_ ˆ _θ_ (0) ( _X_ ), _J_ _p,θ_ = _∇_ _θ_ _D_ [ˆ _u_ _θ_ (0) _, β_ ]( _X_ _p_ ),
+and _J_ _p,β_ = _∇_ _β_ _D_ [ˆ _u_ _θ_ (0) _, β_ [(0)] ]( _X_ _p_ ) (note that _∇_ _β_ _u_ ˆ _θ_ (0) ( _X_ ) = 0 ). This estimate for _β_ [ˆ] in (9) is adapted
+from Lee et al. (2018), and is verified in App. F.2.1, which includes further details on the assumptions
+and derivation. Note that while the use of NTK in PINNs is not new (Wang et al., 2022; Lau et al.,
+2024a), previous works have not utilized NTK to directly quantify the performance of PINNs in
+solving inverse problems as we have done.
+
+
+In practice, as noted by Lau et al. (2024a), finite-width PINNs have eNTKs that evolve over training
+before they can better reconstruct the true PDE solution. Hence, for the MoTE criterion, we either
+first do _r_ steps of training on the _θ_ SI initialized inverse PINN before computing the eNTK and
+performing kernel regression, or use a perturbed version of the forward PINN parameter to perform
+kernel regression. We present the pseudocode for MoTE in Alg. 2 in the Appendix.
+
+
+In App. F, we provide further discussion about the proposed criteria for approximating the inverse solver performances. In App. G, we summarize the full implementation process for PIED,
+incorporating both approximation methods and the full ED loop from Sec. 3.
+
+
+5 R ESULTS
+
+
+In this section, we present empirical results to demonstrate the performance of PIED on ED problems
+for a range of scenarios based on different PDE systems, both from noisy simulations from real
+physical experiments (details of the specific PDEs are in App. D). For scenarios using simulation
+data, we injected noise and lowered data fidelity for the evaluation dataset to represent noisy limited
+sensor capabilities. We compare PIED against various benchmarks, such as approximations of the
+expected mutual information (Belghazi et al., 2018; Foster et al., 2019) and criterion from optimal
+sensor placement literature (Krause et al., 2008), in addition to random and grid-based methods,
+with details in App. H.4. In each scenario, the ED methods compute their optimal observation input,
+which are then evaluated on multiple IP instances (i.e., different ground truth PDE parameters _β_ ). We
+then report the mean error across the different PDE parameters in accordance to the loss term in (3).
+Additional details on the experimental setup are listed in App. H. We present a subset of experimental
+results in the main paper, and defer the remaining results to App. I. The code for the project can be
+[found at https://github.com/apivich-h/pied.](https://github.com/apivich-h/pied)
+
+
+**Finite-dimensional PDE parameters.** We first present two ED problems on IPs where the PDE
+parameters corresponds to multiple scalar terms representing certain physical properties of the system.
+The first scenario is the 1D time-dependent wave equation with inhomogeneous wave speeds, where
+we incorporated realistic elements such as restrictions in sensor placements. The second is the 2D
+Navier-Stokes equation, which is a challenging setting relevant to many important scientific and
+
+
+8
+
+
+Published as a conference paper at ICLR 2025
+
+|Dataset|Finite-dimensional|Function-value|d Real dataset|
+|---|---|---|---|
+|Dataset|Wave (_×_10~~_−_1~~)<br>Navier-Stokes (_×_10~~_−_2~~)|Eikonal (_×_10~~1~~|)<br>Groundwater (_×_10~~1~~)<br>Cell Growth (_×_10~~0~~)|
+|Random<br>Grid<br>MI<br>VBOED<br>FIST (ours)<br>MoTE (ours)|5.23 (1.26)<br>6.19 (3.53)<br>8.90 (0.73)<br>4.51 (0.60)<br>4.46 (0.92)<br>6.08 (2.10)<br>4.63 (1.64)<br>4.33 (0.98)<br>**3.87 (0.76)**<br>2.10 (1.45)<br>**3.81 (2.34)**<br>**1.18 (0.11)**|1.82 (0.09)<br>1.56 (0.22)<br>2.02 (0.01)<br>1.82 (0.50)<br>**0.74 (0.02)**<br>**0.76 (0.02)**|3.44 (1.77)<br>3.63 (0.26)<br>2.27 (2.26)<br>3.19 (0.23)<br>2.10 (0.32)<br>3.14 (0.59)<br>2.29 (1.09)<br>2.82 (1.77)<br>**1.93 (0.08)**<br>**2.62 (0.11)**<br>**2.00 (0.60)**<br>2.83 (0.04)|
+
+
+
+Table 1: Results of the ED methods for the various experimental scenarios. Each result reports
+the median of the expected loss (i.e., in (3)) across trials, and the figure in bracket represents the
+semi-interquartile range. The results of the best performing ED methods in each dataset are in bold.
+
+
+industrial problems. The results are presented in Table 1. Compared to benchmarks, both FIST and
+MoTE perform better in the scenarios, producing optimal _X_ choices that have lower expected loss
+when evaluated across datasets of multiple _β_ values. The performance gap between our methods
+and benchmarks is more significant for the 2D Navier-Stokes scenario, which is more challenging,
+making the optimization of _X_ more important in obtaining good estimates of the inverse problem.
+
+
+**PDE parameters that are functions of input space.** We further demonstrate that PIED can be
+applied to complex scenarios where the PDE parameter of interest _β_ is a function defined over the
+input space _X_ . To estimate _β_ in these cases, we parameterize it using a small NN, and learn it together
+with the PINNs in our framework. The scenario we considered is the 2D Eikonal equation, which
+is used in a wide range of applications such as seismology, robotics or image processing. In this
+problem, the sensors can be placed freely in _X_, yielding a high-dimensional design parameter. The
+results in Table 1 demonstrate that even in this complex scenario, our PIED methods are still able
+to outperform the benchmarks and recover the correct function-valued PDE parameter. In addition,
+our methods also produce consistently good results, as can be seen from the small semi-interquartile
+range (SIQR) of our expected loss.
+
+
+
+We can further analyze the performance of
+PIED by visualizing the observation inputs
+_X_ chosen by FIST and the loss of the PDE
+parameter (Fig. 4). Note that FIST automatically adjusts the choice of _X_ based on underlying structure of the problem, allowing
+it to choose _X_ to more evenly minimize the
+error of _β_ . This provides it with advantages
+over more heuristics-based approaches like
+the space-filling Grid method.
+
+
+
+
+
+
+
+
+
+**Inverse problem on real-life dataset.**
+Simulation datasets may not be able to fully
+represent the challenges of realistic scenarios, due to the complexity of the real-life
+noisy experimental data. Hence, to further validate the advantages of PIED and
+
+Figure 4: Example of ED process involving the Eikonal
+
+analyze its performance on more realistic
+
+equation using different methods of observation selec
+scenarios, we applied it to observation selection problems on _real data_ that are col- tion. Top row: the true observation _T_ ( _x, y_ ) and its
+
+approximation via PINNs. Middle row: the true un
+lected from physical experiments in differ
+known function _v_ ( _x, y_ ) and the recovered estimations
+
+ent domains of natural science. Specifi
+based on observation inputs. Bottom row: the error of
+
+cally, we consider the ED problem applied
+
+the reconstructed _v_ ( _x, y_ ).
+
+to the groundwater flow dataset collated by
+Shadab et al. (2023), and the scratch assay
+cell population growth data collected by Jin et al. (2016), where the design parameters indicate the
+location to make the observations at constrained, fixed time intervals. As can be seen in Table 1, our
+PIED methods outperform benchmarks in both scenarios, despite the challenges posed by the datasets.
+For example, we can see in Fig. 5a that the groundwater flow dataset no longer fits typical i.i.d. noise
+assumptions that existing ED method work under, but FIST still performs well (selected observations
+
+
+
+
+
+
+
+
+
+Figure 4: Example of ED process involving the Eikonal
+equation using different methods of observation selection. Top row: the true observation _T_ ( _x, y_ ) and its
+approximation via PINNs. Middle row: the true unknown function _v_ ( _x, y_ ) and the recovered estimations
+based on observation inputs. Bottom row: the error of
+the reconstructed _v_ ( _x, y_ ).
+
+
+
+9
+
+
+Published as a conference paper at ICLR 2025
+
+
+(a) Groundwater flow
+
+
+
+(b) Cell population growth
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+|0.08|Col2|Col3|Col4|
+|---|---|---|---|
+|0.00<br>0.02<br>0.04<br>0.06<br>h(x)||||
+|0.00<br>0.02<br>0.04<br>0.06<br>h(x)||||
+
+
+
+Figure 5: Visualization of real-life experimental data used in our tests, along with demonstration of
+observations selected by FIST. Fig. 5a: example of groundwater flow data from Shadab et al. (2023).
+Gray points represent the collected data, while the blue points are the observations chosen by FIST.
+The black line represents the prediction from the corresponding inverse PINN. Fig. 5b: example of
+cell population growth data from Jin et al. (2016). The left figure shows the cell population data
+which are collected at 12 hour intervals, while the right figure shows the population prediction from
+the inverse PINN. In both figures, the blue points represent the observations chosen by FIST.
+
+
+in blue, and IP prediction plotted as a dotted line). In Fig. 5b, we can see that the observations chosen
+by FIST are spatially close to each other in order to better interpolate the effects from spatially-related
+PDE parameters, resulting in its better performance compared to benchmarks.
+
+
+
+**Advantages of PINNs over numerical**
+**solvers in ED.** In the results above, we
+implemented the benchmark ED methods applied to PINNs as forward simulators. This allowed the methods to benefit from the advantages of PINNs. In
+fact, existing benchmarks using classical
+numerical solvers would produce significantly worse results than those reflected
+in Table 1. To see this, we consider the
+2D Eikonal scenario, and use the Eikonal
+equation solver as implemented by White
+et al. (2020) which uses the fast marching method (Sethian, 1996) as the numerical simulator. Due to the lack of gradient information, optimization is done using
+Bayesian optimization. Fig. 6a shows that
+using PINNs allow the correct function to
+be recovered much more accurately regardless of the ED method used. Furthermore,
+we see in Fig. 6b that using PINNs allow
+the overall ED and IP to be done more efficiently as well.
+
+
+6 C ONCLUSION
+
+
+
+(a) IP Results
+
+
+
+(b) ED and IP timing
+
+
+
+
+
+
+
+
+
+Figure 6: Results for various benchmarks using numerical simulators and PINNs. Fig. 6a: error of recovered
+PDE parameters. The thick blue line represents the performance of the Random method, while the dashed line
+represents the best performance. Fig. 6b: time required
+to run the ED algorithm and to run 50 rounds of inference to solve the inverse problem.
+
+
+
+We have introduced PIED, the first ED framework that utilizes PINNs as both forward simulators and
+inverse solvers in a fully differentiable architecture to perform continuous optimization of design
+parameters for IPs. PIED selects optimal design parameters for one-shot deployment, and allows
+exploitation of parallel computation unlike existing methods. We have also designed effective criteria
+for the framework which are end-to-end differentiable and hence can be optimized through gradientbased methods. Future work could include applying PIED to other differentiable physics-informed
+architectures, such as operator learning methods.
+
+
+10
+
+
+Published as a conference paper at ICLR 2025
+
+
+A CKNOWLEDGMENTS
+
+
+This research/project is supported by the National Research Foundation, Singapore under its AI
+Singapore Programme (AISG Award No: AISG2-PhD/2023-01-039J) and is part of the programme
+DesCartes which is supported by the National Research Foundation, Prime Minister’s Office, Singapore under its Campus for Research Excellence and Technological Enterprise (CREATE) programme.
+The computational work for this article was partially performed on resources of the National Supercomputing Centre, Singapore (https://www.nscc.sg).
+
+
+R EFERENCES
+
+
+Alen Alexanderian. Optimal experimental design for infinite-dimensional Bayesian inverse problems
+governed by PDEs: a review. _Inverse Problems_, 37(4):043001, March 2021. ISSN 0266-5611.
+Publisher: IOP Publishing.
+
+
+Alen Alexanderian, Ruanui Nicholson, and Noemi Petra. Optimal design of large-scale nonlinear
+bayesian inverse problems under model uncertainty. _Inverse Problems_, 40(9):095001, 2024.
+
+
+Maximilian Balandat, Brian Karrer, Daniel R. Jiang, Samuel Daulton, Benjamin Letham, Andrew Gordon Wilson, and Eytan Bakshy. BoTorch: A Framework for Efficient Monte-Carlo
+Bayesian Optimization. In _Proc. NeurIPS_, 2020.
+
+
+Toshiyuki Bandai and Teamrat A. Ghezzehei. Forward and inverse modeling of water flow in unsaturated soils with discontinuous hydraulic conductivities using physics-informed neural networks
+with domain decomposition. _Hydrology and Earth System Sciences_, 26(16):4469–4495, August
+2022. ISSN 1027-5606. Publisher: Copernicus GmbH.
+
+
+Joakim Beck, Ben Mansour Dia, Luis FR Espath, Quan Long, and Raul Tempone. Fast Bayesian
+experimental design: Laplace-based importance sampling for the expected information gain.
+_Computer Methods in Applied Mechanics and Engineering_, 334:523–553, June 2018. ISSN
+00457825.
+
+
+Mohamed Ishmael Belghazi, Aristide Baratin, Sai Rajeshwar, Sherjil Ozair, Yoshua Bengio, Aaron
+Courville, and Devon Hjelm. Mutual Information Neural Estimation. In _Proc. ICML_, pp. 531–540,
+July 2018.
+
+
+Lorenz T. Biegler, Omar Ghattas, Matthias Heinkenschloss, and Bart van Bloemen Waanders.
+Large-Scale PDE-Constrained Optimization: An Introduction. In _Large-Scale PDE-Constrained_
+_Optimization_, pp. 3–13, Berlin, Heidelberg, 2003. Springer. ISBN 978-3-642-55508-4.
+
+
+Sacha Binder. Wave equation simulations 1d/2d (équation de d’alembert). [https://github.](https://github.com/sachabinder/wave_equation_simulations)
+[com/sachabinder/wave_equation_simulations, 2021.](https://github.com/sachabinder/wave_equation_simulations)
+
+
+Mathieu Blondel, Quentin Berthet, Marco Cuturi, Roy Frostig, Stephan Hoyer, Felipe Llinares-López,
+Fabian Pedregosa, and Jean-Philippe Vert. Efficient and modular implicit differentiation. _arXiv_,
+2021.
+
+
+Joseph Boussinesq. Recherches théoriques sur l’écoulement des nappes d’eau infiltrées dans le sol et
+sur le débit des sources. _Journal de Mathématiques Pures et Appliquées_, 10:5–78, 1904.
+
+
+James Bradbury, Roy Frostig, Peter Hawkins, Matthew James Johnson, Chris Leary, Dougal Maclaurin, George Necula, Adam Paszke, Jake VanderPlas, Skye Wanderman-Milne, and Qiao Zhang.
+JAX: Composable transformations of Python+NumPy programs, 2018.
+
+
+Shengze Cai, Zhicheng Wang, Sifan Wang, Paris Perdikaris, and George Em Karniadakis. PhysicsInformed Neural Networks for Heat Transfer Problems. _Journal of Heat Transfer_, 143(6):060801,
+June 2021. ISSN 0022-1481, 1528-8943.
+
+
+K. Chadan, P. C. Sabatier, and R. G. Newton. _Inverse Problems in Quantum Scattering Theory_ .
+Springer Berlin Heidelberg, Berlin, Heidelberg, 1989. ISBN 978-3-642-83319-9 978-3-642-833175.
+
+
+11
+
+
+Published as a conference paper at ICLR 2025
+
+
+Kathryn Chaloner and Isabella Verdinelli. Bayesian Experimental Design: A Review. _Statistical_
+_Science_, 10(3), August 1995. ISSN 0883-4237.
+
+
+Yuyao Chen, Lu Lu, George Em Karniadakis, and Luca Dal Negro. Physics-informed neural networks
+for inverse problems in nano-optics and metamaterials. _Optics Express_, 28(8):11618, April 2020.
+ISSN 1094-4087.
+
+
+Zhao Chen, Yang Liu, and Hao Sun. Physics-informed learning of governing equations from scarce
+data. _Nature Communications_, 12(1):6136, December 2021. ISSN 2041-1723.
+
+
+Zhiliang Chen, Gregory Kang Ruey Lau, Chuan-Sheng Foo, and Bryan Kian Hsiang Low. Duet:
+Optimizing training data mixtures via feedback from unseen evaluation tasks. _arXiv preprint_
+_arXiv:2502.00270_, 2025.
+
+
+Zhongxiang Dai, Gregory Kang Ruey Lau, Arun Verma, Yao Shu, Bryan Kian Hsiang Low, and
+Patrick Jaillet. Quantum Bayesian Optimization. In _Proc. NeurIPS_, 2023a.
+
+
+Zhongxiang Dai, Quoc Phong Nguyen, Sebastian Shenghong Tay, Daisuke Urano, Richalynn Leong,
+Bryan Kian Hsiang Low, and Patrick Jaillet. Batch Bayesian Optimization for Replicable Experimental Design. In _Proc. NeurIPS_, November 2023b.
+
+
+Adam Foster, Martin Jankowiak, Elias Bingham, Paul Horsfall, Yee Whye Teh, Thomas Rainforth,
+and Noah Goodman. Variational Bayesian Optimal Experimental Design. In _Proc. NeurIPS_,
+volume 32, 2019.
+
+
+Peter I. Frazier. A Tutorial on Bayesian Optimization. _arXiv_, 2018.
+
+
+Mattia Gazzola, Levi H. Dudte, A. G. McCormick, and Lakshminarayanan Mahadevan. Forward and
+inverse problems in the mechanics of soft filaments. _Royal Society Open Science_, 5(6), June 2018.
+
+
+Omar Ghattas and Karen Willcox. Learning physics-based models from data: perspectives from
+inverse problems and model reduction. _Acta Numerica_, 30:445–554, May 2021. ISSN 0962-4929,
+1474-0508.
+
+
+Apivich Hemachandra, Zhongxiang Dai, Jasraj Singh, See-Kiong Ng, and Bryan Kian Hsiang Low.
+Training-free neural active learning with initialization-robustness guarantees. In _Proc. ICML_, pp.
+12931––12971, July 2023.
+
+
+Desi R. Ivanova, Adam Foster, Steven Kleinegesse, Michael U. Gutmann, and Thomas Rainforth.
+Implicit Deep Adaptive Design: Policy-Based Experimental Design without Likelihoods. In _Proc._
+_NeurIPS_, volume 34, pp. 25785–25798, 2021.
+
+
+Arthur Jacot, Franck Gabriel, and Clement Hongler. Neural Tangent Kernel: Convergence and
+Generalization in Neural Networks. In _Proc. NeurIPS_, volume 31, 2018.
+
+
+Ameya D. Jagtap, Zhiping Mao, Nikolaus Adams, and George Em Karniadakis. Physics-informed
+neural networks for inverse problems in supersonic flows. _Journal of Computational Physics_, 466:
+111402, October 2022. ISSN 00219991.
+
+
+Wang Jin, Esha T. Shah, Catherine J. Penington, Scott W. McCue, Lisa K. Chopin, and Matthew J.
+Simpson. Reproducibility of scratch assays is affected by the initial degree of confluence: Experiments, modelling and model selection. _Journal of Theoretical Biology_, 390:136–145, February
+2016. ISSN 0022-5193.
+
+
+Pang Wei Koh and Percy Liang. Understanding Black-box Predictions via Influence Functions. In
+_Proc. ICML_, pp. 1885–1894, July 2017.
+
+
+Andreas Krause, Ajit Singh, and Carlos Guestrin. Near-Optimal Sensor Placements in Gaussian
+Processes: Theory, Efficient Algorithms and Empirical Studies. _The Journal of Machine Learning_
+_Research_, 9:235–284, June 2008. ISSN 1532-4435.
+
+
+John H. Lagergren, John T. Nardini, Ruth E. Baker, Matthew J. Simpson, and Kevin B. Flores.
+Biologically-informed neural networks guide mechanistic modeling from sparse experimental data.
+_PLoS Computational Biology_, 16(12):e1008462, December 2020. ISSN 1553-734X.
+
+
+12
+
+
+Published as a conference paper at ICLR 2025
+
+
+Gregory Kang Ruey Lau, Apivich Hemachandra, See-Kiong Ng, and Bryan Kian Hsiang Low.
+PINNACLE: PINN Adaptive ColLocation and Experimental points selection. In _Proc. ICLR_, April
+2024a.
+
+
+Gregory Kang Ruey Lau, Wenyang Hu, Liu Diwen, Chen Jizhuo, See-Kiong Ng, and Bryan
+Kian Hsiang Low. Dipper: Diversity in prompts for producing large language model ensembles in reasoning tasks. In _NeurIPS 2024 Workshop on Foundation Model Interventions (MINT)_,
+2024b.
+
+
+Jaehoon Lee, Yasaman Bahri, Roman Novak, Samuel S. Schoenholz, Jeffrey Pennington, and Jascha
+Sohl-Dickstein. Deep Neural Networks as Gaussian Processes. _arXiv_, March 2018.
+
+
+Jaehoon Lee, Lechao Xiao, Samuel S. Schoenholz, Yasaman Bahri, Roman Novak, Jascha SohlDickstein, and Jeffrey Pennington. Wide Neural Networks of Any Depth Evolve as Linear Models
+Under Gradient Descent. _Journal of Statistical Mechanics: Theory and Experiment_, 2019(12):
+124002, December 2019. ISSN 1742-5468.
+
+
+Vincent Lim, Ellen Novoseller, Jeffrey Ichnowski, Huang Huang, and Ken Goldberg. Policy-Based
+Bayesian Experimental Design for Non-Differentiable Implicit Models. _arXiv_, March 2022.
+
+
+Xu Liu, Xiaoya Zhang, Wei Peng, Weien Zhou, and Wen Yao. A novel meta-learning initialization
+method for physics-informed neural networks. _Neural Computing and Applications_, 34:14511 –
+14534, 2021.
+
+
+Quan Long, Marco Scavino, Raúl Tempone, and Suojin Wang. Fast estimation of expected information
+gains for Bayesian experimental designs based on Laplace approximations. _Computer Methods in_
+_Applied Mechanics and Engineering_, 259:24–39, June 2013. ISSN 0045-7825.
+
+
+Quan Long, Mohammad Motamed, and Raúl Tempone. Fast Bayesian optimal experimental design
+for seismic source inversion. _Computer Methods in Applied Mechanics and Engineering_, 291:
+123–145, July 2015. ISSN 0045-7825.
+
+
+Jay I. Myung, Daniel R. Cavagnaro, and Mark A. Pitt. A tutorial on adaptive design optimization.
+_Journal of Mathematical Psychology_, 57(3):53–67, June 2013. ISSN 0022-2496.
+
+
+Quoc Phong Nguyen, Bryan Kian Hsiang Low, and Patrick Jaillet. An information-theoretic framework for unifying active learning problems. In _Proc. AAAI_, pp. 9126–9134, 2021.
+
+
+Alex Nichol, Joshua Achiam, and John Schulman. On First-Order Meta-Learning Algorithms. _arXiv_,
+October 2018. arXiv:1803.02999 [cs].
+
+
+Tom Rainforth, Adam Foster, Desi R. Ivanova, and Freddie Bickford Smith. Modern Bayesian
+Experimental Design. _arXiv_, February 2023.
+
+
+Maziar Raissi, Paris Perdikaris, and George E. Karniadakis. Physics-informed neural networks: A
+deep learning framework for solving forward and inverse problems involving nonlinear partial
+differential equations. _Journal of Computational Physics_, 378:686–707, February 2019. ISSN
+0021-9991.
+
+
+Mohsen Razavy. _An Introduction to Inverse Problems in Physics_ . World Scientific, July 2020. ISBN
+9789811221668 9789811221675.
+
+
+James A. Sethian. A fast marching level set method for monotonically advancing fronts. _Proceedings_
+_of the National Academy of Sciences_, 93(4):1591–1595, February 1996. ISSN 0027-8424, 10916490.
+
+
+Mohammad Afzal Shadab, Dingcheng Luo, Eric Hiatt, Yiran Shen, and Marc Andre Hesse. Investigating steady unconfined groundwater flow using Physics Informed Neural Networks. _Advances in_
+_Water Resources_, 177:104445, July 2023. ISSN 0309-1708.
+
+
+Jonathan D. Smith, Kamyar Azizzadenesheli, and Zachary E. Ross. EikoNet: Solving the Eikonal
+equation with Deep Neural Networks. _IEEE Transactions on Geoscience and Remote Sensing_, 59
+(12):10685–10696, December 2021. ISSN 0196-2892, 1558-0644.
+
+
+13
+
+
+Published as a conference paper at ICLR 2025
+
+
+Masataka Tanaka and Huy Duong Bui (eds.). _Inverse Problems in Engineering Mechanics: IUTAM_
+_Symposium Tokyo, 1992_ . Springer Berlin Heidelberg, Berlin, Heidelberg, 1993. ISBN 978-3-64252441-7 978-3-642-52439-4.
+
+
+John Taylor. _Classical Mechanics_ . Information and Interdisciplinary Subjects Series. University
+Science Books, 2005. ISBN 9781891389221.
+
+
+Aad van der Vaart. _Asymptotic Statistics_ . Asymptotic Statistics. Cambridge University Press, 2000.
+ISBN 9780521784504.
+
+
+Curtis R. Vogel. _Computational Methods for Inverse Problems_ . Society for Industrial and Applied
+Mathematics, January 2002. ISBN 978-0-89871-550-7 978-0-89871-757-0.
+
+
+Umair bin Waheed, Ehsan Haghighat, Tariq Alkhalifah, Chao Song, and Qi Hao. PINNeik: Eikonal
+solution using physics-informed neural networks. _Computers & Geosciences_, 155:104833, October
+2021. ISSN 0098-3004.
+
+
+Sifan Wang, Xinling Yu, and Paris Perdikaris. When and why PINNs fail to train: A neural tangent
+kernel perspective. _Journal of Computational Physics_, 449:110768, January 2022. ISSN 00219991.
+
+
+Malcolm C. A. White, Hongjian Fang, Nori Nakata, and Yehuda Ben-Zion. PyKonal: A Python
+Package for Solving the Eikonal Equation in Spherical and Cartesian Coordinates Using the
+Fast Marching Method. _Seismological Research Letters_, 91(4):2378–2389, June 2020. ISSN
+0895-0695.
+
+
+Chenxi Wu, Min Zhu, Qinyang Tan, Yadhu Kartha, and Lu Lu. A comprehensive study of nonadaptive and residual-based adaptive sampling for physics-informed neural networks. _Computer_
+_Methods in Applied Mechanics and Engineering_, 403:115671, 2023. ISSN 0045-7825.
+
+
+Zhaoxuan Wu, Yao Shu, and Bryan Kian Hsiang Low. DAVINZ: Data Valuation using Deep Neural
+Networks at Initialization. In _Proc. ICML_, pp. 24150–24176, June 2022.
+
+
+Xinyi Xu, Zhaoxuan Wu, Arun Verma, Chuan Sheng Foo, and Bryan Kian Hsiang Low. FAIR: Fair
+collaborative active learning with individual rationality for scientific discovery. In _Proc. AISTATS_,
+2023.
+
+
+14
+
+
+Published as a conference paper at ICLR 2025
+
+
+A R EPRODUCIBILITY S TATEMENT
+
+
+The codes for our implementation, scripts for running experiments and the required dataset are
+attached in the supplementary materials of the paper submission.
+
+
+B N OTATIONS
+
+|Col1|Table 2: List of notations used throughout the paper|Col3|
+|---|---|---|
+|Symbol|Meaning|Example|
+|_D_<br>_B_<br>_X_<br>_∂X_<br>_S_<br>_β_<br>_uβ_<br>ˆ_β_<br>_θ_<br>ˆ_uθ_<br>_L_<br>_L_obs<br>_L_PDE<br>**F**<br>˜_uβi_<br>**O**_X_<br>˜_Y_<br>**I**<br>_α_<br>_αi_<br>_γ_<br>_Xγ_<br>_Sγ_<br>_∇x_<br>_∇_2<br>_x_<br>[_a, b_]|PDE operator<br>Boundary condition operator<br>Input domain<br>Boundary of input domain<br>Set of feasible observation inputs<br>PDE parameter<br>Solution for (1) with PDE parameter_ β_<br>Estimate of PDE parameter from inverse solver<br>NN parameter<br>NN with parameters_ θ_<br>PINN training loss<br>Observation loss for PINN<br>Collocation points loss for PINN<br>Forward simulator<br>PINN, with NN parameter_ θi_, which estimates_ uβi_<br>Observation selector with input_ X_<br>Mock observation output from ˜_uβi_(_X_)<br>Inverse solver<br>ED criterion without inverse ensemble approximation<br>ED criterion computed based on outputs of thread_ i_ of framework<br>Parameterization for observation input<br>Observation input corresponding to parameter_ γ_<br>Set of valid observation input parameterization<br>Derivative or Jacobian w.r.t._ x_<br>Hessian w.r.t._ x_<br>Closed interval between_ a_ and_ b_|(1)<br>(1)<br>(1)<br>(1)<br>(1)<br>(2)<br>(2)<br>(4)<br>(4)<br>(4)<br>(4)<br>(4)<br>(5)<br>(5)<br>(6)<br>(6)<br>(7)<br>(8)<br>(8)<br>(23)<br>(23)<br>(23)|
+
+
+
+C R ELATED W ORKS
+
+
+**Inverse problems.** Inverse problem (IP) (Vogel, 2002; Ghattas & Willcox, 2021) is an commonly
+studied class of problem in many science and engineering disciplines such as classical mechanics
+(Tanaka & Bui, 1993; Gazzola et al., 2018), quantum mechanics (Chadan et al., 1989) or geophysics
+(Smith et al., 2021; Waheed et al., 2021). Many methods of solving IPs have been proposed, often
+involving minimizing the objective as stated in (2), possibly with addition of some regularization
+terms. One such method is by using the Newton-conjugate gradient method (Biegler et al., 2003;
+Ghattas & Willcox, 2021) to optimize the objective as stated in (2). However, the method relies
+on finding the optimal _β_ through gradient update steps, which requires computing the gradient and
+Hessian of the objective function with respect to _β_ . The computation of the gradient and Hessian is
+often done by reformulating the IP (which can be viewed as a constrained optimization problem) to
+instead be based on the Lagrangian, then using adjoint methods to compute the corresponding gradient
+or Hessian (Ghattas & Willcox, 2021). This typically results in gradient and Hessian computations
+requiring only some finite rounds of forward simulations instead. The computed Hessian can often
+also be used in Laplace’s approximation in order to obtain a posterior distribution _p_ ( _β|X, Y_ ) for
+the inverse parameter (Long et al., 2013; Beck et al., 2018; Ghattas & Willcox, 2021). However,
+this method is still restrictive since it may involve careful analysis of the PDE that is involved in
+the IP in order to form the correct Lagrangian and compute the adjoint. Furthermore, one gradient
+computation would require one forward simulation of the system, which is prohibitive if the forward
+simulation step itself is expensive.
+
+
+15
+
+
+Published as a conference paper at ICLR 2025
+
+
+**Physics-informed neural networks.** In recent years, physics-informed neural networks (PINNs)
+have been proposed as another method used to both perform forward simulations of PDE-based
+problems (Raissi et al., 2019) and for solving IPs (Raissi et al., 2019). PINNs solve PDEs by
+parameterizing the PDE solution using a neural network (NN), then finding the NN parameter such
+that the resulting NN obeys the specified PDE and the IC/BCs. This is done so via collocation
+points, which are pseudo-training points for enforcing the PDE and IC/BC soft constraints. PINNs
+are difficult to train in many PDE instances, such as when the solution is known to have higher
+frequencies (Wang et al., 2022). As a result, many works have been proposed in improving the
+trianing of PINNs by rescaling the loss functions of PDEs (Wang et al., 2022), or through more
+careful selection of collocation points (Wu et al., 2023; Lau et al., 2024a).
+
+
+**Experimental design.** Typically, in solving IPs, the observational data will not be available right
+away, but instead has to be measured from some physical system. Due to the costs in making
+measurements of data, it is important that the observations made are carefully chosen to maximize
+the amount of information that can be obtained from the observations. Experimental design (ED)
+is a problem which attempts to find out what the best data to observe in order to gather the most
+information about the unknown quantity of interest (Rainforth et al., 2023). ED is closely related to
+data selection, active learning (Nguyen et al., 2021; Hemachandra et al., 2023; Lau et al., 2024b; Xu
+et al., 2023) and Bayesian optimization (Dai et al., 2023a;b; Chen et al., 2025), where the aim is to
+select input data so that we are able to recover the unknown function or the optimum of the unknown
+function.
+
+
+A certain variant often considered in ED is Bayesian experimental design (BED). In the BED
+framework, we assume a prior _p_ ( _β_ ) on the inverse parameter to compute. For a given design
+parameter _d_, the system observes some output _y_ .
+
+
+_p_ ( _y|β, d_ ) _p_ ( _β_ )
+_p_ ( _β|d, y_ ) = _._ (10)
+E _β∼p_ ( _β_ ) ~~�~~ _p_ ( _y|β, d_ ) ~~�~~
+
+
+Given the inference we can compute the expected information gain (EIG), which is sometimes also
+known as the Bayesian D-optimal criterion. EIG criterion is defined as the expected Kullback-Leibler
+divergence between the prior _p_ ( _β_ ) and the posterior _p_ ( _β|d, y_ ), averaged over the possible observations
+_y_ . More formally, this can be written as
+
+
+EIG( _d_ ) = E _y∼p_ ( _y|d_ ) � _D_ KL � _p_ ( _β|d, y_ ) _∥p_ ( _β_ )�� = H[ _p_ ( _β_ )] _−_ E _y_ _′_ _∼p_ ( _y|d_ ) �H[ _p_ ( _β|d, y_ = _y_ _[′]_ )]� (11)
+
+
+where the posterior is defined in (10). A naive approximation technique is to perform a nested Monte
+Carlo (NMC) approximation (Myung et al., 2013).
+
+
+
+_M_ 1 ~~�~~ _Mj_ =1 _[p]_ [(] _,_ _[y]_ _[i]_ _[|][β]_ _[i,j]_ _[, d]_ [)] (12)
+
+
+
+EIG( _d_ ) _≈_ [1]
+
+_N_
+
+
+
+_N_
+�
+
+
+
+� _i_ =1 log _M_ 1 ~~�~~ _p_ _M_ ( =1 _y_ _i_ _|_ _[p]_ _β_ [(] _i,_ _[y]_ 0 _[i]_ _,_ _[|]_ _d_ _[β]_ )
+
+
+
+where _β_ _i,_ 0 _, β_ _i,_ 1 _, . . ., β_ _i,j_ _∼_ _p_ ( _β_ ) and _y_ _i_ _∼_ _p_ ( _y|β_ _i,_ 0 _, d_ ) . The estimate approaches the true EIG as
+_N, M →∞_ . In practice, however, using the NMC estimator results in a biased estimtor for finite _N_
+and _M_, and results in slow convergence with _N_ and _M_ . To improve on the NMC estimator, various
+schemes have been proposed mainly to remove the need to perform two nested MC rounds, including
+variational methods (Foster et al., 2019) and Laplace approximation methods (Long et al., 2015; Beck
+et al., 2018).
+
+
+D E XAMPLES OF PDE S C ONSIDERED IN T HIS P APER
+
+
+In this section, we provide an extensive list of PDEs which are considered in our experimental
+setup, and the ED setup and dataset used in our experiments. We divide them into PDEs where our
+experiments are based on simulation data (generated either from some closed-form solution or some
+numerical simulators), and PDEs which are based on real data (collected from physical experiments).
+The latter provides an interesting use case for PIED since it is able to demonstrate its performance on
+realistic scenarios with real noisy data.
+
+
+16
+
+
+Published as a conference paper at ICLR 2025
+
+
+D.1 PDE S WITH S IMULATION D ATA
+
+
+**Damped oscillator.** The damped oscillator is one of the introductory second-order ordinary differential equation (ODE) in classical mechanics (Taylor, 2005). We consider the example due to the
+existence of a closed-form solution and its nice interpretation under our ED framework.
+
+
+Imagine a mass-spring system which is laid horizontally. The spring has spring constant _k_ and
+experiences a resistive force which is proportional to its current speed, where the constant of
+proportionality is _µ_ . We let the attached mass have a mass of _M_ . We also assume the case where
+there are no external driving forces on the system. By applying the relevant forces into Newton’s law
+of motion, the displacement of the mass _x_ ( _t_ ) can be expressed by the differential equation
+
+
+
+_M_ _[d]_ [2] _[x]_
+
+
+
+_dt_ [+] _[ kx]_ [ = 0] _[.]_ (13)
+
+
+
+
+_[x]_
+
+_dt_ [2] [+] _[ µdx]_ _dt_
+
+
+
+Given the IC of _x_ (0) = _x_ 0 and _[dx]_ _dt_ [(0) =] _[ v]_ [0] [, we can write the solution as (Taylor, 2005)]
+
+
+
+_Ae_ _[−][γt]_ cos( ~~�~~
+
+
+
+_x_ ( _t_ ) =
+
+
+
+
+
+
+
+_Ae_ _[−][γt]_ cos( ~~�~~ _ω_ 0 [2] _[−]_ _[γ]_ [2] _[t]_ [ +] _[ ϕ]_ [)] if _γ < ω_ 0 _,_
+
+( _Bt_ + _C_ ) _e_ _[−][ω]_ [0] _[t]_ if _γ_ = _ω_ 0 _,_
+
+
+
+_De_ _[−]_ [(] _[γ]_ [+] _[√]_
+
+
+
+_γ_ [2] _−ω_ 0 [2] [)] _[t]_ + _Fe_ _[−]_ [(] _[γ][−]_ _[√]_
+
+
+
+if _γ_ = _ω_ 0 _,_ (14)
+
+_γ_ [2] _−ω_ 0 [2] [)] _[t]_ if _γ > ω_ 0 _,_
+
+
+
+where _γ_ = _µ/_ 2 _M_, _ω_ 0 = ~~�~~ _k/M_, and _A, ϕ, B, C, D, F_ are constants which depends on _x_ 0 and _v_ 0 .
+
+
+In our experiments, we assume we know the system follows the PDE as in (13), with some known
+value of _x_ 0 _∈_ [0 _,_ 1] and _v_ 0 _∈_ [ _−_ 1 _,_ 1] . We set _M_ = 1, and would like to compute the values for
+_µ ∈_ [0 _,_ 4] and _k ∈_ [0 _,_ 4] . In our IP, we are allowed to make three noisy observations at three timesteps
+_t_ 1 _, t_ 2 _, t_ 3 _∈_ [0 _,_ 20], which can be chosen arbitrarily. We note that while it is unrealistic for these
+measurements to be made arbitrarily, we do so in order to be able to construct a simple toy example
+which can be experimented with. The resulting true observation were computed using the closed
+form solution in (14), and has added noise with variance 10 _[−]_ [3] .
+
+
+**Wave equation.** For simplicity, we consider the 1D wave equation, which is given by
+
+
+
+_∂_ [2] _u_
+
+
+
+_∂_ [2] _u_
+
+[=] _[ v]_ [2] _[ ∂]_ [2] _[u]_
+_∂t_ [2] _∂x_ [2]
+
+
+
+(15)
+_∂x_ [2]
+
+
+
+where _v_ represents the speed of wave propagation, which may be a scalar or a function of _x_ . In the
+inevrse problem setup, one may be required to recover the wave velocity _v_ given measurements of
+_u_ ( _x, t_ ).
+
+
+In our experiments, we assume we have a system which follows the wave equation given by (15) over
+the domain _x ∈_ [0 _,_ 6] and _t ∈_ [0 _,_ 6] . We fix the IC _u_ ( _x,_ 0), and assume the wave velocity in the form
+
+
+
+_v_ ( _x_ ) =
+
+
+
+0 _v_ 1 ifif _x_ 0 _< x <_ = 0 _,_ 4 _,_
+ _v_ 2 if 4 _≤_ _x <_ 6 _,_
+
+0 if _x_ = 6 _._
+
+
+
+(16)
+
+
+
+In this case, _v_ 1 _, v_ 2 _∈_ [0 _._ 5 _,_ 2] are the PDE parameters to be recovered in the IP. In the ED problem,
+we restrict the points to be placed only at regular time intervals, i.e., following (25) where we restrict
+_γ_ 1 _, γ_ 2 _, γ_ 3 _∈_ [0 _,_ 6] and let _t ∈{_ 0 _,_ 0 _._ 2 _,_ 0 _._ 4 _, . . .,_ 6 _}_ . The true observations are numerically generated
+using code from Binder (2021), with outputs interpolated on continuous domain and truncated to
+the nearest 6 decimal places to simulate cases where measurements can only be made up to a finite
+precision. Examples of these possible solutions can be found in Fig. 7.
+
+
+**Navier-Stokes equation.** Navier-Stokes equation is a well-studied PDE which describes the dynamics of a fluid. In our experiment, we consider the stream function of an incompressible 2D fluid,
+
+
+17
+
+
+Published as a conference paper at ICLR 2025
+
+
+
+(a) _v_ 1 = 1 _._ 34 _, v_ 2 = 1 _._ 43
+
+
+
+(b) _v_ 1 = 1 _._ 81 _, v_ 2 = 1 _._ 12
+
+
+
+
+
+
+
+(c) _v_ 1 = 0 _._ 61 _, v_ 2 = 1 _._ 45
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure 7: Examples of solutions for wave equation (15) with wavespeed in the form in (16). The blue
+points are example of possible set of observations which are made at fixed timesteps.
+
+
+which can be written as
+
+
+
+_∂u_
+
+_u_ _[∂u]_
+_∂t_ [+] _[ ρ]_ � _∂x_
+
+
+
+2
+_∂_ _u_
+
+[+] _[ ∂]_ [2] _[u]_
+_∂x_ [2] _∂y_ [2]
+
+
+2
+_∂_ _v_ _[∂]_ [2] _[v]_
+
+[+]
+_∂x_ [2] _∂y_ [2]
+
+
+
+_∂u_
+
+
+
+_∂y_
+
+
+
+_∂y_ [2]
+
+
+
+_∂v_
+
+_u_ _[∂v]_
+_∂t_ [+] _[ ρ]_ � _∂x_
+
+
+
+_∂v_
+
+
+
+
+_[∂u]_
+
+_∂x_ [+] _[ v ∂u]_ _∂y_
+
+_[∂v]_ _[∂v]_
+
+_∂x_ [+] _[ v]_ _∂y_
+
+
+
+_,_ (17)
+�
+
+
+_,_ (18)
+�
+
+
+
+_∂y_
+
+
+
+= _−_ _[∂][p]_
+� _∂x_
+
+= _−_ _[∂][p]_
+� _∂y_
+
+
+
+2
+
+_[∂][p]_ _∂_ _u_
+
+_∂x_ [+] _[ µ]_ � _∂x_ [2]
+
+
+2
+
+_[∂][p]_ _∂_ _v_
+
+_∂y_ [+] _[ µ]_ � _∂x_ [2]
+
+
+
+_∂y_ [2]
+
+
+
+_∂u∂x_ [+] _∂y_ _[∂v]_ [= 0] _[.]_ (19)
+
+
+
+In our IP, we consider the steady state flow inside a pipe, where we let _∂_ _t_ _u_ = _∂_ _t_ _v_ = 0 . Then, the
+velocities _u_ ( _x, y_ ) _, v_ ( _x, y_ ) and the pressure _p_ ( _x, y_ ) are only dependent on the 2D spatial coordinates.
+We assume the viscosity _µ_ is given and the goal is to recover the density _ρ_ . In the ED problem, we
+are allowed to freely choose the spatial location to make measurements of _u, v, p_ . The ground truth
+data is simulated using ANSYS Fluent.
+
+
+**Eikonal equation.** Consider the Eikonal problem setup, which is often use to reconstruct material
+composition of some region based on how waves propagated through the medium reacts. Its equation
+relates the wave speed _v_ ( _x_ ) at a point and the wave propagation time _T_ ( _x_ ) at a point with PDE given
+by (Smith et al., 2021)
+
+
+_−_ 1
+_T_ ( _x_ ) = � _∇v_ ( _x_ )� with _T_ ( _x_ 0 ) = 0 (20)
+
+
+where _x_ 0 is where the wave propagates from. The goal of the IP is to recover the true function _v_ .
+However, this involves conducting seismic activities at different set values of _x_ 0, and obtaining the
+corresponding reading for _T_ ( _x_ ) at specified values of _x_ .
+
+
+In our experiments, we assume that we have a system which follows the equation specified in (20),
+and the goal is to recover the values of _v_ ( _x_ ) for the entire domain. We fix _x_ 0, then for each IP
+instance, we draw a random ground truth _v_ ( _x_ ) using a NN with a random initialization. For the
+ED problem, the aim is to find 30 random observations from the 2D input domain [0 _,_ 5] _×_ [0 _,_ 5] to
+observe values of _T_ ( _x_ ) . The observation inputs are only required to be within the input domain.
+The true observations are generated using P Y K ONAL package (White et al., 2020), with outputs
+interpolated on continuous domain and truncated to the nearest 3 decimal places to simulate cases
+where measurements can only be made up to a finite precision
+
+
+D.2 PDE S WITH R EAL D ATA
+
+
+We now describe some of the PDEs we have conducted experiments with where real-life data are
+available for. Note that real-life experimental data is often scarce, and often the true PDE parameters
+are not readily available. To obtain some ground-truth values for the inverse problem, we attempt to
+use the reported values from the corresponding data source when we can. In the case where this is
+not possible, we resort to numerically computing the PDE parameters using the whole training set.
+
+
+18
+
+
+Published as a conference paper at ICLR 2025
+
+
+**Groundwater flow.** In our scenario, we consider the steady-state Dupuit-Boussinesq equation
+(Boussinesq, 1904), which is given by
+
+
+
+_Kh_ _[dh]_
+� _dx_
+
+
+
+_d_
+
+_dx_
+
+
+
+_dx_
+
+
+
+= 0 (21)
+�
+
+
+
+where _K_ is the hydraulic conductivity.
+
+
+In our experiments, we use the data provided in (Shadab et al., 2023), which reports the flow profile
+of some liquid at various flow rates across a cell filled with 2mm beads. In this dataset, we treat the
+hydraulic conductivity _K_ as an unknown quantity we would like to recover in our inverse problem.
+In the ED problem, the algorithms have to choose values of _x_ to make the observations _h_ ( _x_ ).
+
+
+**Cell growth.** Scratch assay experiments can often be modelled via a reaction-diffusion PDE (Jin
+et al., 2016), which can be written as
+
+
+
+_∂ρ_ _∂_ [2] _ρ_
+
+_∂t_ [=] _[ c]_ [1] _∂x_ [2] [+] _[ F]_ [[] _[ρ]_ []] (22)
+
+
+
+where _F_ [ _ρ_ ] is some function of _ρ_ and _c_ 1 is an unknown constant.
+
+
+In our experiments, we use the scratch assay data collected by Jin et al. (2016), whose dynamics have
+also been studied in other subsequent papers Lagergren et al. (2020); Chen et al. (2021). Based on
+Chen et al. (2021), we will let _F_ [ _ρ_ ] = _c_ 2 _ρ_ + _c_ 3 _ρ_ [2] in our case, where _c_ 2 and _c_ 3 are unknown. The data
+is collected at five timesteps every 12 hours for a total of 48 hours. We use the values obtained by
+Chen et al. (2021) as the ground truth values for _c_ 1 _, c_ 2 _, c_ 3 . In our ED problem, the IP with the initial
+population values _ρ_ ( _x, t_ = 0) are given, and the algorithms choose the values of _x_ to query the cell
+population at, where the corresponding values will be provided at each of the other four timesteps.
+
+
+E P ARAMETERIZATION OF I NPUT P OINTS
+
+
+Due to operational constraints, the observation input _X_ often cannot be set arbitrarily, but is instead
+restricted to some feasible set _S ⊂X_ _[M]_ . For example, the observations may be only be possible
+at specific time intervals, or must be placed in certain spatial configurations like a regular grid.
+Hence, unlike existing ED works, we allow for both freely-chosen observation inputs and _constrained_
+_configurations_ which can be parameterized by some design parameter _γ ∈S_ _γ_ _⊂_ R _[d]_ where _d ≤_ _Md_ in .
+Specifically, we consider _S_ of the form
+
+
+_M_
+_S_ = � _X_ _γ_ : _γ ∈S_ _γ_ � where _X_ _γ_ = � _x_ _γ,j_ � _j_ =1 _[.]_ (23)
+
+
+In this form, finding the _X_ which optimizes some criterion is then the same as performing optimization
+on _γ_ instead, which can be seen as a continuous optimization problem.
+
+
+To better illustrate the input points parameterization method, we provide some examples of possible
+methods to constrain the input points and how they be expressed in the appropriate forms. Fig. 8
+graphically demonstrate what some of these observation input constraints may look like.
+
+
+
+(a) Free point placement
+
+
+
+(b) Regular time intervals
+
+
+
+(c) Regular grid (1D)
+
+
+
+Figure 8: Examples of observation input placements.
+
+
+19
+
+
+Published as a conference paper at ICLR 2025
+
+
+**Points placed freely in input space.** In this case, the points can be placed anywhere in _X_ without
+restriction. To parameterize this, we define _d_ = _Md_ in, and define
+
+_X_ _γ_ = �� _γ_ 1 _γ_ 2 _· · · γ_ _d_ in � _,_ � _γ_ _d_ in +1 _γ_ _d_ in +2 _· · · γ_ 2 _d_ in � _, . . .,_ � _γ_ _Md_ in _−d_ in _γ_ _Md_ in _−d_ in +1 _· · · γ_ _Md_ in � [�]
+
+(24)
+
+
+**Points placed at regular time intervals.** In this case, we assume the points are placed at chosen
+spatial locations, and makes measurements at fixed time intervals _t_ 1 _, t_ 2 _, . . ., t_ _f_ . This is realistic in
+the case where the PDE solution evolves over time, and so it makes sense to fix the location of the
+sensor but allow it to make readings throughout the evolution of the system over time. In this case, _γ_
+only needs to encode the spatial location where the sensors should be placed. Specifically, if there is
+one spatial dimension, then the parameterization for the sensors can be chosen as
+
+_X_ _γ_ = �( _x, t_ ) : _x ∈_ � _γ_ 1 _, γ_ 2 _, . . ., γ_ _d_ � and _t ∈_ � _t_ 1 _, t_ 2 _, . . ., t_ _f_ � [�] _._ (25)
+
+
+**Points placed in a regular grid.** In this case, the points are placed in a regular grid at regular
+intervals. This provides one way to add extra constraints for sensor configurations to reduce the
+dimension of the problem. For demonstration, in 1D problems, if we want to allow placement of _s_
+sensors in total, we can let _d_ = 2 and parameterize the sensor placements as
+
+
+
+_X_ _γ_ = _γ_ 1 _, γ_ 1 + _[γ]_ [2] _[ −]_ _[γ]_ [1]
+� _s −_ 2
+
+
+
+
+[2] _[ −]_ _[γ]_ [1] _[γ]_ [2] _[ −]_ _[γ]_ [1]
+
+_s −_ 2 _[, γ]_ [1] [ + 2] _[ ·]_ _s −_ 2
+
+
+
+_s −_ 2 _[, . . ., γ]_ [2]
+
+
+
+_._ (26)
+�
+
+
+
+F F URTHER D ETAILS A BOUT T HE E XPERIMENTAL D ESIGN C RITERION
+
+
+We describe the criteria used further. Note that we adjust the notations to incorporate the parameterization of input as discussed in App. E.
+
+
+F.1 F EW - STEP I NVERSE S OLVER T RAINING C RITERION
+
+
+F.1.1 P SEUDOCODE FOR C RITERION C OMPUTATION
+
+
+**Algorithm 1** Criterion estimation by Few-step Inverse Solver Training
+
+
+1: **function** ˆ _α_ FIST _,i_ ( _X_ _γ_ )
+5:4:2:3: _Yβ_ // Perturbation of NN and estimated PDE parameters _θ_ ¯¯˜ _← ←_ _γ_ _←θβ_ _i_ _u_ ˜ _i_ + + _β_ _i_ _ε_ ( _εX_ _θβ_ where where _γ_ ) _ε ε_ _θβ_ _∼N ∼N_ (0(0 _, σ, σ_ [2][2] ))
+6: // Partial training stage
+7: Initialize ( _θ_ [(0)] _, β_ [(0)] )
+8: **for** _j_ = 1 _, . . ., r_ **do**
+9: // The training may be replaced with other gradient-based methods as well in practice
+10: _θ_ ˆ [(] _[j]_ [)] _←_ _θ_ ˆ [(] _[j][−]_ [1)] _−_ _η∇_ _θ_ _L_ ( _θ_ [(] _[j][−]_ [1)] _,_ _β_ [ˆ] [(] _[j][−]_ [1)] ; _X_ _γ_ _,_ _Y_ [˜] _γ_ )
+11: _β_ [(] _[j]_ [)] _←_ _β_ [(] _[j][−]_ [1)] _−_ _η∇_ _β_ _L_ ( _θ_ [(] _[j][−]_ [1)] _,_ ˆ _β_ [(] _[j][−]_ [1)] ; _X_ _γ_ _,_ ˜ _Y_ _γ_ )
+
+12: **return** _−∥β_ [ˆ] [(] _[r]_ [)] _−_ _β_ _i_ _∥_ [2]
+
+
+Furthermore, a large value of _r_ can also make the criterion not differentiable in practice due to the
+need to perform back-propagation over the gradient descent update steps. Fortunately, we find that in
+our experiments, using _r ≤_ 200 is usually sufficient given the correct perturbation noise level is set.
+
+
+F.2 M ODEL T RAINING E STIMATE C RITERION
+
+
+F.2.1 A SSUMPTIONS AND P ROOF OF (9)
+
+
+In this section, we describe the approximation of training dynamics used in Model Training Estimate,
+which relies on approximation of NN training using NTKs (Jacot et al., 2018) and has been used
+
+
+20
+
+
+Published as a conference paper at ICLR 2025
+
+
+extensively in various active learning and data valuation methods (Wu et al., 2022; Hemachandra
+et al., 2023; Lau et al., 2024a).
+
+
+We consider PINNs in the linearized regime to demonstrate the validity of the approximation given in
+(9). The results will be an extension from that given in (Lee et al., 2019), and is an assumption that
+has been used in past PINN works (Lau et al., 2024a). For convenience, we will drop the subscript
+and write the learnable PDE parameter as _β_ [ˆ] and the NN parameters as _θ_ .
+
+
+We first recall the assumptions for the linearized regime of NNs. Following past works on the NTK
+for NNs (Jacot et al., 2018; Lee et al., 2019) and PINNs (Lau et al., 2024a), we assume that
+
+
+_u_ ˆ _θ_ ( _x_ ) _≈_ _u_ ˆ _θ_ (0) ( _x_ ) + _J_ _γ,θ_ [(0)] [(] _[θ][ −]_ _[θ]_ [(0)] [)] (27)
+
+
+and
+
+
+
+_β_ ˆ _−_ _β_ ˆ (0)
+_D_ [ˆ _u_ _θ_ _,_ _β_ [ˆ] ]( _x_ ) _≈D_ [ˆ _u_ _θ_ (0) _,_ _β_ [ˆ] [(0)] ]( _x_ ) + � _J_ _p,_ [(0)] _β_ [ˆ] _J_ _p,θ_ [(0)] � [�] _θ −_ _θ_ [(0)]
+
+
+
+_._ (28)
+�
+
+
+
+We briefly discuss the consequences of this approximation. The linearized regime only holds when
+the learned parameters are similar to the initial parameters, which based on past works will hold
+when the NN is wide enough or when the NN is near convergence. This is unlikely to hold in the real
+training of PINNs, except in the case where the initialized parameters are already close to the true
+converged parameters anyway. Nonetheless, in our work, we do not use the assumptions to make
+actual predictions on the PDE parameters in the IP, however only use it to predict the direction of
+descent for _γ_, which would only use the local values anyway. Furthermore, we can also perform some
+pre-training in order to get closer to the converged parameters first as well to make the assumptions
+more valid.
+
+
+Let _β_ [ˆ] [(] _[t]_ [)] and _θ_ [(] _[t]_ [)] be the learned PDE parameter and NN parameter respectively at step _t_ of the
+GD training. We will write _J_ _γ,θ_ [(] _[t]_ [)] [=] _[ ∇]_ _[θ]_ _[u]_ [ˆ] _[θ]_ [(] _[t]_ [)] [(] _[X]_ _[γ]_ [)] [,] _[ J]_ _p,θ_ [(] _[t]_ [)] [=] _[ ∇]_ _[θ]_ _[D]_ [[ˆ] _[u]_ _[θ]_ [(] _[t]_ [)] _[,]_ [ ˆ] _[β]_ [(] _[t]_ [)] [](] _[X]_ _[p]_ [)] [, and] _[ J]_ _p,_ [(] _[t]_ _β_ [)][ˆ] [=]
+
+_∇_ _β_ _D_ [ˆ _u_ _θ_ ( _t_ ) _,_ _β_ [ˆ] [(] _[t]_ [)] ]( _X_ _p_ ) (note that _∇_ _β_ _u_ ˆ _θ_ ( _t_ ) ( _X_ _γ_ ) = 0). We can then write the GD training step as
+
+
+
+_∂_
+
+_∂t_
+
+
+
+_β_ ˆ ( _t_ ) = _−η_ _∇_ _β_ _L_ ( _θ_ [(] _[t]_ [)] _,_ _β_ [ˆ] [(] _[t]_ [)] ; _X_ _γ_ _, Y_ ) (29)
+� _θ_ [(] _[t]_ [)] � � _∇_ _θ_ _L_ ( _θ_ [(] _[t]_ [)] _,_ _β_ [ˆ] [(] _[t]_ [)] ; _X_ _γ_ _, Y_ )�
+
+
+
+�
+
+
+
+= _−η_
+
+
+
+0 _J_ [(] _[t]_ [)]
+_p,β_
+_J_ [(] _[t]_ [)] _J_ [(] _[t]_ [)]
+� _γ,θ_ _p,θ_
+
+
+
+_u_ ˆ _θ_ ( _t_ ) ( _X_ _γ_ ) _−_ _Y_ [˜] _γ_ _._ (30)
+� _D_ [ˆ _u_ _θ_ ( _t_ ) _,_ _β_ [ˆ] [(] _[t]_ [)] ]( _X_ _p_ ) _−_ _f_ ( _X_ _p_ )�
+
+
+
+~~�~~ �� ~~�~~
+
+_J_ _γ_ [(] _[t]_ [)]
+
+
+Under the linearized regime, we can see that, _J_ _γ,θ_ [(] _[t]_ [)] _[≈]_ _[J]_ _γ,θ_ [(0)] [,] _[ J]_ _p,_ [(] _[t]_ _β_ [)][ˆ] _[≈]_ _[J]_ _p,_ [(0)] _β_ [ˆ] [and] _[ J]_ _p,θ_ [(] _[t]_ [)] _[≈]_ _[J]_ _p,θ_ [(0)] [. We can use]
+these approximations to obtain
+
+
+
+(31)
+�
+
+
+
+_β_ ˆ ( _t_ )
+� _θ_ [(] _[t]_ [)]
+
+
+
+_∂_
+
+_∂t_
+
+
+
+_β_ ˆ ( _t_ ) _−_ _β_ ˆ (0)
+� _θ_ [(] _[t]_ [)] _−_ _θ_ [(0)]
+
+
+
+= _[∂]_
+� _∂t_
+
+
+
+� = _[∂]_
+
+
+
+_≈−ηJ_ _γ_ [(0)] _J_ _γ_ [(0)] _⊤_ [�] _βθ_ [ˆ] [(][(] _[t][t]_ [)][)] _−−_ _βθ_ [ˆ] [(0)][(0)] � _−_ _ηJ_ _γ_ [(0)]
+
+
+
+_u_ ˆ _θ_ (0) ( _X_ _γ_ ) _−_ _Y_ [˜] _γ_ (32)
+� _D_ [ˆ _u_ _θ_ (0) _,_ _β_ [ˆ] [(0)] ]( _X_ _p_ ) _−_ _f_ ( _X_ _p_ )�
+
+
+
+which can be solved to give
+� _βθ_ ˆ ( [(] _t_ _[t]_ ) [)] _−−_ _βθ_ ˆ [(0)] (0) � = _−J_ _γ_ [(0)] _⊤_
+
+
+
+_θ_ [(] _[t]_ [)] _−_ _θ_ [(0)]
+
+
+
+� = _−J_ _γ_ [(0)] _⊤_ ( _J_ _γ_ (0) _J_ _γ_ [(0)] _⊤_ ) _−_ 1 [�] _I −_ _e_ _[−][η][J]_ [ (0)] _γ_ _J_ _γ_ [(0)] _⊤_ _t_ � [�] _D_ [ˆ _u_ _θ_ (0) _u_ ˆ _,_ _θ_ _β_ (0) [ˆ] [(0)] ( _X_ ]( _γ_ _X_ ) _−_ _p_ ) _−Y_ [˜] _γ_ _f_ ( _X_ _p_ )
+
+
+
+_._
+�
+
+
+
+(33)
+At convergence, i.e., when _t →∞_, we can reduce the results for _β_ [ˆ] [(] _[∞]_ [)] _−_ _β_ [ˆ] [(0)] as
+
+
+
+( _J_ _γ_ [(0)] _J_ _γ_ [(0)] _⊤_ ) _−_ 1 � _D_ [ˆ _u_ _θ_ (0) _u_ ˆ _,_ _θ_ _β_ (0) [ˆ] [(0)] ( _X_ ]( _γ_ _X_ ) _−_ _p_ ) _−Y_ [˜] _γ_ _f_ ( _X_ _p_ )� (34)
+
+
+21
+
+
+
+ˆ ˆ
+_β_ [(] _[∞]_ [)] _−_ _β_ [(0)] _≈_
+
+
+as claimed in (9).
+
+
+
+0
+
+
+_J_ [(0)]
+
+� _p,β_
+
+
+
+_⊤_
+
+
+
+�
+
+
+Published as a conference paper at ICLR 2025
+
+
+F.2.2 P SEUDOCODE F OR C RITERION C OMPUTATION
+
+
+**Algorithm 2** Criterion estimation by Model Training Estimate
+
+2:1: **function** _Y_ ˜ _γ_ _←_ ˆ _αu_ ˜ M _β_ O _i_ TE ( _X_ _,iγ_ () _γ_ )
+3: **if** reuse forward PINN parameters **then**
+4: _θ_ ˆ [(] _[j]_ [)] _←_ perturbed version of forward PINN parameters
+5: _β_ [(] _[j]_ [)] _←_ perturbed version of _β_ _i_
+6: **else**
+7: Initialize ( _θ_ [(0)] _, β_ [(0)] ) _▷_ Can set _θ_ [(0)] to _θ_ SI as well
+8: **for** _j_ = 1 _, . . ., r_ **do**
+9: // The training may be replaced with other gradient-based methods as well in practice
+10: _θ_ ˆ [(] _[j]_ [)] _←_ _θ_ ˆ [(] _[j][−]_ [1)] _−_ _η∇_ _θ_ _L_ ( _θ_ [(] _[j][−]_ [1)] _,_ _β_ [ˆ] [(] _[j][−]_ [1)] ; _X_ _γ_ _,_ _Y_ [˜] _γ_ )
+11: _β_ [(] _[j]_ [)] _←_ _β_ [(] _[j][−]_ [1)] _−_ _η∇_ _β_ _L_ ( _θ_ [(] _[j][−]_ [1)] _,_ ˆ _β_ [(] _[j][−]_ [1)] ; _X_ _γ_ _,_ ˜ _Y_ _γ_ )
+
+12: // To prevent backpropagation over the GD training
+13: Set _∇_ _γ_ _θ_ [(] _[r]_ [)] = 0 and _∇_ _γ_ _β_ [ˆ] [(] _[r]_ [)] = 0
+
+
+14: Perform estimation
+
+
+
+ˆ
+_β_ [(] _[∞]_ [)] = ˆ _β_ [(] _[r]_ [)] _−_
+
+
+
+0
+
+
+_J_ [(] _[r]_ [)]
+
+� _p,β_
+
+
+
+_⊤_
+
+
+
+�
+
+
+
+( _J_ _γ_ [(] _[r]_ [)] _J_ _γ_ [(] _[r]_ [)] _⊤_ ) _−_ 1 � _D_ [ˆ _u_ _θ_ ( _r_ _u_ ˆ ) _,_ _θ_ ( _β_ [ˆ] _r_ ) [(] _[r]_ ( [)] _X_ ]( _γ_ _X_ ) _−_ _p_ ) _−Y_ [˜] _γ_ _f_ ( _X_ _p_ )� (35)
+
+
+
+15: **return** _−∥β_ [ˆ] [(] _[∞]_ [)] _−_ _β_ _i_ _∥_ [2]
+
+
+Note that in Line 13 of Alg. 2, we set the gradients _∇_ _γ_ _θ_ [(] _[r]_ [)] and _∇_ _γ_ _β_ [ˆ] [(] _[r]_ [)] to zero. This is done since
+when implementing the function, it will be possible to write _θ_ [(] _[r]_ [)] and _β_ [ˆ] [(] _[r]_ [)] as explicit functions in
+terms of _θ_, meaning that when performing back-propagation over the Model Training Estimate
+criteria, it will also consider these derivatives as well. This can cause memory issues due to the
+need of back-propagating over many GD steps. Therefore, by explicitly stating that the gradient is
+zero, it avoids problems during the back-propagation phase. In practice, this can be done via the
+stop_gradient function on J AX, for example.
+
+
+A speedup that can be applied on MoTE is to instead of performing initial pretraining to obtain the
+eNTK, we could reuse the NN parameters from the forward PINN in order to compute the eNTK
+instead. We find that this trick is useful since it gives performance almost as good as performing
+initial training in each criterion computation, while being more efficient since no additional training
+needs to be done.
+
+
+F.3 T OLERABLE I NVERSE P ARAMETER C RITERION
+
+
+F.3.1 M OTIVATION
+
+
+To demonstrate the flexibility of PIED, we present another possible method which aims to find the
+optimal _X_ in (8) without approximating _β_ [ˆ] _i_, by taking the opposite approach of choosing _X_ to query
+noisy observations that would have the least harmful impact when training an inverse PINN already
+initialized with the right _β_ [ˆ] _i_ . Intuitively, given an inverse PINN already trained to the correct PDE
+parameter _β_ [ˆ] _i_ = _β_ _i_, a bad choice of _X_ would possibly cause the PDE parameter to drift to other
+incorrect _β_ [ˆ] _[′]_ with further training, while a good choice would retain the correct _β_ [ˆ] _i_ .
+
+
+Specifically, during inverse PINN training, the observational data ( _X,_ _Y_ [˜] _i_ ) influences the loss in (4)
+explicitly through _L_ obs, though also implictly through _L_ PDE . To see this, note that ( _X,_ _Y_ [˜] _i_ ) changes
+_L_ obs during training, which adjusts NN parameters _θ_ _i_ via gradient descent optimization, including
+potentially drifting _β_ [ˆ] _i_ to a nearby value _β_ [ˆ] _[′]_ . We could approximate how this shift from _β_ [ˆ] _i_ to _β_ [ˆ] _[′]_
+
+changes the NN parameters from _θ_ _i_ to _θ_ [˜] _i_ as _L_ PDE ( _θ_ [˜] _i_ ( _β_ _[′]_ ) _, β_ _[′]_ ) is minimized as
+
+
+˜ _−_ 1
+_θ_ _i_ ( _β_ _[′]_ ) _≈_ _θ_ _i_ _−_ � _∇_ [2] _θ_ _[L]_ [PDE] [(] _[θ]_ _[i]_ _[, β]_ _[i]_ [)] � � _∇_ _θ_ _L_ PDE ( _θ_ _i_ _, β_ _[′]_ ) _−∇_ _θ_ _L_ PDE ( _θ_ _i_ _, β_ _i_ )� _,_ (36)
+
+
+22
+
+
+Published as a conference paper at ICLR 2025
+
+
+giving us an approximation of the overall impact of ( _X,_ _Y_ [˜] _i_ ) on (4) via _L_ obs ( _θ_ [˜] _i_ ( _β_ _[′]_ ); _X,_ _Y_ [˜] _i_ ), given by
+
+
+_ℓ_ _X,i_ ( _β_ _[′]_ ) ≜ _L_ obs � _θ_ ˜ _i_ ( _β_ _′_ ); _X,_ ˜ _Y_ _i_ � = _∥u_ ˆ _θ_ ˜ _i_ ( _β_ _′_ ) ( _X_ ) _−_ _Y_ [˜] _i_ _∥_ [2] _._ (37)
+
+
+Given a choice of _X_ and its observation values _Y_ [˜] _i_, we could characterize how likely the inverse solver
+would remain at _β_ _i_ or drift to a neighbouring _β_ _[′]_ after training by considering the Hessian of _ℓ_ _X,i_ ( _β_ ) –
+a “larger” Hessian means a lower chance that _β_ [ˆ] _i_ will change as the inverse solver undergoes training
+to minimize loss, since it is harder for the gradient-based training to “leave” the narrow range of _β_ .
+Hence, to optimize for _X_ we could maximize the criterion
+
+_α_ ˆ TIP _,i_ ( _X_ ) = log det _∇_ [2] _β_ _[′]_ _[ ℓ]_ _[X,i]_ [(] _[β]_ _[i]_ [)] _[.]_ (38)
+
+
+F.3.2 A SSUMPTIONS AND R OUGH P ROOF OF (36)
+
+
+We demonstrate the validity of (36), which is adapted from the proof in van der Vaart (2000). For
+convenience, we will drop the subscript and consider the NN parameters _θ_ and PDE parameters _β_ .
+
+
+Suppose we fix a _β_, and let _θ_ = arg min _θ_ _′_ _L_ PDE ( _θ_ _[′]_ _, β_ ) . Since ( _θ, β_ ) is a minima of _L_ PDE, we can see
+that _∇_ _θ_ _L_ PDE ( _θ, β_ ) = 0.
+
+
+Let _θ_ [˜] ( _β_ _[′]_ ) = arg min _θ_ _′_ _L_ PDE ( _θ_ _[′]_ _, β_ _[′]_ ). Our goal is to approximate _θ_ [˜] ( _β_ _[′]_ ) when _β_ _[′]_ _≈_ _β_ .
+
+
+Let ∆ _L_ PDE ( _θ_ _[′]_ _, β_ _[′]_ ) = _L_ PDE ( _θ_ _[′]_ _, β_ _[′]_ ) _−L_ PDE ( _θ_ _[′]_ _, β_ _[′]_ ) and ∆ _θ_ [˜] ( _β_ _[′]_ ) = _θ_ [˜] ( _β_ _[′]_ ) _−_ _θ_ [˜] ( _β_ ) = _θ_ [˜] ( _β_ _[′]_ ) _−_ _θ_ . We can
+use this to write
+
+
+_∇_ _θ_ _L_ PDE ( _θ_ [˜] ( _β_ _[′]_ ) _, β_ _[′]_ ) = _∇_ _θ_ _L_ PDE ( _θ_ + ∆ _θ_ [˜] ( _β_ _[′]_ ) _, β_ _[′]_ ) (39)
+
+_≈∇_ _θ_ _L_ PDE ( _θ, β_ _[′]_ ) + � _∇_ [2] _θ_ _[L]_ [PDE] [(] _[θ, β]_ _[′]_ [)] �∆ _θ_ [˜] ( _β_ _[′]_ ) (40)
+
+= _∇_ _θ_ _L_ PDE ( _θ, β_ ) + ∆ _L_ PDE ( _θ, β_ _[′]_ ) + � _∇_ [2] _θ_ _[L]_ [PDE] [(] _[θ, β]_ _[′]_ [)] �∆ _θ_ [˜] ( _β_ _[′]_ ) (41)
+
+= ∆ _L_ PDE ( _θ, β_ _[′]_ ) + � _∇_ [2] _θ_ _[L]_ [PDE] [(] _[θ, β]_ _[′]_ [)] �∆ _θ_ [˜] ( _β_ _[′]_ ) (42)
+
+where (40) arises from performing Taylor expansion on _∇_ _θ_ _L_ PDE ( _θ_ [˜] ( _β_ _[′]_ ) _, β_ _[′]_ ) around _θ_ .
+
+
+Since ( _θ_ [˜] ( _β_ _[′]_ ) _, β_ _[′]_ ) is a minima of _L_ PDE, we know that _∇_ _θ_ _L_ PDE ( _θ_ [˜] ( _β_ _[′]_ ) _, β_ _[′]_ ) = 0, and therefore we can
+solve for ∆ _θ_ [˜] ( _β_ _[′]_ ) to obtain
+
+∆ _θ_ [˜] ( _β_ _[′]_ ) _≈−_ � _∇_ [2] _θ_ _[L]_ [PDE] [(] _[θ, β]_ _[′]_ [)] � _−_ 1 ∆ _L_ PDE ( _θ, β_ _′_ ) (43)
+
+
+which can be rewritten to match the form in (36).
+
+
+Some readers may question whether (36) is valid for NNs where the learned NN parameter may not
+be a global minima. We note that despite this, we are only interested in the curvature around a minima
+anyway, and so we can still inspect the change of that minima as the loss function changes regardless.
+Furthermore, this technique has been used for NNs in other applications as well, one notable instance
+being the influence function (Koh & Liang, 2017) which aims to study how the test performance of
+supervised learning tasks changes as certain training examples are upweighed. In the paper, they
+are able to design a scoring function based on the same mathematical tool and successfully interpret
+performances of NNs. In our work, we find that despite the assumptions on the global minima is not
+met, we are still able to achieve good empirical results as well.
+
+
+F.3.3 C HOICE OF L OSS F UNCTION U SED IN (36)
+
+
+Note that in (36), we compute the Hessian w.r.t. the forward PINN loss. Some readers may wonder
+why the overall PINN loss from (4) is not used instead.
+
+
+This choice is due to two main reasons. First, it is more computationally efficient. Notice that the
+change in NN parameter in (36) depends on _L_ PDE, and therefore are independent of the observations
+and hence independent of the design parameters _γ_ . This leads to the optimizing of the final criterion to
+not require differentiating (36) with respect to _γ_, reducing the computational load during optimization.
+We find that doing so does not cause significant effect in the obtained design parameter _γ_ _[∗]_ .
+
+
+Second, this matches more closely to the inverse problem setup as described in Sec. 2. In the IP
+as described, the objective (2) is usually to find the _β_ whose output matches that of _Y_ . In TIP, the
+
+
+23
+
+
+Published as a conference paper at ICLR 2025
+
+
+tolerable parameters is the Hessian based on the objective (37), which can also be interpreted in a
+similar way as (2). Furthermore, through this interpretation, TIP also exhibits a stronger connection
+to Bayesian methods, as discussed in App. F.3.4.
+
+
+F.3.4 B AYESIAN I NTERPRETATION OF TIP
+
+
+Interestingly, TIP can be seen as the application of the Laplace approximation on the posterior
+distribution of _β_ after observing data ( _X_ _γ_ _, Y_ ), assuming a uniform prior and Gaussian observation
+noise, and view the criterion score ˆ _α_ TIP _,i_ as the information gain of _β_ [ˆ] _i_ given observational data
+( _X_ _γ_ _,_ _Y_ [˜] _γ,i_ ) . Assume that the observed data is generated from the true underlying function with added
+Gaussian noise. Then, the likelihood function can be written as
+
+
+
+_p_ ( _Y |β, X_ _γ_ ) = _N_ ( _Y |u_ _β_ ( _X_ _γ_ ) _, σ_ [2] _I_ ) =
+
+
+
+_M_
+� _N_ ( _y_ _j_ _|u_ _β_ ( _x_ _γ,j_ ) _, σ_ [2] ) _._ (44)
+
+_j_ =1
+
+
+
+If we assume a uniform prior over _B_ (i.e., assume _p_ ( _β_ ) = _c_ for some constant _c_ ), then it is simple
+to show that _p_ ( _β|X_ _γ_ _, Y_ ) = _p_ ( _Y |β, X_ _γ_ ) _/p_ ( _Y |X_ _γ_ ), where _p_ ( _Y |X_ _γ_ ) can be treated as a constant. In
+this case, we can write the log posterior as
+
+
+
+�
+
+
+
+log _p_ ( _β|X_ _γ_ _, Y_ ) =
+
+
+=
+
+
+
+_N_
+�
+� _j_ =1
+
+
+
+_N_
+�
+
+_j_ =1
+
+
+
+� log _N_ ( _y_ _j_ _|u_ _β_ ( _x_ _γ,j_ ) _, σ_ [2] )
+
+_j_ =1
+
+
+
+2 _π_ _[−]_ [(] _[u]_ _[β]_ [(] _[x]_ _[γ,j]_ 2 _σ_ [)] [2] _[ −]_ _[y]_ _[j]_ [)] [2]
+
+
+
+_−_ log _p_ ( _Y |X_ _γ_ ) (45)
+
+
+
+1
+
+_σ_ ~~_√_~~
+�
+
+
+
+�
+
+
+
+2 _σ_ [2]
+
+
+
+_−_ log _p_ ( _Y |X_ _γ_ ) (46)
+
+
+
+
+_[∥]_ [2]
+= _−_ _[∥][u]_ _[β]_ [(] _[X]_ _[γ]_ [)] _[ −]_ _[Y]_ + constant _._ (47)
+
+2 _σ_ [2]
+
+
+
+To make (47) tractable, we can apply Laplace’s approximation on the posterior. To do so, we perform
+a Taylor expansion on log _p_ ( _β|X_ _γ_ _, Y_ ) around the MAP of the distribution. In this case, we would
+
+expect the MAP to be at the true PDE parameter _β_ 0, where _∂β_ _[∂]_ [log] _[ p]_ [(] _[β][|][X]_ _[γ]_ _[, Y]_ [ ) = 0] [. Once expanded,]
+
+this would give
+
+
+log _p_ ( _β|X_ _γ_ _, Y_ ) _≈_ log _p_ ( _β_ 0 _|X_ _γ_ _, Y_ ) + ( _β −_ _β_ 0 ) _[⊤]_ _∇_ [2] _β_ [log] _[ p]_ [(] _[β]_ [0] _[|][X]_ _[γ]_ _[, Y]_ [ )] ( _β −_ _β_ 0 ) (48)
+� �
+
+
+
+= log _p_ ( _β_ 0 _|X_ _γ_ _, Y_ ) _−_ 2 _σ_ 1 [2] [(] _[β][ −]_ _[β]_ [0] [)] _[⊤]_ � _∇_ [2] _β_ _∥u_ _β_ 0 ( _X_ 2 _γ_ _σ_ ) [2] _−_ _Y_ _∥_ [2]
+
+
+Note that this can also be written as
+
+
+
+( _β −_ _β_ 0 ) _._ (49)
+�
+
+
+
+( _β −_ _β_ 0 )
+� �
+
+
+
+_p_ ( _β|X_ _γ_ _, Y_ ) _≈_ _p_ ( _β_ 0 _|X_ _γ_ _, Y_ ) exp
+
+
+
+�
+
+
+
+_−_ ( _β −_ _β_ 0 ) _[⊤]_ � _∇_ [2] _β_ _∥u_ _β_ 0 ( _X_ 2 _γ_ _σ_ ) [2] _−_ _Y_ _∥_ [2]
+
+
+
+(50)
+
+
+
+which confirms that the Taylor expansion approximates the posterior distribution as a Gaussian
+
+distribution with mean _µ_ Laplace = _β_ 0 and covariance matrix Σ Laplace = _∇_ [2] _β_ _∥u_ _β_ 0 ( _X_ 2 _γ_ _σ_ ) [2] _−_ _Y_ _∥_ [2] . Since
+
+the posterior is approximated as a multivariate Gaussian distribution, it is simple to approximate the
+entropy of _β_ as distributed by _p_ ( _β|X_ _γ_ _, Y_ ) using the entropy of multivariate Gaussian distribution as
+
+
+
+
+[1]
+
+2 [log det Σ] [Laplace] [ +] _[ M]_ 2
+
+
+
+H[ _β|X_ _γ_ _, Y_ ] _≈_ [1]
+
+
+
+(51)
+2 [log 2] _[πe]_
+
+
+
+= [1] _β_ _[∥][u]_ _[β]_ 0 [(] _[X]_ _[γ]_ [)] _[ −]_ _[Y][ ∥]_ [2] [ +][ constant] _[.]_ (52)
+
+2 [log det] _[ ∇]_ [2]
+
+
+
+Finally, from (11), we can approximate the EIG as
+
+EIG( _γ_ ) = _−_ E _Y_ _′_ _∼p_ ( _Y |X_ _γ_ ) �H[ _β|X_ _γ_ _, Y_ = _Y_ _[′]_ ]� (53)
+
+= H[ _β_ ] _−_ E _β_ 0 _∼p_ ( _β_ ) _,Y_ _′_ _∼p_ ( _Y |β_ 0 _,X_ _γ_ ) �H[ _β|X_ _γ_ _, Y_ = _Y_ _[′]_ ]� (54)
+
+
+
+_≈_ H[ _β_ ] _−_ [1]
+
+2 [E] _[β]_ [0] _[∼][p]_ [(] _[β]_ [)] _[,Y]_ _[ ′]_ _[∼][p]_ [(] _[Y][ |][β]_ [0] _[,X]_ _[γ]_ [)]
+
+
+
+log det _∇_ [2] _β_ _[∥][u]_ _[β]_ 0 [(] _[X]_ _[γ]_ [)] _[ −]_ _[Y]_ _[ ′]_ _[∥]_ [2] + constant (55)
+� �
+
+
+24
+
+
+Published as a conference paper at ICLR 2025
+
+
+where (55) uses the approximation of entropy in (52). Note that H[ _β_ ] is a constant independent of _γ_
+and therefore can be ignored.
+
+
+Note that in the derivation so far, we have assumed that we are able to compute the PDE solution _u_ _β_
+_and_ be able to compute how the solution output changes w.r.t. _β_ . This, fortunately, is made possible
+using PINNs. Specifically, in the likelihood distribution _p_ ( _Y |β, X_ _γ_ ) from (44) and as sampled from
+in the expectation in (55), we can replace the _u_ _β_ with a NN ˆ _u_ _θ_ ˜( _β_ ) with parameter _θ_ [˜] ( _β_ ) as defined
+in (36). Similarly, inside the expectation term of (55), we can replace _u_ _β_ 0 ( _X_ _γ_ ) with ˆ _u_ _θ_ ˜( _β_ 0 ), and _Y_ _[′]_
+
+with a noisy reading of ˆ _u_ _θ_ ˜( _β_ 0 ) . Ultimately, ignoring additive constants, this gives
+
+
+
+EIG( _γ_ ) _≈−_ [1]
+
+2 [E] _[β]_ [0] _[∼][p]_ [(] _[β]_ [)] _[,ε][∼N]_ [(] _[ε][|]_ [0] _[,σ]_ [2] _[I]_ [)]
+
+
+
+�
+
+
+
+log det _∇_ [2] _β_ � _∥u_ ˆ _θ_ ˜( _β_ ) ( _X_ _γ_ ) _−_ _u_ ˆ _θ_ ˜( _β_ 0 ) ( _X_ _γ_ ) + _ε∥_ [2] [�]
+
+
+
+_β_ = _β_ 0
+
+
+
+(56)
+
+
+
+�
+
+
+
+For simplicity, we can ignore the additive Gaussian noise in the approximation of _Y_, i.e., ignore the _ε_
+term, and the term inside the expectation is the same as that in (38).
+
+
+This analysis links TIP to some existing ED methods for IPs based on Laplace’s approximation
+(Beck et al., 2018; Alexanderian et al., 2024). Despite these links, our method remains novel in that
+through the use of PINNs, we can consider the Hessian of the PDE solution directly, allowing the
+resulting criterion to be differentiable w.r.t. _γ_ . This is unlike past works which often require more
+careful analysis of the specific PDE involved, and relies on discretized simulations (and therefore are
+not differentiable w.r.t. the input points). We note that while previous works have proposed the use
+of the Hessian of the learned inverse posterior distribution (Beck et al., 2018; Alexanderian et al.,
+2024), our method is novel in that it considers the Hessian (and hence the sensitivity) of the PDE
+solution directly, rather than of a posterior distribution. This is due to the usage of PINNs and its
+differentiability in the ED process directly, which has not been done in past works.
+
+
+We comment about the assumptions required to arrive at the approximation in (56).
+
+
+    - We assume that the data is generated with random Gaussian noise. This is a standard
+assumption as done in other IP and ED methods in the literature.
+
+    - We assume that the posterior distribution is unimodal. Note that this assumption does
+not always hold. One example where this assumption does not hold would be in the case
+where multiple values of _β_ may represent the same PDE parameter (e.g., _β_ represents NN
+parameterization of an inverse function). In our experiments, we find that the performance of
+the method remains good regardless. Furthermore, we believe that the issue can be mitigated
+by considering the problem under some embedding space _ϕ_ ( _β_ ) where two embeddings are
+similar when their parameterizations represent similar functions. This is likely possible by
+adjusting our criterion to incorporate _ϕ_ through Lagrange inversion theorem, however we
+will defer this point to a future work.
+Another case where this assumption may not hold is when there are some degeneracy in the
+inverse problem solution. In this case, the problem cannot be alleviated anyway unless more
+observations data are acquired (a simple way to think about this is when there is only one
+observation reading is allowed, and therefore a good PDE parameter solution will not be
+obtainable regardless of the ED method).
+
+    - We assume that the unimodal distribution is maximal at _β_ 0 . Given that the distribution is
+unimodal, this point would likely hold since the pseudo-observation from the NN is already
+obtained from using PDE parameter of _β_ 0 .
+
+
+F.3.5 A PPROXIMATION OF H ESSIAN IN (36)
+
+
+Instead of computing the Hessian of _L_ PDE directly, we can also employ a trick which avoids computing
+the Hessian directly, but instead approximates the Hessian based on the first-order derivatives.
+
+
+Suppose we define
+
+_R_ ( _θ, β_ ) = _|X_ _p_ _|_ _[−]_ [1] _[/]_ [2] [�] _D_ [ˆ _u_ _θ_ _, β_ ]( _X_ _p_ ) _−_ _f_ ( _X_ _p_ )� _._ (57)
+� _|X_ _b_ _|_ _[−]_ [1] _[/]_ [2] [�] _B_ [ˆ _u_ _θ_ _, β_ ]( _X_ _b_ ) _−_ _g_ ( _X_ _b_ )� �
+
+
+We can see that
+_L_ PDE ( _θ, β_ ) = [1] (58)
+
+2 _[R]_ [(] _[θ, β]_ [)] _[⊤]_ _[R]_ [(] _[θ, β]_ [)] _[.]_
+
+
+25
+
+
+Published as a conference paper at ICLR 2025
+
+
+We can then write
+
+
+_∇_ _θ_ _L_ PDE ( _θ, β_ ) = _∇_ _θ_ _R_ ( _θ, β_ ) _[⊤]_ _R_ ( _θ, β_ ) (59)
+
+
+and
+
+
+_∇_ [2] _θ_ _[L]_ [PDE] [(] _[θ, β]_ [) =] _[ ∇]_ _[θ]_ _[R]_ [(] _[θ, β]_ [)] _[⊤]_ _[∇]_ _[θ]_ _[R]_ [(] _[θ, β]_ [) +] _[ ∇]_ [2] _θ_ _[R]_ [(] _[θ, β]_ [)] _[⊤]_ _[R]_ [(] _[θ, β]_ [)] _[.]_ (60)
+
+
+In the case that ( _θ, β_ ) are obtained after PINN training has converged, we would have _R_ ( _θ, β_ ) _≈_ 0,
+which means we can write
+
+
+_∇_ [2] _θ_ _[L]_ [PDE] [(] _[θ, β]_ [)] _[ ≈∇]_ _[θ]_ _[R]_ [(] _[θ, β]_ [)] _[⊤]_ _[∇]_ _[θ]_ _[R]_ [(] _[θ, β]_ [)] _[.]_ (61)
+
+
+We therefore can approximate the Hessian as used in (36) using first-order derivatives instead.
+
+
+F.3.6 C OMPARISON WITH O THER B ENCHMARKS
+
+
+Table 3 shows the results of TIP compared to our other methods. We see that while in some cases
+we are able to get comparable results to FIST or MoTE, it often will perform worse than these other
+methods. This is likely due to the stronger assumptions that are required for the method.
+
+
+Table 3: Results for the inverse problems using TIP criterion compared to our other proposed criteria.
+The table is interpreted similarly to Table 1.
+
+|Dataset|Finite-dimensional|Function-valued|Real dataset|
+|---|---|---|---|
+|Dataset|Wave (_×_10~~_−_1~~)<br>Navier-Stokes (_×_10~~_−_2~~)|Eikonal (_×_10~~1~~)|Groundwater (_×_10~~1~~)<br>Cell Growth (_×_10~~0~~)|
+|FIST<br>MoTE<br>TIP|3.87 (0.76)<br>2.10 (1.45)<br>3.81 (2.34)<br>1.18 (0.11)<br>5.11 (0.01)<br>9.04 (2.04)|0.74 (0.02)<br>0.76 (0.02)<br>0.75 (0.01)|1.93 (0.08)<br>2.62 (0.11)<br>2.00 (0.60)<br>2.83 (0.04)<br>2.25 (0.26)<br>2.94 (0.23)|
+
+
+
+G C OMPLETE A LGORITHM F OR PIED
+
+
+We summarize PIED via a pseudocode presented in Alg. 3. The ED procedure consists of three main
+phases – learning of the shared PINN parameter initialization, the criterion generation phase which
+consists of performing forward simulations and consequently defining the criteria, and the criterion
+optimization phase which proceeds to perform constrained continuous optimization on the criterion.
+
+
+Note that in our framework, the forward simulation only has to be ran once per ED loop, and can all
+be ran in parallel using packages which allows for parallelization such as vmap on J AX . We also find
+that the forward simulation can be used without explicitly injecting artificial noise, while still giving
+observation inputs which work well for IPs involving noisy data.
+
+
+In the criterion optimization phase, we use projected gradient descent to ensure the resulting design
+parameter is in the bounded space. However, other constrained optimization algorithms could be
+used as well, e.g., L-BFGS-B. We repeat the optimization loop over many runs due to the potential
+non-convexity of the criteria, to obtain a better estimate of the optima.
+
+
+H D ETAILS A BOUT T HE E XPERIMENTAL S ETUP
+
+
+H.1 G ENERAL ED L OOP AND IP S ETUP
+
+
+Our experiment consists of two phases. In the first phase, we perform the ED loop using PIED or with
+the other benchmarks. Here, we allow a fixed number of forward simulations using PINNs, which
+the ED methods can query from as many times as it wants. Each ED methods have time restrictions,
+where they are allowed to run either for a certain duration, or until they have completed some fixed
+number of iterations.
+
+
+After the ED methods have selected the optimal design parameters, the same design parameters are
+used to test on multiple instances of the IP (we run at least 10 of such instances depending on how
+much computation resources the specific problem requires). In each instance of the IP, we draw a
+random ground-truth PDE parameter, and generate the observations according to the model and the
+random ground-truth PDE parameter. The IP is solved using inverse PINNs to obtain a guess of the
+
+
+26
+
+
+Published as a conference paper at ICLR 2025
+
+
+**Algorithm 3** PIED
+
+
+// Learning shared NN parameters
+1: Randomly initialize _θ_ SI
+2: **for** _s_ rounds **do**
+3: Randomly sample _β_ 1 _[′]_ _[, . . ., β]_ _k_ _[′]_
+4: **for** _j_ = 1 _, . . ., k_ **do**
+5: _θ_ _j_ _[′]_ _[←]_ [NN parameter after training] _[ θ]_ [SI] [ with training loss] _[ L]_ [PDE] [(] _[θ, β]_ _j_ _[′]_ [)]
+
+_k_
+
+6: _θ_ SI _←_ _k_ [1] � _j_ =1 _[θ]_ _j_ _[′]_ _▷_ Used as initialization for all proceeding forward and inverse PINNs
+
+// Criterion generation phase
+7: **for** _i_ = 1 _, . . ., M_ **do**
+8: Randomize PDE parameter _β_ _i_
+9: _u_ ˜ _β_ _i_ _←_ **F** ( _β_ _i_ ) _▷_ Forward simulation
+10: **if** use FIST criterion **then**
+11: Define ˆ _α_ _i_ to FIST criterion from Alg. 1
+12: **else if** use MoTE criterion **then**
+13: Define ˆ _α_ _i_ to MoTE criterion from Alg. 2
+14: Define aggregated criterion _α_ ( _X_ _γ_ ) = _N_ [1] � _Ni_ =1 _[α]_ [ˆ] _[i]_ [(] _[X]_ _[γ]_ [)]
+
+// Criterion optimization phase
+15: Initialize _γ_ best _∈S_ _γ_ randomly
+16: **repeat**
+17: Initialize _γ_ _[′]_ _∈S_ _γ_ randomly
+18: **for** _p_ training steps **do** _▷_ Gradient-based optimization
+
+˜
+19: _γ_ _[′]_ _←_ _γ_ _[′]_ + _η∇_ _γ_ _α_ ( _X_ _γ_ _′_ ) _▷_ Gradient ascent since the criterion should be maximized
+20: _γ_ _[′]_ _←_ proj _S_ _γ_ (˜ _γ_ _[′]_ ) _▷_ Perform projection s.t. _γ_ _[′]_ _∈S_ _γ_
+
+21: **if** _α_ ( _X_ _γ_ _′_ ) _> α_ ( _X_ _γ_ best ) **then**
+22: _γ_ best _←_ _γ_ _[′]_
+
+23: **until** computational limit hit
+24: **return** _γ_ best
+
+
+Table 4: Architectures of used NNs
+
+|Problem|Depth Width Activation Output transformation|
+|---|---|
+|Damped oscillator<br>1D wave<br>2D Navier-Stokes<br>2D Eikonal (modelling_ uβ_)<br>2D Eikonal (modelling_ β_)<br>Groundwater fow<br>Cell population|6<br>8<br>tanh<br>None<br>3<br>16<br>sin<br>None<br>6<br>16<br>sin<br>None<br>6<br>8<br>tanh<br>(_x, y_)_ →y∥x −x_0_∥_<br>1<br>16<br>sin<br>(_x, y_)_ →|y|_ + 0_._2<br>2<br>8<br>tanh<br>None<br>2<br>8<br>tanh<br>None|
+
+
+
+PDE parameter. For each instance, we can obtain an error score, which measures how different the
+PDE parameter estimate is from the ground-truth value.
+
+
+For each problem, we repeat the ED and IP loop five times, where in each time we obtain multiple
+values for the IP error. In our results, we report the distribution of all the error scores obtained through
+the percentile values of the error (i.e., _p_ percent of all IP instances using a certain ED methods have
+errors of at most _x_ ), removing some of the extreme values (in the main paper, we remove the top
+and bottom ten percent, while in the Appendix we show the distribution via a boxplot removing the
+outliers). This is done since some PDE parameters result in IPs which are easier than others, and to
+demonstrate the performance of each ED methods across all possible PDE parameters.
+
+
+H.2 PINN AND PINN T RAINING H YPERPARAMETERS
+
+
+The architectures of the PINNs and other NNs used are listed in Table 4. Note that we only use
+multi-layer perceptrons in our experiments. The training process hyperparameters for the forward
+and inverse PINNs are listed in Table 5.
+
+
+27
+
+
+Published as a conference paper at ICLR 2025
+
+
+Table 5: Training hyperparameters
+
+|Problem|Training steps # PDE Col. Pts. # IC/BC Col. Pts. Optimizer|
+|---|---|
+|Damped oscillator<br>1D wave<br>2D Navier-Stokes<br>2D Eikonal<br>Groundwater fow<br>Cell population|30k<br>300<br>1<br>Adam (lr = 0_._01)<br>200k<br>15k<br>2k<br>L-BFGS<br>100k<br>2k<br>300<br>Adam (lr = 0_._001)<br>50k<br>10k<br>1<br>Adam (lr = 0_._001)<br>50k<br>500<br>1<br>L-BFGS<br>50k<br>1k<br>100<br>Adam (lr = 0_._001)|
+
+
+
+H.3 S CORING M ETRIC
+
+
+To judge how well our ED methods perform, we will use the error _L_ ( _β, β_ [ˆ] ) of the PDE parameter _β_ .
+When _β_ has finite dimensions (i.e., represented as a scalar value or as a vector value), then the loss is
+simply the MSE loss, i.e.,
+ˆ 2
+_L_ ( _β, β_ [ˆ] ) = �� _β −_ _β_ �� 2 _[.]_ (62)
+
+For the case where _β_ is a function, we select some number of test points _{x_ _T,i_ _}_ _[N]_ _i_ =1 [test] [and compute the]
+MSE loss of the estimated function on those test points, i.e.
+
+
+
+_L_ ( _β, β_ [ˆ] ) =
+
+
+
+_N_ test
+�
+
+
+_i_ =1
+
+
+
+ˆ 2
+�� _β_ ( _x_ _T,i_ ) _−_ _β_ ( _x_ _T,i_ )�� 2 _[.]_ (63)
+
+
+
+H.4 B ENCHMARKS FOR THE S CORING C RITERION
+
+
+In this section we describe a few scoring criteria we use as a benchmark. We first describe the
+benchmarks which are based on methods of estimating the expected information gain (EIG).
+
+
+    - **Mutual Information Neural Estimator (MINE) (Belghazi et al., 2018).** The estimator
+utilizes Donsker-Varadhan representation of the KL Divergence to show that we can provide
+a lower bound to the EIG as
+
+
+EIG( _X_ _γ_ ) _≥L_ DV ( _X_ _γ_ ) (64)
+
+≜ E ( _y,β_ ) _∼p_ ( _β_ ) _p_ ( _Y |β,X_ _γ_ ) � _T_ _ϕ_ ( _Y, β|X_ _γ_ )� _−_ log E ( _Y,β_ ) _∼p_ ( _β_ ) _p_ ( _y|X_ _γ_ ) � _e_ _[T]_ _[ϕ]_ [(] _[Y,β][|][X]_ _[γ]_ [)] [�]
+
+(65)
+
+
+where _T_ _ϕ_ is a parametrized family of functions.
+Note that while the estimator _L_ DV ( _X_ _γ_ ) relies on sampling _p_ ( _Y |β, X_ _γ_ ) and _p_ ( _Y |X_ _γ_ ) directly, this would require running many forward simulations for different _β_ samples. Instead,
+to sample from these two distributions, we draw _M_ random samples of _β_ and approximate
+_p_ ( _β_ ) with a mixture of Dirac-delta distributions, i.e.,
+
+
+
+_p_ ( _β_ ) _≈_ _p_ ˆ( _β_ ) ≜ [1]
+
+_M_
+
+
+
+_M_
+� _δ_ ( _β −_ _β_ _i_ ) where _β_ 1 _, . . ., β_ _M_ _∼_ _p_ ( _β_ ) _._ (66)
+
+
+_i_ =1
+
+
+
+In this case, the forward simulation only needs to be ran for _M_ samples of _β_ and the
+distributions _p_ ( _Y |β, X_ _γ_ ) and _p_ ( _Y |X_ _γ_ ) can be efficiently approximated.
+
+
+- **Variational Bayesian Optimal ED (VBOED) estimator (Foster et al., 2019).** The original
+paper desicribes multiple estimators for the EIG, however we will use the variational
+marginal estimator. The estimator utilizes the fact that we can provide an upper bound to the
+EIG as
+
+
+
+(67)
+�
+
+
+
+EIG( _X_ _γ_ ) _≤U_ marg ( _X_ _γ_ ) ≜ E ( _Y,β_ ) _∼p_ ( _β_ ) _p_ ( _Y |β,X_ _γ_ )
+
+
+
+
+_[|][β,][ X]_ _[γ]_ [)]
+log _[p]_ [(] _[Y]_
+� _q_ _ϕ_ ( _Y |X_ _γ_ )
+
+
+
+where _q_ _ϕ_ is a variational family parametrized by _ϕ_ . To compute the EIG, we find the _ϕ_ which
+minimizes _U_ marg ( _X_ _γ_ ) . Instead of computing the upper bound exactly, we use an empirical
+estimation based on samples of ( _Y, β_ ) generated from the PINNs with added noise. Similar
+
+
+28
+
+
+Published as a conference paper at ICLR 2025
+
+
+Table 6: Hyperparameters used for different criteria in PIED. Note that for MoTE, the case when
+_r_ = _∞_ refers to when we use the forward PINN for the NTK regression step.
+
+|Dataset|FIST|MoTE|
+|---|---|---|
+|Dataset|_σ_~~2~~<br>_p_<br>_r_|_r_|
+|Damped oscillator<br>1D wave<br>2D Navier-Stokes<br>2D Eikonal<br>Groundwater fow<br>Cell population|0.5<br>50<br>0.5<br>200<br>0.5<br>100<br>0.01<br>200<br>0.01<br>100<br>0.1<br>100|_∞_<br>0<br>_∞_<br>0<br>_∞_<br>1000|
+
+
+
+to MINE, we approximate _p_ ( _β_ ) with a mixture of Dirac-delta distributions (66) such that
+only a limited number PINN forward simulations are required.
+Note that while Foster et al. (2019) does propose a variational NMC (VNMC) estimator as
+well, this requires computing _p_ ( _Y, β|X_ _γ_ ) = _p_ ( _β_ ) _p_ ( _Y |β, X_ _γ_ ) for a randomly sampled _β_ . It
+is not feasible to compute _p_ ( _Y |β, X_ _γ_ ) on the fly since this would require running a costly
+forward simulation for the randomly sampled _β_, and therefore the method is not included
+for this benchmark.
+
+
+We also use other benchmarks which are not based on the EIG, listed as follows.
+
+
+    - **Random.** The design parameters are chosen randomly.
+
+    - **Grid.** The design parameters are chosen such that the sensor readings are placed regularly
+in some fashion. For the 1D examples, the sensors are placed such that they all regularly
+spaced out. For the 2D examples, the sensors are placed such that they are shaped in a
+regular 2D grid with each sides having as equal number of sensors as possible. Note that no
+optimization is done, but instead the observation input configuration is fixed per problem.
+
+    - **Mutual information (MI) (Krause et al., 2008).** The criterion considers the outputs _Y_ _X_ _γ_
+of the chosen observation input _X_ _γ_ and the outputs _Y_ _X_ _t_ of some test set _X_ _t_, and defines the
+score to be the mutual information between _Y_ _X_ _γ_ and _Y_ _X_ _t_, i.e.,
+
+_α_ MI ( _X_ _γ_ ) = MI( _Y_ _X_ _t_ _\X_ _γ_ ; _Y_ _X_ _γ_ ) = H[ _Y_ _X_ _t_ ] _−_ H[ _Y_ _X_ _t_ _\X_ _γ_ _|Y_ _X_ _γ_ ] _._ (68)
+
+
+In our experiments, we approximate the observation outputs via a Gaussian process (GP) whose kernel is the covariance of the PDE solutions, i.e., _K_ ( _x, x_ _[′]_ ) =
+Cov _β∼p_ ( _β_ ) [ _u_ _β_ ( _x_ ) _, u_ _β_ ( _x_ _[′]_ )], where we approximate the covariance using the forward
+simulations. By approximating the output using a GP, the entropies H[ _Y_ _X_ _t_ _\X_ _γ_ ] and
+H[ _Y_ _X_ _t_ _\X_ _γ_ _|Y_ _X_ _γ_ ] can be written directly in terms of the approximate kernel function. Also,
+since we do not perform discretization and treat the problem as a combinatorial optimization
+one due to the additional point constraints, we chose to let _X_ _t_ _\ X_ _γ_ = _X_ _t_ for simplicity.
+
+
+We also run the two criteria proposed as the benchmark, listed below.
+
+
+    - **Few-step Inverse Solver Training (Alg. 1).** For each of the trial, we note the value of
+parameter perturbation _σ_ _p_ [2] [and training steps] _[ r]_ [ used.]
+
+    - **Model Training Estimate (Alg. 2).** For each trial, we note how many initial training steps
+_r_ are used, or if we just re-use the NN parameters from the forward PINN for the eNTK.
+
+
+In Table 6, we show the hyperparameters for the criteria we use for the main results.
+
+
+In the results, we add “ +SI ” suffix to indicate the benchmark where the shared NN initialization is
+used for all of the forward and inverse PINNs involved during ED and IP phases. MINE, VBOED,
+NMC and MI are optimized using Bayesian optimization (Frazier, 2018).
+
+
+H.5 I MPLEMENTATION AND H ARDWARE
+
+
+All of the code were implemented based on the J AX library (Bradbury et al., 2018), which allows
+for NN training and auto-differentiation of many mathematical modules within. Criteria which are
+
+
+29
+
+
+Published as a conference paper at ICLR 2025
+
+
+optimized by Bayesian optimization are done so using B O T ORCH (Balandat et al., 2020), while
+criteria optimized using gradient-based methods are done so using J AX O PT (Blondel et al., 2021).
+
+
+The damped oscillator, wave equation, Eikonal equation and groundwater experiments were conducted
+on a machine with AMD EPYC 7713 64-Core Processor and NVIDIA A100-SXM4-40GB GPU,
+while the remaining experiments were done on AMD EPYC 7763 64-Core Processor CPU and
+NVIDIA L40 GPU.
+
+
+I A DDITIONAL E XPERIMENTAL R ESULTS
+
+
+I.1 A DDITIONAL R ESULTS F ROM E XPERIMENTS ON L EARNED NN I NITIALIZATION
+
+
+In Fig. 9, we present examples of the learned NN initialization and also its performance for forward
+PINNs for the 2D Eikonal equation example. We see that this shows similar trends to the examples
+from before as shown in Fig. 2.
+
+
+In Fig. 10, we show the test error for an individual forward PINN when performing forward simulation
+for a value of _β_, when using and not using a learned NN initialization. We see that when using a
+learned NN initialization, the test loss typically is already lower than that from random initialization
+at the start, and also tends towards convergence much faster. Even when the test loss is higher at the
+start, it is able to catch up to the performance of the randomly initialized PINN under much fewer
+training steps.
+
+
+
+(a) Random Init.
+
+
+
+(b) Learned Init.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Figure 9: Results for learning a NN initialization for PINNs trained on 2D Eikonal equation case.
+The interpretation is the same for that in Fig. 2.
+
+
+
+(a) Damped Oscillator
+
+
+
+(b) 2D Eikonal Equation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+|4 6 8 SE Loss|Col2|
+|---|---|
+|100<br>0<br>2<br>4<br>Test MS||
+|100<br>0<br>2<br>4<br>Test MS|102<br>104<br>|
+
+
+|Col1|Col2|
+|---|---|
+|100<br>|102<br>10<br>|
+
+
+|4 SE|4|Col3|
+|---|---|---|
+|Test MS|100<br><br>0<br>2<br>||
+|Test MS|100<br><br>0<br>2<br>|102<br>1<br>|
+
+
+
+Figure 10: Examples of test error of forward PINNs for each problems for different values of _β_ . Each
+plot represents the PINN training for one random random value of _β_ . The dotted blue lines represent
+when the PINN is initialized with a random NN parameters, while the solid yellow lines represent
+when the PINN is initialized form the learned initialization.
+
+
+I.2 T EST ON D ISTRIBUTION M ISMATCH
+
+
+In Fig. 11, we present the results for the damped oscillator experiments for when the prior distribution
+during the ED process and for the tested IPs are different. In the distribution mismatch case, we
+use PDE parameter range _µ, k ∈_ [0 _,_ 2] during the ED process, but use the values _µ, k ∈_ [0 _,_ 4] for
+the true ground truth value in the IP process. From the results, we see that our benchmarks are still
+able to retain good performances over the benchmarks even when the prior distribution of the PDE
+parameters are misspecified.
+
+
+30
+
+
+Published as a conference paper at ICLR 2025
+
+
+(a) Distribution match
+
+
+
+(b) Distribution mismatch
+
+
+
+Figure 11: Results for the 1D damped oscillator example for distribution match and mismatch. In
+both cases, the thick blue line represents the performance of Random baseline, while the dashed line
+represents the best performing benchmark.
+
+
+J D ISCUSSIONS ON G ENERAL L IMITATIONS AND S OCIETAL I MPACTS
+
+
+In our experiments, we have mostly conducted experiments based on vanilla PINN architectures. We
+have not done verification of whether PIED works well for other more complex architectures such as
+physics-informed deep operators. Future work on this area would be interesting.
+
+
+The work also relies on the use of PINNs as the forward simulators and IP solvers, and are not
+applicable to other forward simulators or IP solvers. While PINNs are well-suited for both tasks, they
+also still pose practical problems such as difficulty in training for certain problems. The problem can
+be mitigated through more careful selection of collocation points (Wu et al., 2023; Lau et al., 2024a),
+which will be interesting to consider in future works to further boost the performance of PIED.
+
+
+We believe the work has minimal negative and significant positive societal impacts, since they can be
+used in many science and engineering applications where costs of data collection from experiments
+can be prohibitive. This means that the cost barrier in performing effective scientific experiments can
+be lowered allowing for further scientific discoveries. We note that our work could potentially be
+applied for a range of scientific research, which may include unethical or harmful research done by
+malicious actors. However, this risk applies to all tools that accelerate scientific progress, and we
+believe that existing policies and measures guarding against these risks are sufficient.
+
+
+31
+
+
+This research paper aims to explore a specific problem or question within its field and contribute new insights or understanding.
+{
+"Novelty / Originality": {
+"fr": "L'article introduit une idée et une technique véritablement nouvelles qui vont bien au-delà des améliorations incrémentales.",
+"de": "Das Papier stellt eine wirklich neuartige Idee und Technik vor, die weit über inkrementelle Verbesserungen hinausgeht."
+},
+"Significance / Impact / Usefulness": {
+"fr": "La méthode proposée a un impact potentiel élevé et contribue à la compréhension académique et à l'utilité pratique.",
+"de": "Die vorgeschlagene Methode hat ein hohes Potenzial für Auswirkungen und leistet einen bedeutenden Beitrag zum akademischen Verständnis und zur praktischen Nützlichkeit."
+},
+"Technical Soundness / Correctness": {
+"fr": "Le cadre théorique et les dérivations sont techniquement solides, la méthodologie est rigoureuse.",
+"de": "Der theoretische Rahmen und die Herleitungen sind technisch fundiert, die Methodik ist rigoros."
+},
+"Empirical / Experimental Validation": {
+"fr": "Les expériences sont complètes et soutiennent de manière cohérente les affirmations de l'article.",
+"de": "Die Experimente sind umfassend und stützen die Aussagen des Papiers konsequent."
+},
+"Reproducibility / Transparency": {
+"fr": "L'article fournit toutes les ressources nécessaires garantissant une reproductibilité complète.",
+"de": "Das Papier stellt alle notwendigen Ressourcen bereit, um vollständige Reproduzierbarkeit zu gewährleisten."
+},
+"Related Work & Positioning": {
+"fr": "La discussion sur les travaux antérieurs est bien structurée et situe clairement les contributions.",
+
+"de": "Die Diskussion früherer Arbeiten ist gut strukturiert und positioniert die Beiträge klar im Kontext."
+},
+"Ethics / Broader Impacts / Safety": {
+"fr": "Les auteurs considèrent soigneusement les aspects éthiques, les implications sociétales et les risques potentiels.",
+"de": "Die Autoren berücksichtigen sorgfältig ethische Aspekte, gesellschaftliche Auswirkungen und potenzielle Risiken."
+}
+}
+You have reviewed this research paper with full fairness and all the credits given are true and unbiased.
+
+
