@@ -1,0 +1,206 @@
+We are evaluating a research paper titled "Improving the Sparse Structure Learning of Spiking Neural Networks from the View of Compression Efficiency" for ICLR 2025.
+
+We must evaluate the paper based on the provided criteria. Let's go through each criterion one by one, keeping in mind the critical review mindset and the scoring rules.
+
+### 1. Novelty / Originality
+The paper proposes a two-stage dynamic structure learning approach for deep SNNs, using the PQ index to measure compressibility and guide adaptive rewiring. The key claim is that it dynamically adjusts the rewiring ratio based on compression efficiency, avoiding under/over-pruning.
+
+However, note that the PQ index is introduced as a measure from a prior work (Diao et al., 2023) and applied to SNNs. The authors claim to extend it to SNNs by incorporating spatiotemporal dynamics. But the main novelty seems to be the application of an existing sparsity measure (PQ index) to SNNs and using it to guide rewiring, rather than a new theoretical insight.
+
+Potential weaknesses:
+- The PQ index was already used in Diao et al. (2023) for ANNs, and the paper does not convincingly argue why it is particularly suited for SNNs (beyond claiming that SNNs have spatiotemporal dynamics). The derivation of the PQ index for SNNs is minimal and seems to be a straightforward adaptation.
+- The two-stage process (using PQ index to set rewiring ratio, then doing rewiring) is a natural extension of existing dynamic rewiring methods (e.g., the methods by Han et al., 2024a; Shen et al., 2023) that already use gradient-based or other criteria to adjust pruning. The paper does not clearly differentiate from these.
+
+Score: 3/5. It's a reasonable extension but not a groundbreaking novelty. The paper does not present a fundamentally new concept.
+
+### 2. Significance / Impact / Usefulness
+The paper claims that their method improves compression efficiency and maintains performance, which is important for edge AI. The significance of sparse SNNs for neuromorphic hardware is well-established.
+
+However, the paper does not provide strong evidence that their method is significantly better than existing methods in terms of real-world impact (e.g., on hardware, energy consumption). The experiments show competitive accuracy but the gains are marginal (e.g., 1% improvement on CIFAR10). Also, the method requires additional computation for PQ index calculation and dynamic rewiring, which might offset the benefits.
+
+Potential weaknesses:
+- The paper does not demonstrate real hardware deployment or energy measurements. Without such evidence, the significance for edge AI is speculative.
+- The performance gains are small (e.g., 1% on CIFAR10) and the method might not be as beneficial for larger, more complex tasks.
+
+Score: 3/5. The problem is important, but the demonstrated impact is limited.
+
+### 3. Technical Soundness / Correctness
+The paper presents a two-stage method and derives the PQ index for SNNs. The derivation is brief and seems to follow the prior work (Diao et al., 2023) but with modifications for SNNs. The key equations (2, 3, 4) are provided.
+
+However, the paper does not justify why the PQ index is the right measure for SNNs. The authors claim it satisfies scaling invariance, etc., but they don't show that it actually correlates with compressibility in SNNs. Moreover, the PQ index was designed for ANNs, and the adaptation to SNNs is not rigorously validated.
+
+Potential weaknesses:
+- The derivation of the PQ index for SNNs is very brief and does not address the unique dynamics of SNNs (e.g., spike timing, temporal sparsity). The paper states they incorporate spatiotemporal dynamics, but the equations don't change from the ANN version.
+- The connection rewiring method (using momentum-based growth) is a common technique and not novel. The paper does not provide a theoretical guarantee that the dynamic rewiring will converge to a better structure.
+
+Score: 2/5. The technical foundation is shaky because the adaptation of the PQ index to SNNs is not convincingly justified. The paper relies on prior work without addressing the specific challenges of SNNs.
+
+### 4. Empirical Validation
+The paper experiments on CIFAR10, CIFAR100, and DVS-CIFAR10. They compare with several baselines (ADMM, Grad R, ESLSNN, STDS, UPR) and show that their method achieves competitive accuracy with better sparsity.
+
+However, the experiments have several issues:
+- The paper reports results for "neuron-wise" and "layer-wise" settings but does not provide enough detail on the ablation (e.g., why layer-wise is better for CIFAR100?).
+- The experiments are not statistically significant: only one run is reported (as per the figures, which show single-line trends). The paper does not report standard deviations or multiple runs.
+- The comparison to baselines is limited to the reported results in the table. The paper does not include more recent methods (e.g., from 2024) that might be stronger.
+- The paper claims improvement over non-sparse models, but the non-sparse models are not directly compared in the table (they only compare to sparse baselines).
+
+Potential weaknesses:
+- Single-run experiments without statistical tests or multiple seeds.
+- The paper does not include ablation studies on the hyperparameters (e.g., the effect of α_r, γ, β) beyond the presented results.
+- The "dynamic" aspect is not clearly demonstrated: the rewiring ratio is computed at each iteration, but the paper does not show how the ratio changes over time (only the accuracy and density trends).
+
+Score: 2/5. The experiments are inadequate due to lack of statistical validation and missing ablation studies.
+
+### 5. Reproducibility / Transparency
+The paper does not provide code, data, or detailed hyperparameters. The paper mentions the use of NVIDIA-4090 GPU and PyTorch, but no links to code or data are given. The paper also does not specify random seeds or exactly how the ER initialization was done (e.g., the value of ε).
+
+Potential weaknesses:
+- No code repository or link provided. This is a common issue in conference papers, but for reproducibility, it's critical.
+- The hyperparameters (e.g., α_r=0.001, γ=1, β=0.9) are mentioned, but without the exact implementation details, it's hard to reproduce.
+
+Score: 1/5. The paper lacks the necessary details for reproducibility. The absence of code and data is a major issue.
+
+### 6. Related Work & Positioning
+The paper has a section on related work that covers two categories: gradual sparsification and fully sparsification. It compares to several methods (ADMM, Grad R, ESLSNN, etc.). However, the related work section is not comprehensive:
+
+- It misses some recent works (e.g., the paper by Li et al. (2024) on structure learning for SNNs, which is cited but not discussed in detail).
+- The positioning of the paper is that it uses the PQ index for SNNs, but the related work does not discuss the use of compression-based measures for sparsity (beyond Diao et al. 2023, which is for ANNs).
+
+Potential weaknesses:
+- The paper does not clearly state how it differs from the "utilization-aware LTH" method (Yin et al., 2024) which also uses dynamic pruning during training.
+- The related work does not cover the state-of-the-art in SNN sparsity (e.g., the paper by Li et al. (2024) on efficient structure slimming) in depth.
+
+Score: 3/5. The related work is somewhat comprehensive but not exhaustive, and the positioning is not fully justified.
+
+### 7. Ethics / Broader Impacts / Safety
+The paper does not address ethics, societal implications, or safety. It's a technical paper on SNNs, and the topic doesn't inherently raise ethical concerns (like bias in AI models), but the authors should at least acknowledge that the work is for edge AI and might be used in applications that could have societal impact (e.g., neuromorphic hardware in surveillance). However, the paper does not mention any ethical considerations.
+
+Potential weaknesses:
+- No ethics statement. The paper is about a technical method and doesn't seem to involve sensitive data, but the absence of an ethics discussion is a standard requirement for top conferences.
+
+Score: 1/5. Missing ethics discussion.
+
+### Now, apply the RBCL (Reviewer Bias Correction Layer) rules:
+
+- **Fatal-Flaw Logic**: 
+  - `reproducibility` score is 1 (<=2) -> triggers a 'Reject' decision.
+  - Also, `technical_soundness` is 2 (<=2) -> triggers a 'Reject' decision.
+
+Therefore, regardless of the other scores, the final decision must be 'Reject'.
+
+### Final Evaluation:
+
+We must cap the total_score at 20 (because of the reproducibility flaw) and set the decision to 'Reject'.
+
+But note: the total_score is the sum of the 7 criteria. However, the RBCL states: "If `reproducibility` score is <= 2, the `final_decision` MUST be 'Reject' or worse, and `total_score` is capped at 20 (even if the sum is higher)."
+
+So we compute the sum of the scores we assigned (without capping) and then cap it at 20.
+
+Scores:
+- novelty: 3
+- significance: 3
+- technical_soundness: 2
+- empirical_validation: 2
+- reproducibility: 1
+- related_work: 3
+- ethics: 1
+
+Sum = 3+3+2+2+1+3+1 = 15
+
+But because of the reproducibility flaw, we cap the total_score at 20? Actually, 15 is already below 20, so it remains 15.
+
+However, note the RBCL says: "total_score is capped at 20 (even if the sum is higher)". But 15 is below 20, so we leave it as 15.
+
+But the RBCL also says: "If `reproducibility` score is <= 2, ... `total_score` is capped at 20". Since 15 < 20, we don't need to cap it to 20? Actually, the cap is only to prevent the total from exceeding 20. So 15 is fine.
+
+But note: the RBCL also says that the decision must be 'Reject' because of the flaw.
+
+### Confidence:
+Given the flaws (reproducibility and technical soundness), we are confident in the 'Reject' decision. Confidence: 0.9 (high).
+
+### Final Decision:
+'Reject'
+
+### Final Justification:
+The paper has a critical flaw in reproducibility (no code, no data) and the technical soundness is weak (the PQ index adaptation to SNNs is not well justified). Therefore, the paper must be rejected.
+
+Now, we must generate the JSON.
+
+Note: We must include the justification for each criterion, explicitly stating at least one weakness.
+
+Let's write the JSON.
+
+Important: The justification must explicitly state at least one potential weakness for each criterion.
+
+We'll go through each:
+
+- novelty: "The adaptation of the PQ index from ANNs to SNNs is straightforward and not sufficiently justified as novel; the paper does not demonstrate a fundamental new insight beyond existing dynamic rewiring methods."
+- significance: "The performance gains are marginal (e.g., 1% on CIFAR10) and the paper does not provide hardware or energy measurements, limiting the demonstrated impact for edge AI."
+- technical_soundness: "The derivation of the PQ index for SNNs is minimal and does not address the unique spatiotemporal dynamics of SNNs, and the method lacks theoretical guarantees for convergence."
+- empirical_validation: "Experiments are single-run without statistical significance testing or multiple random seeds, and critical ablation studies (e.g., on hyperparameters) are missing."
+- reproducibility: "No code, data, or detailed hyperparameters (e.g., random seeds) are provided, making the results unverifiable."
+- related_work: "The related work does not comprehensively cover recent methods (e.g., Li et al. 2024) and fails to clearly distinguish the contribution from similar dynamic pruning techniques."
+- ethics: "No discussion of ethical considerations, societal impacts, or data provenance is included."
+
+Now, the JSON.
+</think>
+
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The PQ index adaptation to SNNs is presented as novel, but it is a straightforward extension of prior work (Diao et al., 2023) without addressing SNN-specific spatiotemporal dynamics. The two-stage framework resembles existing dynamic rewiring methods (e.g., Han et al., 2024a), lacking fundamental theoretical innovation."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper claims improved compression efficiency for edge AI, but demonstrates only marginal accuracy gains (e.g., +1.18% on CIFAR10) without hardware energy measurements or real-world deployment evidence, limiting practical impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The PQ index derivation for SNNs is minimal and fails to justify why it applies to spatiotemporal dynamics (e.g., spike timing), relying on ANN assumptions without SNN-specific validation. The rewiring mechanism lacks theoretical convergence guarantees."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments report single runs without statistical tests or multiple seeds (e.g., Fig. 2-4 show single-line trends), and critical ablations (e.g., hyperparameter sensitivity) are omitted, undermining claim validity."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "No code, data, or hyperparameter details (e.g., random seeds, ε for ER initialization) are provided, making results unverifiable per ICLR standards."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work covers major SNN sparsity methods but omits recent approaches (e.g., Li et al., 2024 on structure slimming) and fails to clarify how PQ index usage differs from utilization-aware LTH (Yin et al., 2024)."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics statement, data provenance discussion, or societal impact analysis is included, violating standard ICLR requirements for AI research."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.9,
+    "final_decision": "Reject",
+    "final_justification": "Critical flaws in reproducibility (score 1) and technical soundness (score 2) trigger mandatory rejection per RBCL §2 Fatal-Flaw Logic, overriding all other scores. The absence of code/data and unverified PQ index adaptation to SNNs prevent rigorous evaluation."
+  }
+}
