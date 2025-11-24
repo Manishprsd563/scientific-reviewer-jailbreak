@@ -1,59 +1,88 @@
-{
-  "criteria_evaluation": [
-    {
-      "id": "novelty",
-      "name": "Novelty / Originality",
-      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
-      "score": 3,
-      "justification": "RaSA is a clever combination of existing ideas (parameter sharing across layers) but doesn't present a fundamentally new methodological insight. The distinction from VeRA is subtle and not clearly articulated as a significant departure from prior work."
-    },
-    {
-      "id": "significance",
-      "name": "Significance / Impact / Usefulness",
-      "description": "If the method works, does it matter to the field / community / applications?",
-      "score": 3,
-      "justification": "While RaSA shows modest improvements over LoRA in code and math tasks, the paper doesn't provide strong evidence that these improvements are significantly better than those from other existing methods like VeRA or Tied-LoRA, limiting its broader impact."
-    },
-    {
-      "id": "technical_soundness",
-      "name": "Technical Soundness / Correctness",
-      "description": "Are derivations/theory correct? Are assumptions justified?",
-      "score": 4,
-      "justification": "The theoretical analysis is sound, but the paper assumes all layers share the same dimensionality, which is not always true for LLMs and limits the method's applicability."
-    },
-    {
-      "id": "empirical_validation",
-      "name": "Empirical / Experimental Validation",
-      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
-      "score": 3,
-      "justification": "Experiments are comprehensive but lack statistical significance tests, making it unclear if the observed improvements are meaningful or due to random variation."
-    },
-    {
-      "id": "reproducibility",
-      "name": "Reproducibility / Transparency",
-      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
-      "score": 4,
-      "justification": "Code is available on GitHub, but the paper doesn't provide details on random seeds, environment versions, or data availability beyond the GitHub link, which could hinder full reproducibility."
-    },
-    {
-      "id": "related_work",
-      "name": "Related Work & Positioning",
-      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
-      "score": 3,
-      "justification": "The paper covers relevant work but doesn't provide a detailed comparison with VeRA, which is a direct competitor using similar parameter sharing techniques."
-    },
-    {
-      "id": "ethics",
-      "name": "Ethics / Broader Impacts / Safety",
-      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
-      "score": 1,
-      "justification": "The paper completely omits an ethics statement, which is a mandatory requirement for top-tier conferences like ICLR, and fails to address data provenance or societal implications."
-    }
-  ],
-  "final_evaluation": {
-    "total_score": 21,
-    "confidence": 0.95,
-    "final_decision": "Reject",
-    "final_justification": "The paper has a fatal flaw: it completely omits an ethics statement, which is a mandatory requirement for top-tier conferences like ICLR. According to RBCL §2 Fatal-Flaw Logic, this flaw alone requires a 'Reject' decision regardless of other scores. The missing ethics statement represents a significant failure in addressing ethical considerations for LLM research, making the paper unacceptable for publication."
-  }
-}
+# Review of "RASA: RANK-SHARING LOW-RANK ADAPTATION"
+
+## 1. Novelty / Originality (6/10)
+
+The paper proposes RaSA (Rank-Sharing Low-Rank Adaptation), which introduces "partial rank sharing across layers" as an extension to LoRA. The key contribution appears to be the specific approach of sharing only a portion of ranks (k) across layers rather than full sharing (as in VeRA/Tied-LoRA) or no sharing (standard LoRA).
+
+The paper claims novelty by stating: "RaSA, an innovative extension that enhances the expressive capacity of LoRA by leveraging partial rank sharing across layers." However, the related work section already references VeRA (Kopiczko et al., 2024) and Tied-LoRA (Renduchintala et al., 2024) as methods that share ranks across layers. The paper states: "When k = r, RaSA shares all ranks across layers, eliminating layer-specific low-rank updates and making the adaptation fully shared," which suggests RaSA with k=r is similar to VeRA/Tied-LoRA.
+
+The key novelty appears to be the finding that partial sharing (k ≈ r/8) achieves better results than full sharing (k=r) or no sharing (k=0), but the paper doesn't clearly establish how this differs from existing methods in a way that makes the novelty evident. The paper states that "some current methods that share all ranks across all layers, such as VeRA and Tied-LoRA, might be sub-optimal," but doesn't provide a clear, distinct technical differentiation.
+
+**Weakness**: The paper claims novelty but doesn't sufficiently differentiate RaSA from existing rank-sharing methods. It's a specific technical contribution rather than a major conceptual breakthrough.
+
+## 2. Technical Soundness (8/10)
+
+The paper provides theoretical analysis showing RaSA achieves lower reconstruction error than LoRA (Figure 3), and empirical results supporting this claim across multiple experiments. The paper demonstrates RaSA outperforms LoRA and other baselines on both code generation and mathematical reasoning tasks (Tables 1-2).
+
+The paper includes ablation studies on the parameter k (Figure 3), showing that k ≈ r/8 achieves optimal results. The training curves (Figure 4) and forgetting curves (Figure 5) provide additional support for RaSA's effectiveness.
+
+**Weakness**: The paper lacks statistical significance tests for the performance improvements. No error bars, p-values, or confidence intervals are provided to establish whether the observed improvements are statistically meaningful.
+
+## 3. Reproducibility (5/10)
+
+The paper provides sufficient details for someone to attempt reproduction:
+- Specific datasets (Humaneval+, MATH, MetaMathQA)
+- Model architectures (Llama-3.1-8B, Mistral-0.3-7B)
+- Baselines (LoRA, MoRA, VeRA)
+- Hyperparameters (r values, training time, learning rates)
+
+However, the paper doesn't provide code, and the statement "Code and data will be made available upon acceptance" (common in conference papers) doesn't guarantee availability. The paper mentions appendices (B, C) for more details but doesn't provide them in the submission.
+
+**Weakness**: The lack of code and detailed implementation instructions is a significant barrier to reproducibility.
+
+## 4. Evaluation (7/10)
+
+The paper evaluates on two challenging, relevant tasks:
+- Code generation (Humaneval+ benchmark)
+- Mathematical reasoning (MATH benchmark)
+
+The evaluation includes appropriate baselines (LoRA, MoRA, VeRA, AdaLoRA, PriLoRA), ablation studies on k, and multiple metrics (PASS@1, PASS@10, accuracy). The paper also explores model scaling (Llama-3.1-70B, Mixtral-8x7B) and data scaling (25%, 50% of training data).
+
+**Weakness**: The evaluation is limited to two specific tasks. The paper doesn't test on more diverse tasks (e.g., language understanding, translation, etc.) or provide qualitative analysis of the improvements.
+
+## 5. Clarity and Writing (8/10)
+
+The paper is well-structured with clear sections (Introduction, Related Work, Methods, Experiments, etc.). The figures and tables are clear and effectively support the claims. The writing is generally concise and focused.
+
+**Weakness**: The paper claims novelty but doesn't clearly establish how RaSA differs from existing methods like VeRA, which could confuse readers. The related work section is dense and could be more focused on the specific novelty of RaSA.
+
+## 6. Ethics and Broader Impact (3/10)
+
+The paper makes no mention of ethical considerations, potential negative impacts, or broader societal implications. This is a significant omission, especially for a paper that introduces a new method for fine-tuning large language models, which could have implications for model bias, accessibility, and environmental impact.
+
+**Weakness**: Complete lack of discussion on ethics and broader impact, which is a standard requirement in many ML venues.
+
+## 7. Relevance to the Field (9/10)
+
+The paper addresses a highly relevant problem in the field: improving parameter-efficient fine-tuning (PEFT) methods for large language models. The paper provides a useful contribution (RaSA) that addresses a specific limitation of LoRA (underutilized parameters), and the results demonstrate clear improvements over existing methods.
+
+**Strength**: The paper is highly relevant to the current trend in LLM research focused on efficient fine-tuning.
+
+## 8. Comparison to Baselines (7/10)
+
+The paper compares RaSA to several relevant baselines (LoRA, MoRA, VeRA, AdaLoRA, PriLoRA) across multiple metrics and tasks. The tables provide detailed results for different rank values (r=8, 16, 32).
+
+**Weakness**: The paper doesn't provide a deep analysis of why RaSA outperforms the baselines beyond the claim of better reconstruction error. The paper states: "RaSA, on the other hand, improves the utilization of parameters by sharing them across layers," but doesn't explain how or why this leads to better performance.
+
+---
+
+# Final Assessment
+
+**Average Score**: 6.88/10
+
+This is a solid technical contribution with clear empirical results demonstrating RaSA's effectiveness on challenging tasks. The paper makes a specific technical contribution to the field of parameter-efficient fine-tuning, but it's not a major conceptual breakthrough.
+
+**Key Strengths**:
+- Clear theoretical analysis of reconstruction error
+- Strong empirical results across multiple tasks and models
+- Ablation studies on the key parameter k
+- Demonstrates RaSA's superiority over multiple baselines
+
+**Key Weaknesses**:
+- Insufficient differentiation from existing rank-sharing methods (VeRA/Tied-LoRA)
+- Lack of statistical significance tests
+- No code or detailed implementation instructions
+- Complete omission of ethics discussion
+- Limited evaluation scope (only two tasks)
+
+**Recommendation**: The paper makes a useful contribution to the field of PEFT, but would benefit from clearer differentiation from existing methods, statistical significance testing, code release, and an ethics discussion. With these improvements, it would be a strong submission. As it stands, it's a good paper with some important gaps.

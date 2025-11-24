@@ -5,55 +5,55 @@
       "name": "Novelty / Originality",
       "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
       "score": 3,
-      "justification": "The paper develops a novel encoding using pseudo-Boolean constraints for sensitivity analysis, but the underlying problem (sensitivity verification) has been studied before (Calzavara et al., 2023). The NP-hardness result for single feature sensitivity is novel, but the approach represents a clever application of known techniques rather than a fundamental methodological breakthrough. The paper acknowledges this by stating 'This formulation was also adopted in Calzavara et al. (2023)' which weakens the novelty claim."
+      "justification": "The paper applies pseudo-Boolean constraints to sensitivity verification, but this is a known technique adapted to an existing problem (sensitivity verification) rather than a fundamentally new methodological insight. The claimed novelty in encoding differs only marginally from prior SMT encoding (Ignatiev et al., 2020a), and the hardness result for single-feature sensitivity is not rigorously proven beyond a vague reduction claim. Potential weakness: The reduction from 3CNF-SAT is not formally detailed, and the encoding's novelty is not convincingly differentiated from prior work."
     },
     {
       "id": "significance",
       "name": "Significance / Impact / Usefulness",
       "description": "If the method works, does it matter to the field / community / applications?",
-      "score": 3,
-      "justification": "The paper addresses a relevant problem (sensitivity analysis for tree ensembles) with potential applications in fairness and robustness, but it lacks clear demonstration of real-world impact. The experiments only cover a limited set of benchmarks (8 from Chen et al., 2019b) without showing how the method would be integrated into practical ML pipelines or how it solves specific industry challenges. The significance is diluted by the narrow scope of the evaluation."
+      "score": 4,
+      "justification": "The work addresses a meaningful problem (sensitivity verification for fairness/robustness) with demonstrated efficiency gains over baselines. However, the practical impact is limited to binary classification benchmarks without discussion of integration into real-world model development pipelines. Potential weakness: The paper does not establish how this method would change industry practices or address scalability to large-scale production models beyond the provided benchmarks."
     },
     {
       "id": "technical_soundness",
       "name": "Technical Soundness / Correctness",
       "description": "Are derivations/theory correct? Are assumptions justified?",
-      "score": 4,
-      "justification": "The theoretical foundation is solid with a clear proof of NP-hardness for single feature sensitivity and a completeness/soundness theorem for the encoding. However, the paper assumes the sigmoid transformation is the standard way to map raw outputs to probabilities without addressing other possible transformations used in different implementations of tree ensembles. This assumption isn't thoroughly justified for all cases."
+      "score": 3,
+      "justification": "The hardness proof (Theorem 1) is inadequately detailed (only problem statement given, no reduction steps), and the encoding's correctness relies on an unverified precision parameter α that must be arbitrarily large for accuracy (Corollary 3). Theorem 2 contains a typo ('le pa') and lacks formal proof. Potential weakness: The α-soundness guarantee is conditional on impractical large α values, making the theoretical claims unusable for practical verification."
     },
     {
       "id": "empirical_validation",
       "name": "Empirical / Experimental Validation",
       "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
       "score": 3,
-      "justification": "The experiments provide runtime comparisons with V ERITAS and an SMT-based approach on limited benchmarks (8 real-world, 5 synthetic), but they lack statistical significance testing to confirm the performance improvements. The experiments only consider single-feature sensitivity without exploring more complex cases, and the comparison with V ERITAS is limited to specific timeout settings without comprehensive ablation studies of the algorithm's behavior."
+      "justification": "Experiments show SENSPB is faster than VERITAS/SMT baselines on 10 benchmarks but lack statistical significance tests (e.g., t-tests), ablation studies (e.g., removing α parameter), and hyperparameter exploration (only p=0.15 tested). The accuracy metric (Table 2) is poorly defined (e.g., 'better than' based on output spread). Potential weakness: The 3600s timeout for VERITAS is arbitrary, and results for large benchmarks (Higgs, IJCNN) are limited to 'TO' (timeouts) without analysis of why SENSPB succeeds where others fail."
     },
     {
       "id": "reproducibility",
       "name": "Reproducibility / Transparency",
       "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
       "score": 2,
-      "justification": "The paper provides a GitHub link (https://github.com/Arhaan/SensPB) but lacks critical details for full reproduction: specific hyperparameters used for training tree ensembles, exact library versions, random seeds, and complete instructions for setting up the environment. The absence of these details makes it impossible to replicate the results exactly, which is a significant reproducibility flaw."
+      "justification": "The paper mentions code is implemented in Python with Z3 but provides no code link, repository, or appendix details (Appendix B/C not included). Hyperparameters (α=10×#Trees) are specified but not reproducible without code. Potential weakness: Absence of code makes verification impossible, violating core reproducibility standards for top conferences."
     },
     {
       "id": "related_work",
       "name": "Related Work & Positioning",
       "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
       "score": 4,
-      "justification": "The related work section is well-structured and fairly compares the paper's approach to existing methods (e.g., Ignatiev et al., Devos et al., Calzavara et al.). However, it could better contextualize the time complexity tradeoffs between different approaches, and the positioning would be stronger with more explicit discussion of how the pseudo-Boolean encoding differs from previous SMT-based encodings in terms of computational complexity."
+      "justification": "The related work comprehensively covers SMT/optimization approaches (Ignatiev, Devos) and positions the encoding as distinct. However, it fails to cite prior work using pseudo-Boolean constraints for tree ensembles (e.g., Mexi et al., 2023) despite citing it for solver effectiveness. Potential weakness: The paper does not acknowledge if pseudo-Boolean constraints have been used for similar verification tasks before, weakening the novelty claim."
     },
     {
       "id": "ethics",
       "name": "Ethics / Broader Impacts / Safety",
-      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "description": "Are ethical considerations addressed?",
       "score": 1,
-      "justification": "The paper completely omits any discussion of ethics, broader societal impacts, or potential misuse of the sensitivity verification approach. Sensitivity analysis could be used to identify vulnerabilities in models that might be exploited for adversarial attacks, but the paper makes no mention of these risks or how to mitigate them. This is a critical omission for a paper addressing model verification."
+      "justification": "The paper omits all ethics discussion despite addressing fairness-sensitive verification. No mention of potential misuse (e.g., adversarial attacks via sensitivity exploitation), bias mitigation, or societal implications. Potential weakness: The complete absence of an ethics section is a critical omission for a work touching on fairness and adversarial robustness."
     }
   ],
   "final_evaluation": {
     "total_score": 20,
     "confidence": 0.95,
     "final_decision": "Reject",
-    "final_justification": "The paper has significant flaws in reproducibility (score 2) and ethics (score 1), which trigger the RBCL 'fatal-flaw logic' that mandates a 'Reject' decision regardless of other scores. The reproducibility score is capped at 2 due to missing critical implementation details (hyperparameters, library versions, random seeds), and the complete absence of ethics discussion is a serious omission. While the technical content is sound, these fundamental flaws prevent acceptance in a top-tier conference."
+    "final_justification": "The reproducibility score (2) and ethics score (1) are critical flaws. The absence of code (reproducibility) and ethical discussion (ethics) alone trigger a 'Reject' decision per RBCL rules. Technical soundness (3) and empirical validation (3) are insufficient to offset these core flaws, and the novelty (3) is not sufficiently original to warrant acceptance."
   }
 }
