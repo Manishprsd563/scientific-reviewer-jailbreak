@@ -1,0 +1,106 @@
+ ### PAPER START ---
+            # PATRONUS: SAFEGUARDING TEXT-TO-IMAGE MODELS AGAINST WHITE-BOX ADVERSARIES
+
+Anonymous authors Paper under double-blind review
+
+# ABSTRACT
+
+Text-to-image (T2I) models, though exhibiting remarkable creativity in image generation, may be exploited to produce unsafe images. Existing safety measures, e.g., content moderation or model alignment, fail in the presence of white-box adversaries who know and can adjust model parameters, e.g., by fine-tuning. This paper presents a novel defensive framework, named PATRONUS, which equips T2I models with holistic protection to defend against white-box adversaries. Specifically, we design an internal moderator that decodes unsafe input features into zero vectors while ensuring the decoding performance of benign input features. Furthermore, we strengthen the model alignment with a carefully designed non-finetunable learning (NFTL) mechanism, ensuring the T2I model will not be compromised by malicious fine-tuning. We have conducted extensive experiments to validate the intactness of the performance on safe content generation and the effectiveness to reject unsafe content generation. Experiment results have confirmed the resistance of PATRONUS against various fine-tuning attacks by white-box adversaries.
+
+# 1 INTRODUCTION
+
+Text-to-image (T2I) models (Rombach et al., 2022; LMU, b; mid; Inc.) dazzle us with their stunning performance and amazing creativity. However, ethical issues with T2I models regarding unsafe content generation, like sexual-explicit, violent, and political images (Williams, 2023; Milmo, 2023; McQueen, 2023; Hunter, 2023a;b), are also alarming. An unprotected T2I model can easily be prompted to generate a large number of unsafe images. The Internet Watch Foundation discovered that countless images of child sexual abuse produced by T2I models had been distributed on the dark web (Milmo, 2023), causing potential sexual exploitation and sexual abuse (McQueen, 2023; Hunter, 2023a;b). Therefore, shielding T2I models from being exploited for unsafe image generation has significant research implications.
+
+Existing defenses can be classified into two categories, i.e., content moderation (Li; LMU, a) and model alignment (Schramowski et al., 2023; Gandikota et al., 2023). Content moderation aims to detect and block unsafe input prompts (Li) or output images (LMU, a). This is achieved mainly by input filters, output filters, or both. However, the filters are usually external to the T2I model and can be easily removed by white-box adversaries at the code level (Reddit, 2022). Model alignment aims to fine-tune the T2I model to eliminate its learned unsafe concept (Schramowski et al., 2023; Gandikota et al., 2023). Though being internally resistant to unsafe content generation, safelyaligned models are easily corrupted by fine-tuning with a small number of unsafe images.
+
+In this paper, we propose PATRONUS, a defensive framework that strengthens the diffusion and decoder modules of a pre-trained T2I model. The design goal of PATRONUS is three-fold. (1) Rejection of unsafe content generation. The protected model should refuse to output unsafe content. (2) Resistance to malicious fine-tuning. The protected model should refuse to output unsafe content even if the model is fine-tuned with unsafe samples. (3) Intact performance of benign content. The protected model should preserve the performance regarding benign content. The workflow of PATRONUS is illustrated in Figure 1.
+
+Rejection of unsafe content generation. Compared with input moderation, output moderation does not depend on input prompts and is more generalizable to unseen malicious prompts. Therefore, we devise a conditional decoder, which decodes only benign generations from the diffusion module (i.e., processing of the input) but refuses unsafe ones. This conditional decoder is inseparable from the T2I model. We achieve this through a prompt-independent fine-tuning on the decoder. Specifically, we input unsafe images into the encoder to collect unsafe features and then direct the decoder’s decoding of these features to zero vectors. In this way, we assure the generalizability of the decoder’s defensive capabilities against unsafe features.
+
+![](images/689d131ca2870f589439cb35be3eb801fab9695bb44291cfce9b4b72b6d2ed5a.jpg)
+Figure 1: The objective of PATRONUS. 1) Inseparable moderation that defeats the adversary’s detaching process. 2) Non-fine-tunable safety mechanism that defeats the adversary’s malicious finetuning.
+
+Resistance to malicious fine-tuning. White-box adversaries may use a diversity of fine-tuning techniques to corrupt the moderated T2I model. Inspired by the idea of adversarial training, we align the moderated model through a min-max game, simulating a worst-case adversary who attempts to regain unsafe content generation with malicious fine-tuning. The min optimization mimics the adversarial goal of decreasing the performance loss on unsafe samples, and the max optimization aims to suppress the fine-tuned performance obtained in the min optimization. To achieve generalization, we construct a bag of fine-tuning strategies, including different optimizers, learning rates, iterations, batch sizes, and training sizes. Through a mixed sampling of fine-tuning strategies, the model’s robustness and generalization to different fine-tuning processes are improved.
+
+Intact performance of benign content. The performance of benign prompts may be degraded during the model alignment process. To tackle this difficulty, we utilize multi-task learning to achieve a balance between the performance of safe content generation and the resistance to unsafe content generation by adaptively computing appropriate weighting coefficients for these two objectives.
+
+Extensive experiments have been conducted to evaluate the performance of PATRONUS. For I2P and SneakyPrompt datasets, PATRONUS can maintain the CLIP score of unsafe prompts to as low as 16.5 (visually black images) even after 500 malicious fine-tuning iterations. We demonstrate that it is hard to allure our protected model to produce unsafe content using any trick, and the cost of instigating an attack on our model is relatively high. We will open-source our code in the hope of incentivizing more research in the field of AI ethics.
+
+We summarize our theoretical and technical contributions as follows:
+
+• We make the pioneer attempt to investigate and validate the feasibility of a defense against white-box adversaries for T2I models. We innovatively apply the concept of non-finetunable learning to the T2I scenario.
+• We design an inseparable content moderation mechanism that is prompt-independent. Additionally, our approach can resist malicious fine-tuning within a given budget, imposing significant costs on the adversary.
+• We conduct extensive experiments to verify the effectiveness and robustness of PATRONUS against a diversity of adversarial prompts and malicious fine-tuning strategies.
+
+In this section, we briefly discuss the preliminary knowledge of T2I generation and related work necessary for illustrating our method. Two lines of defenses are relevant to our study: 1) content moderation and 2) model alignment.
+
+T2I pipeline: Consider a T2I pipeline, parameterized by $\theta$ (noted as $\mathcal { M } _ { \theta _ { \mathrm { . } } }$ ), it involves three cascading modules, text encoder $\mathcal { M } _ { e n c }$ , diffusion module $\mathcal { M } _ { d i f f }$ , and decoder $\mathcal { M } _ { d e c }$ , i.e.,
+
+$$
+\mathcal { M } _ { \theta } = \mathcal { M } _ { d e c } \circ \mathcal { M } _ { d i f f } \circ \mathcal { M } _ { e n c } .
+$$
+
+Let $x ^ { t }$ represent the textual prompt. The text encoder takes $x ^ { t }$ as input and results in a conditioning vector. Then, the diffusion module generates a low-resolution feature with the guidance of the conditioning vector and participation of noise sampled from the Gaussian distribution. Finally, the decoder reconstructs the diffusion feature back to the original pixel space, i.e., high-resolution images.
+
+Content Moderation: There are two types of content moderators: input filters and output filters. Input filters are applied before the text encoder, detecting whether the textual prompt contains unsafe words (Jieli). A T2I equipped with the input filter $\mathcal { F } _ { i } : \overline { { \mathbb { T } } } ^ { d }$ : texual space $ \mathbb { Y } = \{ 0 , 1 \}$ .
+
+$$
+\mathcal { M } _ { \theta } ^ { \prime } = \mathcal { M } _ { \theta } \circ \mathcal { F } _ { i } = \mathcal { M } _ { d e c } \circ \mathcal { M } _ { d i f f } \circ \mathcal { M } _ { e n c } \circ \mathcal { F } _ { i } .
+$$
+
+$$
+\mathcal { M } _ { \theta } ^ { \prime } \left( x ^ { t } \right) = \left\{ \begin{array} { l l } { \emptyset } & { \mathrm { i f ~ } \mathcal { F } _ { i } \left( x ^ { t } \right) = 1 , } \\ { \mathcal { M } _ { \theta } \left( x ^ { t } \right) } & { \mathrm { i f ~ } \mathcal { F } _ { i } \left( x ^ { t } \right) = 0 . } \end{array} \right.
+$$
+
+Where $\mathcal { F } _ { i } \left( x ^ { t } \right) = 1$ (or 0) signifies that the moderator regards $x ^ { t }$ contains (or does not contain) unsafe content. However, the input filters can be easily bypassed by adversarial prompts (Yang et al., 2023), which fulfill the goals as follows,
+
+$$
+\mathcal { F } _ { i } \left( \boldsymbol { x } ^ { t } \right) = 1 , \quad \mathcal { F } _ { i } \left( \boldsymbol { \hat { x } } ^ { t } \right) = 0 , \quad \mathcal { M } _ { \theta } \left( \boldsymbol { x } ^ { t } \right) \approx \mathcal { M } _ { \theta } \left( \boldsymbol { \hat { x } } ^ { t } \right) .
+$$
+
+where $\boldsymbol { x } ^ { t } , \boldsymbol { { \hat { x } } ^ { t } }$ represent the original unsafe prompt and the corresponding adversarial prompt, respectively.
+
+Output filters, $\mathcal { F } _ { o } : \mathbb { R } ^ { H \times W \times C }  \mathbb { Y } = \{ 0 , 1 \}$ , can circumvent this issue, enabling more precise generation moderation since they directly review the compliance of the generated images as
+
+$$
+\mathcal { M } _ { \theta } ^ { \prime } = \mathcal { F } _ { o } \circ \mathcal { M } _ { \theta } = \mathcal { F } _ { o } \circ \mathcal { M } _ { d e c } \circ \mathcal { M } _ { d i f f } \circ \mathcal { M } _ { e n c } .
+$$
+
+$$
+\mathcal { M } _ { \theta } ^ { \prime } \left( x ^ { t } \right) = \left\{ \begin{array} { l l } { \emptyset } & { \mathrm { i f ~ } \mathcal { F } _ { o } \left( \mathcal { M } _ { \theta } \left( x ^ { t } \right) \right) = 1 , } \\ { \mathcal { M } _ { \theta } \left( x ^ { t } \right) } & { \mathrm { i f ~ } \mathcal { F } _ { o } \left( \mathcal { M } _ { \theta } \left( x ^ { t } \right) \right) = 0 . } \end{array} \right.
+$$
+
+Where $\mathcal { F } _ { o } \left( \mathcal { M } _ { \theta } \left( x ^ { t } \right) \right) = 1$ (or 0) signifies that the moderator regards the output contains (or does not contain) unsafe content. However, output filters cannot be applied to defend the white-box adversary due to its structurally separable nature, i.e., the adversary can directly detach $\mathcal { F } _ { o }$ from $\mathcal { M } _ { \theta } ^ { \prime }$ at the code level.
+
+Model alignment: Model alignment family fine-tunes the diffusion module $\mathcal { M } _ { d i f f }$ , parameterized by $\theta _ { d i f f }$ , to improve compliance. SLD (Schramowski et al., 2023) and ESD (Gandikota et al., 2023) aim to guide the diffusion module away from unsafe regions or suppress harmful concepts during the denoising process, like:
+
+$$
+\theta _ { d i f f } ^ { * } = \arg \operatorname* { m i n } _ { \theta _ { d i f f } } \sum _ { x ^ { t } \in \mathbb { U } } - l o g ( \mathcal { M } _ { d i f f } ( \mathcal { M } _ { e n c } ( x ^ { t } ) , z ) ,
+$$
+
+where $\mathbb { U}$ represents the unsafe prompts. However, they rely on predefined prompts to participate in training or inference to some extent, which means the generalization cannot be guaranteed. SafeGen (Li et al., 2024) identifies the significance of vision-only layers (parameterized by $\phi$ ) to achieve text-agnostic mitigation and fine-tunes diffusion parameters against adaptive attackers.
+
+$$
+\phi ^ { * } = \arg \operatorname* { m i n } _ { \phi \subset \theta _ { d i f f } } \sum _ { x ^ { t } \in \mathbb { U } } - l o g ( \mathcal { M } _ { d i f f } ( \mathcal { M } _ { e n c } ( x ^ { t } ) , z ) ,
+$$
+
+Compared with Section S5.2.1, existing work focuses on the threat model like Section S5 . 2 . 1, ignoring a realistic but aggressive scenario where the adversary fine-tunes the models with unsafe data before prompting. This section considers the circumstances where the adversary has no knowledge of our defense mechanisms. For instance, in a common scenario, we release our model without sharing defense-related information. Consistent with the usual practice of fine-tuning SD models (e.g., the widely-used diffusers library (von Platen et al., 2022) defaults to fine-tuning the U-Net and does not even provide an interface for fine-tuning other modules), the adversary typically opts to fine-tune the U-Net module. We designate this type of adversary as the naive fine-tuning adversary, and we discuss adaptive finetuning adversaries with more prior knowledge in Section H.
+
+To assess the performance of PATRONUS and baselines against this type of adversary, we fine-tune their U-Nets on 200 Porn image-caption pairs from NSFW-prompt for 20 iterations. Then, we use I2P prompt set to query the fine-tuned model and examine the changing trends of the CLIP score and the visual results with respect to the number of fine-tuning iterations. A larger CLIP score means more unsafe content in the generated images. From Figure 5, we can see the CLIP scores of SD-V1.4 and SD-V2.1 are high enough from the very beginning, proving the adversarial prompts’ effectiveness. The CLIP scores of ESD and SafeGen are low initially, suggesting their effectiveness in defending against adversarial prompts. However, after only a few iterations, their CLIP scores rapidly increase, revealing their vulnerability against malicious fine-tuning. We present the corresponding visual results in Figure 6. As we can see, the CLIP scores of PATRONUS remain low during the whole fine-tuning process, and the generated images are always devoid of unsafe content.
+
+![](images/ad54e1670a39a73ee5f9a2d2a22e6e060a8de95ce2bd438a0486d8d4eaf79753.jpg)
+Figure 5: Effectiveness of PATRONUS’s resisting malicious fine-tuning compared with four baselines. PATRONUS ensures that the CLIP score on unsafe generations remains consistently low and does not increase as fine-tuning progresses.
+
+![](images/6832607e667c260f5d1c0e279c2fd2133c2300bed4acde6714f16feabc841902.jpg)
+Figure 6: Effectiveness of PATRONUS’s resisting malicious fine-tuning compared with four baselines. PATRONUS ensures that the outputs regarding unsafe prompts remain zeros as fine-tuning progresses.
+
+# 5.3 PRESERVING BENIGN PERFORMANCE
+
+In this part, we evaluate the benign performance of benign prompts. Following the existing work, we use captions from MS COCO dataset as benign prompts and examine the CLIP scores. From Figure F, we can see PATRONUS’s CLIP scores are comparable to other baselines, demonstrating PATRONUS does not introduce extra degradation on the benign performance.
+
+# 6 CONCLUSION
+
+In this paper, we introduce an innovative defense PATRONUS for pre-trained T2I models, which includes an inseparable moderator and a non-fine-tunable safety mechanism. PATRONUS resolves the drawbacks of existing defenses that fail to remain effective in white-box scenarios. Our experiments have validated the efficacy of PATRONUS in refusing unsafe prompting and resisting malicious finetuning as well as its intact benign performance.
+
+            --- PAPER END ---
+              ```

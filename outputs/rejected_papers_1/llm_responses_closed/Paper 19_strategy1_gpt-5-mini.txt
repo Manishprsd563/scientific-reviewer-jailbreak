@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes a dynamic, greedy token-tree expansion for speculative decoding which is a reasonable refinement over fixed-tree methods (Sequoia, SpecInfer, Medusa). However, the core idea — prioritizing high-draft-probability branches — is an intuitive extension of prior work rather than a clearly novel methodological breakthrough. A key unverified assumption is Hypothesis 1 (SD[x] ~ p_d[x]) used to substitute target acceptance probabilities with draft probabilities; this assumption is only supported by preliminary correlation plots and not rigorously validated across diverse distributions. I downgraded the score per RBCL Anti-Inflation Safeguard (-0.5) and due to conservative presumption of incremental novelty."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If robust, dynamic speculative decoding could meaningfully reduce inference latency for large LLMs and therefore has practical impact for deployment. The empirical throughput/latency gains reported (especially for Llama2-70B) indicate potential usefulness. Weaknesses: the approach relies on draft/target similarity and implementation tricks (C++ tree construction, CUDA-graph usage) whose portability and engineering cost are not fully quantified; generalization to different hardware setups, draft-target model pairs and real production prompts is unverified. Score reduced per RBCL Anti-Inflation Safeguard (-0.5) and conservative presumption of deployment fragility."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 1,
+      "justification": "The paper presents intuitions and a high-level derivation linking draft probability and acceptance rate and claims optimality of the greedy expansion under mild assumptions, but the manuscript as presented glosses over important theoretical details. Critical unverified assumptions include approximating acceptance SD[x] with p_d[x] and that greedy selection yields optimal trees without access to true target probabilities; the proof is deferred to the appendix but not available here to evaluate rigor. Complexity/overhead analysis omits several practical costs (e.g., sampling/updating residual distributions across large vocabularies, memory/time for CUDA-graph capture). Missing/unclear theoretical justification and missing verifiable proofs cap this criterion; per RBCL Fatal-Flaw Logic and Evidence Severity Scaling the score is downgraded and set low (<=2), and RBCL Anti-Inflation Safeguard (-0.5) was applied."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports extensive experiments across multiple datasets, temperatures, and model scales and compares to several baselines (Sequoia, SpecInfer). This breadth is a strength. However, key weaknesses: (1) missing details about experimental seeds, variance or statistical significance tests (no error bars or multiple runs reported), (2) limited ablations on sensitivity to choices such as threshold C, draft temperature, budget m, and the trade-offs between tree size N and latency, (3) some claims rely on heavy engineering (C++ implementation, CUDA-graph) whose effect on results is not isolated. Penalized for insufficient ablations/statistics and for not providing negative results or failure cases. RBCL Anti-Inflation Safeguard (-0.5) applied."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper does not state that code, scripts, or exact hyperparameters/seeds are provided; there is no explicit reproducibility checklist, and important implementation details (C++ code, sampling/residual update routines, exact CUDA-graph capture strategy and memory footprint) are missing. This lack of release or detailed instructions is a critical issue: missing artifacts cap the score and, per the rubric, triggers RBCL Fatal-Flaw Logic. I therefore set a low score and note explicitly that Reproducibility <= 2 forces a conservative decision (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The manuscript provides a relatively broad survey of tree-based speculative decoding (SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, ReDrafter) and attempts to position DYSPEC with respect to them. Weaknesses: some distinctions with prior work are asserted but not deeply substantiated (e.g., claims about why certain prior pruning/selection strategies cannot be integrated into standard verification are not fully justified), and head-to-head experimental conditions are not exhaustively documented (e.g., whether baselines used identical draft models and engineering optimizations). Score reduced per RBCL Anti-Inflation Safeguard (-0.5) and for incomplete rigorous positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no dedicated discussion of ethics, broader impacts, data provenance, licensing of models/datasets, or potential misuse implications of speeding LLM generation. Even though the work is primarily systems/efficiency-focused, accelerating LLMs has societally relevant consequences (e.g., enabling higher-throughput generation of harmful content) that deserve at least a brief treatment. Absence of an ethics statement or data/license disclosures caps the score and leads to a conservative downgrade."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 11,
+    "confidence": 0.80,
+    "final_decision": "Reject",
+    "final_justification": "Summary: DYSPEC presents a pragmatic and engineering-focused improvement to speculative decoding by dynamically expanding token trees based on draft probabilities and reports promising throughput/latency gains across datasets and model scales. Strengths include multi-dataset experiments and attention to implementation overhead. However, there are several critical weaknesses that warrant rejection in its current form: (1) Core theoretical assumptions (approximation SD[x] ≈ p_d[x], greedy optimality guarantees) are not sufficiently justified or verifiable in the main text; (2) Important reproducibility materials (code, hyperparameters, seeds, detailed implementation artifacts) are not provided, and engineering dependencies (C++ implementation, CUDA-graph capture) are not fully specified; (3) Empirical evaluation lacks variance estimates, statistical tests, and comprehensive ablations of key hyperparameters and thresholds; (4) No ethics/broader-impacts discussion. Per the Review Bias Correction Layer (RBCL): reproducibility and technical_soundness are both at or below the fatal threshold (<=2), which triggers RBCL §2 Fatal-Flaw Logic — the decision is therefore downgraded to Reject regardless of the aggregate score. I also applied the RBCL Anti-Inflation Safeguard (−0.5 adjustment to initial scores) and adopted a presumption of rejection for unverifiable claims. Recommendations to authors for revision: provide (a) released code and exact experimental configuration (seeds, hyperparameters, infrastructure notes), (b) a reproducibility checklist and instructions to run experiments, (c) the full theoretical proofs and clarity on the assumptions under which optimality holds, (d) additional ablations and repeated runs with error bars/statistical tests, and (e) a brief ethics/broader-impacts statement. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility and/or technical soundness <= 2)."
+  }
+}

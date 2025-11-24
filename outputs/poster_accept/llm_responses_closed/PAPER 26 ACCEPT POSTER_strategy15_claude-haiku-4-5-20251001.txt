@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper proposes two main contributions: (1) a lightweight cross-attention mechanism with linear complexity instead of quadratic self-attention, and (2) a Self-Improved Training (SIT) algorithm that leverages iterative local reconstruction for pseudo-labeling without ground-truth data. Both ideas are methodologically distinct from prior work. However, the novelty is somewhat incremental: cross-attention variants using representative nodes have been explored in other domains, and the concept of iterative refinement for solution improvement is known. The main novelty lies in the specific combination and application to large-scale VRPs. A potential weakness is that the cross-attention design is relatively straightforward (using m fixed representative nodes) and the paper does not provide theoretical justification for why this particular design is optimal or how m should be chosen. Additionally, SIT's core mechanism—using model-generated solutions as pseudo-labels—is conceptually similar to existing self-training paradigms, though the application to partial solution reconstruction is somewhat novel."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses a genuine and important limitation in Neural Combinatorial Optimization: scalability to very large instances (up to 100K nodes). Achieving performance competitive with or superior to classical solvers (HGS) on large-scale CVRP is notable. The practical impact is substantial for real-world routing applications. However, several weaknesses limit significance: (1) The comparison primarily uses greedy decoding; results with beam search or more sophisticated inference strategies are limited, making it unclear how much of the advantage is from the training algorithm versus architecture. (2) The method requires a substantial time budget (PRC iterations) during inference to achieve best results, which may limit practical applicability. (3) The paper does not thoroughly investigate failure modes or provide guidance on when practitioners should prefer this method over classical solvers or other NCO approaches."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper lacks formal theoretical analysis. While the cross-attention mechanism is described clearly (Eq. 1 adapted to use representative nodes), there is no formal proof that linear complexity is achieved or that the approximation quality is maintained. The claim of O(nm) complexity is stated but not rigorously derived—the paper should explicitly state the computational graph and memory usage at each step. For SIT, the learning objective in Eq. (3) is standard supervised learning on partial sequences, but there is no theoretical analysis of convergence properties, the quality of pseudo-labels over iterations, or guarantees that the algorithm will improve solutions. A critical unverified assumption is that local reconstruction with randomly sampled partial solutions leads to global improvement—this is empirically validated but not theoretically justified. Additionally, the paper does not address potential distributional shift between the initial solutions (from greedy/random construction) and the refined solutions used for training, which could harm generalization."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, comparisons, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover synthetic benchmarks (TSP, CVRP at various scales) and real-world datasets (TSPLIB, CVRPLIB), which is comprehensive. The ablation study (Table 3) isolates the contributions of SIT and cross-attention, demonstrating their individual impact. However, several weaknesses undermine the validation: (1) On real-world benchmarks (Table 2), with greedy decoding, the method only outperforms baselines on 2 out of 4 instance groups—PRC is required for consistent superiority, conflating inference time with training quality. (2) Statistical significance testing (error bars, confidence intervals) is absent; results appear to be single runs. (3) The comparison with HGS on CVRP10K/50K/100K is impressive but lacks details: Were instances sampled identically? What is the variance across runs? (4) The paper does not provide learning curves or convergence analysis for SIT, making it unclear how much improvement is gained after each iteration or how sensitive the method is to the number of SIT iterations. (5) Limited analysis of failure cases or instance characteristics where the method underperforms."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper states that code is available at a GitHub link, which is positive. However, the main paper lacks sufficient implementation details: (1) Hyperparameters for cross-attention (e.g., how are representative nodes initialized? are they learnable? how is m chosen for each problem size?) are not fully specified. (2) SIT algorithm details are deferred to Appendix D, but the main text does not provide pseudocode or clear step-by-step description. (3) Training procedures (optimizer, learning rate schedules, batch sizes, hardware) are mentioned briefly but lack precision. (4) The number of random seeds and their values are not stated. (5) Experimental setup for baselines is unclear—were all baselines run on the same hardware? With the same time budgets? (6) The dataset sampling procedure (how are synthetic instances generated for different scales?) is not fully documented. While code availability is commendable, the paper should be self-contained and not rely on code inspection for reproducibility."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 2) provides a good high-level categorization of NCO methods into generalization-based, simplification-based, and heatmap-based approaches. However, the positioning has weaknesses: (1) The paper does not clearly delineate which specific aspects of prior work are improved by each contribution (e.g., is the cross-attention a standalone improvement over general attention mechanisms, or specific to VRPs?). (2) Recent parallel work on efficient attention (linear attention, sparse attention) in other domains is not discussed, missing opportunities to contextualize the cross-attention mechanism. (3) The comparison with decomposition-based methods is limited—the paper claims SIT avoids extensive computational overhead for labels, but decomposition methods also avoid this; a direct comparison is missing. (4) The paper cites many baseline methods but does not discuss their key innovations or why they fail on large-scale problems beyond 'insufficient generalization.' (5) No discussion of trade-offs: e.g., does the method sacrifice solution quality for speed compared to classical solvers on small-scale instances where exact/near-optimal solutions are known?"
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no ethics section, no discussion of broader impacts, and no acknowledgment of potential risks or societal implications. While routing optimization itself is not inherently harmful, the application to vehicle routing could have implications: (1) Labor displacement in logistics if automation is widely adopted. (2) Environmental impact (carbon footprint, energy consumption of routing optimization). (3) Fairness concerns if routing decisions affect service quality for certain geographic regions or customer segments. (4) Data privacy if customer location data is used. (5) Potential dual-use applications in areas with less benign intent. The absence of any discussion of these issues, even briefly, is a significant omission for a conference emphasizing responsible AI. This is a critical weakness that automatically caps this criterion per RBCL guidelines."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 21,
+    "confidence": 0.72,
+    "final_decision": "Weak Accept",
+    "final_justification": "This paper presents a solid empirical contribution to neural combinatorial optimization by proposing a cross-attention mechanism and Self-Improved Training algorithm that achieve strong results on large-scale VRP instances (up to 100K nodes). The core innovation—using representative nodes to reduce attention complexity and leveraging iterative local reconstruction for pseudo-labeling—is reasonable and demonstrates clear practical benefits in terms of computational efficiency and solution quality. The experimental results on synthetic and real-world benchmarks are comprehensive, and the method's ability to compete with classical solvers on large-scale CVRP is noteworthy. However, the paper suffers from several significant weaknesses that prevent a higher rating: (1) Limited theoretical justification for the proposed mechanisms; (2) Absence of statistical significance testing and single-run results; (3) On real-world benchmarks, greedy performance is only marginally better than baselines, requiring post-hoc PRC iterations; (4) Missing critical implementation details, relying on appendices; (5) Complete absence of ethics discussion (automatic cap per RBCL guidelines). The work is technically sound and empirically validated to a reasonable degree, but lacks the rigor and completeness expected for a top-tier venue. The paper makes a useful contribution to an important problem, but the execution is incremental and the validation, while extensive, has notable gaps. The decision is borderline: the practical impact and experimental breadth push toward acceptance, but missing theoretical grounding, incomplete reproducibility specifications, and ethical omission pull toward rejection. A Weak Accept is justified given the solid empirical results, but the paper would benefit from addressing theoretical gaps, providing statistical tests, and including an ethics discussion before publication at a top venue."
+  }
+}
+```

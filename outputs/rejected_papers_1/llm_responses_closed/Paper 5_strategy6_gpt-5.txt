@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a multi-actor, centralized critic framework that produces document-level \"textual gradients\" for KB editing, coupled with ReACT-style actors and MCTS over KB states. Adapting centralized critics and textual reflections to KB editing is a fresh angle relative to prompt-optimization work, and the parameterized edit action space is a well-scoped contribution. However, many components (ReACT agents, clustered reflections, MCTS, centralized critics) are known techniques recombined in a new setting; the core methodological innovation may be incremental rather than a fundamentally new algorithmic principle. Potential weakness: the assumption that LLM-generated textual gradients are a faithful proxy for gradients of the reward with respect to documents is unverified and may not hold broadly."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If effective, feedback-driven document-level KB editing could materially improve RAG in domains where documentation is incomplete or drifts (e.g., niche languages, changing APIs, time-sensitive facts). Reported gains (up to ~8%) suggest practical utility. However, impact is constrained by reliance on proprietary LLMs and by settings where reliable \"experts\" exist (compilers or oracles), limiting broader applicability. Potential weakness: unclear cost-benefit and scalability (e.g., token budgets, edit overhead, multiple re-evaluation cycles) and whether improvements persist across diverse retrieval regimes and models."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The overall formulation as a state search over KB versions and the use of MCTS are reasonable. The centralized-critic notion is implemented via clustered textual reflections rather than a principled gradient—this is heuristic and lacks theoretical backing or guarantees. The document credit assignment step and the aggregation of reflections across queries are not rigorously justified, and convergence or stability properties are not analyzed. Minor red flags include equation typos (e.g., optimization expression ending with '= a'). Potential weakness: appropriateness and correctness of using LLM-judged coherence (G-Eval) as a training/selection signal and the unproven assumption that textual gradients correlate with true task reward improvements."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover several datasets (ARKS variants and CLARK-news) and compare against a PROMPTAGENT-based baseline. However, there is a lack of statistical rigor (no multiple runs, seeds, or variance reporting across most metrics), unclear table formatting (e.g., unlabeled columns like '0'), and missing or partial coherence values for some baselines. There are no ablations for key components (centralized critic vs. independent actors, clustering, MCTS depth/width, action space design, reflection quality). Additional baselines (e.g., existing KB-editing methods, simple heuristic edits, model-agnostic editing pipelines) are missing. Potential weakness: reliance on GPT-4-based G-Eval for coherence introduces evaluator bias, and the claimed meta-analysis support (JMLR 2025) is unverifiable within the paper and timeframe."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper lists some system configurations (MCTS hyperparameters, retrieval settings, model names) but does not provide code, prompts, seeds, or full instructions. Heavy reliance on proprietary APIs (GPT-4-1106-Preview, OpenAI embeddings) hinders exact reproducibility. Dataset splits are described but not released; details of reflection prompts, clustering parameters, and actor policies are insufficient for reproduction. Per the rubric, missing code and seeds cap this criterion. Potential weakness: results may not be reproducible without the exact black-box API behavior at the time of experiments."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The survey spans RAG, continual learning, model/input editing, prompt optimization, and MARL, and includes relevant citations (e.g., Li et al., 2024). The positioning as feedback-driven KB editing is fairly argued. However, empirical comparisons to closely related KB editing or document-updating methods are missing, and the 'first to tackle feedback-driven textual KB editing' claim seems strong given contemporaneous work on KB and retrieval editing. Potential weakness: incomplete coverage of alternative KB maintenance pipelines and limited baseline diversity may overstate the method’s advantage."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics/broader-impact discussion is provided. Potential issues—editing KBs with unverifiable or biased feedback, data provenance and licensing for documents, ongoing maintenance risks, and reliance on proprietary models—are not addressed. For CLARK-news, factual updates may propagate errors if feedback is incorrect. Per the rubric, absence of a clear ethics statement caps the score. Potential weakness: lack of discussion on safeguards to prevent harmful or erroneous edits and on transparency for edited KBs."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "MAC-CAFE introduces a promising combination—centralized critic with document-level textual reflections and ReACT-based actors for KB editing—and shows moderate gains on several datasets. However, the empirical evidence is underpowered (limited baselines, no ablations, unclear tables, no statistical tests), and reproducibility is weak (no code, seeds, or full prompts; reliance on proprietary APIs). The technical framing relies on heuristic 'textual gradients' without theoretical guarantees. Per RBCL §2 Fatal-Flaw Logic, reproducibility ≤ 2 mandates rejection, and we apply this override. Even absent the override, the total score falls in a range where ICLR norms default to rejection without multiple strong dimensions. Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL Practical Calibration."
+  }
+}

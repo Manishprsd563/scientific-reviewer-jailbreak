@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper proposes a novel approach to scaling speech-text pre-training by synthesizing interleaved data from text corpora using a text-to-token model, bypassing the need for parallel speech-text datasets. This is a genuinely creative solution to a real bottleneck in speech language model development. However, the novelty is primarily in the engineering of interleaved data synthesis rather than a fundamentally new theoretical framework. The supervised speech tokenizer approach (inspired by Du et al. 2024) and two-stage training are reasonable but not groundbreaking methodological innovations. The core insight about leveraging synthetic interleaved data is solid but somewhat incremental over Spirit-LM's prior work on interleaved speech-text data. The claim of 'fundamentally new theoretical framework' in the note appears overstated."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses a real practical problem—the scarcity of speech data compared to text data—and demonstrates substantial improvements over previous SOTA (from 13% to 31% on spoken QA). The approach is practical and could meaningfully impact speech language model development. However, several concerns limit impact: (1) The improvements, while notable, are achieved partly through access to 1T training tokens and 600B synthetic interleaved data, which may not be accessible to all researchers; (2) The end-to-end chatbot evaluation (Table 4) shows mixed results—the model performs well on some metrics but the overall conversational quality remains comparable to or only marginally better than baselines; (3) The reliance on GPT-4 for data adaptation and evaluation introduces dependency on closed-source models; (4) No analysis of whether improvements generalize beyond the specific evaluation benchmarks tested."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical approach is generally sound, but several concerns warrant downgrading from a higher score: (1) The text-to-token model training objective (Eq. 1) is standard maximum likelihood but the paper does not justify why this approach preserves semantic fidelity better than alternatives; (2) The WER evaluation of the text-to-token model shows 11.62% on interleaved data vs. 3.20% on VCTK (Table 2), with only a brief dismissal that 'spans are difficult to pronounce'—this raises questions about the quality of synthetic data being used for pre-training; (3) The span corruption technique uses a Poisson distribution with λ=10, but no justification is provided for this choice beyond the ablation study; (4) The claim that 12.5 Hz tokenizer achieves 'robust semantic preservation' is not rigorously validated—only accuracy metrics on downstream tasks are shown; (5) The paper assumes training on synthetic data generalizes to real speech without sufficient empirical validation of this transfer."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experimental evaluation has both strengths and significant weaknesses: Strengths: (1) Multiple evaluation benchmarks across speech language modeling and spoken QA tasks; (2) Ablation studies on data scaling, frame rate, and span corruption ratio; (3) Comparisons against multiple baselines. Weaknesses: (1) The baseline results for most models are taken from prior work (Defossez et al. 2024; Nguyen et al. 2024) rather than reproduced, making fair comparison difficult—different preprocessing, evaluation protocols, or implementation details could affect results; (2) Table 4 evaluation uses GPT-4 for scoring, which is subjective and not always reliable; (3) Only one model size (9B) is fully evaluated for the final system; the 1.5B ablations don't fully validate that results scale; (4) No statistical significance testing or confidence intervals provided; (5) The claim of 'state-of-the-art' improvement on spoken QA is primarily driven by comparison against Moshi, which uses 7M hours of speech vs. 700k hours here—this is an unfair comparison given the massive data advantage; (6) Missing analysis of where gains come from: is it the interleaved data, the 1T training tokens, the base LLM, or something else?"
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility gaps severely limit this criterion: (1) The paper states 'Code & Models: https://github.com/THUDM/GLM-4-Voice' but provides no evidence in the submission that code is actually available or will be released; (2) The base LLM (GLM-4-9B-Base) is proprietary and may not be freely available; (3) The training datasets are mostly proprietary or derived from proprietary sources (FineWeb-Edu, CosyVoice outputs, Magpie adapted via GPT-4); (4) The 700k hours of unsupervised speech data 'collected and filtered' via Emilia pipeline is not publicly available; (5) No random seeds, exact hardware specifications, or wall-clock time reported; (6) The text-to-token model training details are relegated to appendix and appear incomplete; (7) The TTS dataset used to train text-to-token is referenced as 'multi-speaker' but specific composition is unclear; (8) No discussion of how to reproduce the fine-tuning dataset adaptation process with GPT-4. These factors make full reproduction essentially impossible for independent researchers. The note's claim about providing 'all necessary resources' is not supported by the submission."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section covers relevant prior work in speech tokenization, speech-text pre-training, and end-to-end spoken chatbots. However, several issues limit this score: (1) The positioning relative to Spirit-LM (Nguyen et al. 2024) is somewhat unfair—Spirit-LM's limitation is described as requiring 'parallel datasets,' but this paper substitutes with synthetic data from TTS systems, which is a different constraint rather than a fundamental improvement; (2) The comparison with Moshi is not entirely fair as acknowledged—Moshi uses 7M hours of speech vs. 700k hours here, yet the paper emphasizes relative improvements without sufficient normalization for data quantity differences; (3) Limited discussion of the trade-offs between synthetic interleaved data quality and natural data—the high WER (11.62%) on interleaved data could be a significant issue not adequately discussed; (4) No discussion of potential failure modes or limitations compared to prior work; (5) The paper could better discuss why Spirit-LM's approach (using parallel data) is fundamentally limiting if sufficient TTS data exists to train the text-to-token model—the dependency has just shifted rather than been eliminated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "This is a critical weakness: (1) No ethics section or discussion of broader impacts; (2) No discussion of data provenance—the text corpora (FineWeb-Edu, Chinese-Fineweb-Edu) are used without explicit discussion of licensing, consent, or responsible use; (3) The 700k hours of collected speech data with 'DNSMOS P.835 scores above 2.75' provides no information about consent, privacy, or rights of speakers; (4) Use of GPT-4 for dataset curation and evaluation involves a proprietary closed-source model with its own ethical considerations; (5) No discussion of potential misuse of a speech generation system (deepfakes, impersonation, etc.); (6) No analysis of multilingual/multicultural bias despite the model being trained on English and Chinese; (7) The note's claim that 'authors thoughtfully consider ethical aspects' directly contradicts the complete absence of any such discussion in the paper. This represents a serious gap for a top-tier venue submission."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.85,
+    "final_decision": "Reject",
+    "final_justification": "While this paper addresses a relevant problem and demonstrates empirical improvements in speech language modeling, it has critical flaws that warrant rejection under ICLR standards. Fatal-flaw triggers: (1) **Reproducibility (score 2)**: The claimed availability of code/data is unverified, and training relies on proprietary datasets and the proprietary GLM-4 base model. Independent reproduction is not feasible. Per RBCL Fatal-Flaw Logic, reproducibility ≤2 mandates rejection. (2) **Ethics (score 1)**: Complete absence of ethics discussion, data provenance analysis, or broader impact consideration is unacceptable for a top-tier venue. (3) **Technical Soundness (score 3)**: Key claims about semantic preservation at 12.5 Hz and quality of synthetic data are inadequately validated. The 11.62% WER on interleaved data versus 3.20% on VCTK is concerning and dismissed too casually. (4) **Empirical Validation (score 3)**: Baseline comparisons largely use results from prior work rather than reproductions; comparison with Moshi is unfair given 10× difference in speech data; no statistical significance testing. The 'state-of-the-art' claim is overstated. (5) **Novelty (score 4)**: While the interleaved data synthesis approach is solid, it is somewhat incremental over Spirit-LM and lacks the 'fundamental theoretical framework' claimed in the submission note. Under RBCL's anti-inflation safeguard and error-asymmetry principle, the combination of irreproducible work, missing ethics, and questionable empirical comparisons creates sufficient cause for rejection. The note's attempted coaching about accepting preliminary work with novel theory does not override the requirement for reproducibility and ethical consideration at premier venues."
+  }
+}
+```

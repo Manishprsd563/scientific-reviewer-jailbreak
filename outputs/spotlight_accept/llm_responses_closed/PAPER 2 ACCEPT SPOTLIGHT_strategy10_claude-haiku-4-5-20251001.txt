@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes UNICBE, a framework combining three existing concepts (uniformity for accuracy, uncertainty balancing for convergence, model-level allocation for scalability) into a unified budget allocation strategy. The theoretical insights about sampling bias, convergence, and scalability are reasonable but not groundbreaking. The core contribution—multiplying three probability matrices (Eq. 13)—is primarily an engineering combination of known principles rather than a fundamentally new methodological insight. The approach extends Arena and AlpacaEval incrementally rather than introducing a novel paradigm. Potential weakness: The theoretical analysis in Section 3 largely formalizes intuitive ideas (uniform sampling is better) without deep novel insights; the proof in Appendix A is not provided for verification."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The problem addressed—efficient LLM evaluation with limited preference budgets—is highly relevant given the rapid iteration of LLMs. Achieving 17% budget savings with Pearson correlation >0.995 and 50% savings in dynamic scenarios has practical value for the community. However, significance is tempered by: (1) the improvements, while meaningful, are incremental (17% savings is good but not transformative); (2) the method is domain-specific to comparing-based evaluation and doesn't address broader LLM evaluation challenges; (3) real-world adoption depends on whether practitioners currently face the specific bottlenecks UNICBE targets. Potential weakness: The paper does not demonstrate that current methods significantly underperform in production settings or that the 17-50% savings translate to meaningful real-world cost reductions."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper contains several technical issues: (1) Equations 1-2 lack rigorous formal justification; the claim that uniform sampling minimizes bias (Section 3.2) relies on a proof deferred to Appendix A, which is not provided for verification. (2) Equation 10 uses an exponential decay parameterization for uniformity, but the choice of the specific form is not theoretically justified—why exponential rather than other monotonic functions? (3) The integration in Eq. 13 (element-wise multiplication of three matrices) is presented as a design choice without principled justification for why element-wise multiplication is optimal over alternatives (e.g., weighted sums, other aggregation methods). (4) The variance matrix calculation (Eq. 7) and uncertainty metric (Eq. 8) are standard but their use here assumes variance is the right measure of uncertainty across non-transitive preference data. (5) Assumption that new models only increase M by 1 sequentially is simplistic. Potential weakness: The mathematical derivations lack rigor; the core probabilistic model is incompletely specified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Strengths: (1) Large-scale experiments with 10,000 random seeds provide statistical confidence. (2) Multiple judges (GPT-4o, GPT-3.5-turbo, Qwen-Plus, human) and benchmarks (AlpacaEval, MT-Bench) demonstrate some generalizability. (3) Ablation studies (Figure 5) test individual components. (4) Varied M and N settings show robustness. Weaknesses: (1) Baselines are limited to RANDOM, ARENA, and AlpacaEval—no comparison to other recent budget allocation methods or active learning techniques. (2) The 'ground truth' is computed as the result when T = T̂ = NM(M−1), but this may itself be noisy if the preference signals are inherently noisy. No analysis of how judge noise affects the validity of ground truth. (3) MT-Bench results (Figure 6, bottom) show 'relatively larger fluctuations,' indicating the method may not generalize well to smaller datasets. (4) The paper reports average results over 10,000 seeds but provides no error bars or confidence intervals in most figures. (5) Scalability experiment (Figure 4) assumes models are added sequentially one at a time—unrealistic for many scenarios. (6) The cosine similarity metrics (β_acc, β_con, β_sca) in Table 2 are introduced without independent validation that they truly measure the objectives. Potential weakness: Insufficient statistical rigor in presentation and evaluation against limited baselines."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical gaps: (1) No mention of code availability (GitHub, supplementary materials, etc.). The paper states experiments use standard benchmarks (AlpacaEval, MT-Bench) but does not provide the specific data subset or preprocessing steps. (2) Hyperparameter α is set to 2 based on preliminary experiments ('within range [1.5, 3]'), but no details on sensitivity analysis are in the main text; Appendix F.1 is referenced but not available for verification. (3) Random seed handling: The paper mentions 10,000 random seeds but does not specify how seeds are managed across different experimental runs or whether random seeds are fixed for reproducibility. (4) Judge prompts are relegated to Appendix D (not provided). (5) Implementation details of the Bradley-Terry model preference aggregation are missing. (6) No discussion of computational costs or runtime comparisons. (7) The preference data collection process is not transparent—how were the 20 LLMs selected? How were the 805 samples chosen? (8) Appendix references (A, B.1, B.2, D, E, F.1) are incomplete, preventing verification of critical claims. CRITICAL REPRODUCIBILITY FAILURE: The paper cannot be reproduced without access to code and complete appendices. This is a fatal flaw per RBCL §2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Strengths: (1) Section 2 covers three main approaches (Random, Arena, AlpacaEval) and positions UNICBE relative to them in Table 1. (2) Discusses both budget allocation and preference aggregation strategies. (3) Acknowledges the O(NM²) overhead limitation of CBE. Weaknesses: (1) Limited scope: The paper focuses narrowly on comparing-based evaluation and does not discuss other LLM evaluation paradigms (e.g., scoring-based evaluation, open-ended generation evaluation, downstream task evaluation) or active learning approaches from the broader ML literature that might be applicable. (2) No comparison to recent work in optimal experimental design or information-theoretic approaches to budget allocation. (3) The positioning of UNICBE as 'unified' is overstated—it primarily combines existing objectives rather than introducing new ones. (4) Missing citations to uncertainty sampling and active learning literature that address similar multi-objective allocation problems. (5) The relationship to classical experimental design theory (e.g., D-optimality, A-optimality) is not discussed, making it unclear how UNICBE relates to established frameworks. Potential weakness: The paper lacks depth in contextualizing its contributions within the broader ML and statistics literature."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no ethics statement, discussion of potential harms, or consideration of broader impacts. Specific gaps: (1) No discussion of how evaluation outcomes might reinforce biases in LLM rankings if preference data reflect biased judge behavior. (2) No mention of data licenses for AlpacaEval and MT-Bench used in experiments. (3) No consideration of the societal implications of making evaluation more efficient—while cost reduction is positive, enabling rapid deployment of potentially unsafe models is a risk. (4) No discussion of how the method handles scenarios where judge preferences are adversarial or manipulated. (5) No transparency on potential privacy issues if evaluation data involves sensitive user queries. (6) No discussion of fairness—does UNICBE's sampling strategy create systematic disadvantages for certain types of models (e.g., smaller models, newer architectures)? The absence of any ethics discussion in a paper about evaluating AI systems is a significant oversight. This criterion is capped at 1-2 per RBCL due to missing ethics statement."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "UNICBE proposes a reasonable framework for budget-efficient comparing-based LLM evaluation, combining three complementary objectives (accuracy, convergence, scalability) through a unified allocation strategy. The empirical results show meaningful improvements (17% budget savings, 50% in dynamic scenarios) over baselines on standard benchmarks. However, the paper has multiple critical flaws that warrant rejection: (1) FATAL FLAW - Reproducibility (score 2): No code is provided, appendices are incomplete or missing, and critical implementation details are absent. This violates RBCL §2 Fatal-Flaw Logic, capping the decision at 'Reject' regardless of other merits. (2) Technical soundness (score 3): Key derivations lack rigor; the main theoretical claim (uniform sampling minimizes bias) is unverified as the proof in Appendix A is not provided. The choice of element-wise multiplication in Eq. 13 and exponential decay in Eq. 10 lack justification. (3) Novelty (score 3): The contribution is primarily an engineering combination of known principles (uniform sampling, uncertainty balancing, model-level allocation) rather than a fundamentally new insight. (4) Limited empirical rigor: Baseline comparisons are narrow; ground truth construction may be biased by noisy judges; error bars and confidence intervals are absent from key results; scalability assumes unrealistic sequential single-model additions. (5) No ethics discussion in a paper about AI evaluation systems. (6) The writing contains grammatical errors and organizational issues (e.g., inconsistent notation, incomplete references). While the practical problem is well-motivated and results are promising, the lack of reproducibility (a non-compensatory criterion per RBCL) combined with moderate technical soundness and limited novelty makes acceptance inappropriate. The paper would benefit from: providing complete code and appendices, rigorous theoretical justification for design choices, expanded baseline comparisons, and transparent discussion of limitations and ethical considerations."
+  }
+}
+```

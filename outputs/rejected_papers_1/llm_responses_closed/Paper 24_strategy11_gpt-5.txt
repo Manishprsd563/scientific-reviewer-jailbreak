@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes learning per-head and per-channel attention scaling (SEAL) using a very small, format-focused synthetic dataset to improve long-context retrieval, and demonstrates orthogonality to training-free context extension. While the application to long-context retrieval with minimal data and the explicit head/channel scaling space are interesting, similar ideas of head importance, pruning/gating, and learned per-head scaling (e.g., LayerScale-like mechanisms, head pruning/gating literature) have been explored; thus the contribution reads as a targeted recombination rather than a fundamentally new paradigm. Potential weakness: the assumption that simple scalar/vector scaling suffices to generalize across tasks and models may be over-optimistic and not fully validated."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Improving retrieval for long-context inputs is important, and SEAL shows notable gains on Needle-in-a-Haystack and line retrieval, with some improvements when combined with NTK/Self-Extend and modest changes on LongBench and stable MMLU. The low-parameter, low-data tuning is practically appealing. However, significance is tempered by the focus on synthetic/format-driven tasks, limited gains on diverse real-world QA, and unclear robustness across domains and models. Potential weakness: the improvements may be sensitive to the specific formatting and benchmarks used, limiting broad impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The method is straightforward and plausibly implemented; the direct-effect qualitative analysis offers some interpretive signal. However, theoretical grounding is minimal, and the causal link between specific head/channel scaling and retrieval outcomes is not rigorously established. The assumption that SGD on 50 synthetic format samples reliably identifies retrieval-relevant heads/channels across tasks remains insufficiently justified. Potential weakness: lack of robustness checks (e.g., sensitivity to seed, data size, different synthetic formats) raises concerns about brittleness and overfitting to formatting cues."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper evaluates multiple models (7B/13B) and tasks (Needle-in-a-Haystack, LongEval line retrieval, LongBench subsets), includes comparisons to LoRA/DoRA variants, and combines with NTK/Self-Extend. This breadth is positive. However, there are no multiple runs or statistical tests, limited ablations on sensitivity to synthetic data scale/quality/seeds, and missing comparisons to stronger fine-tuning baselines for long-context (e.g., PI/YaRN with robust training on larger data). Potential weakness: reliance on single-run results without variance and incomplete baselines limits the strength of empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Some hyperparameters, models, and training configurations (optimizers, lrs, epochs, hardware) are described, and dataset construction is outlined conceptually. However, there is no explicit commitment to release code, trained scaling parameters, or precise data generation prompts/templates, and seeds are not reported. Per the rubric, missing code/resources and seeds cap reproducibility. Potential weakness: without code, prompts, and checkpoints, results are not straightforward to verify and replicate; minor implementation details may substantially affect outcomes."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper covers long-context extension (PI, YaRN, NTK, Self-Extend) and circuit analysis/logit attribution, situating SEAL within PEFT by comparing with LoRA/DoRA. However, it seems to under-cite prior art on attention head importance, pruning, and gating (e.g., Michel et al., Voita et al.) and learned per-head scaling and layer scaling, which are pertinent to novelty claims. Potential weakness: incomplete discussion of these related paradigms may overstate originality and leaves positioning somewhat underdeveloped."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The manuscript does not appear to include an explicit ethics/broader impacts statement. While most experiments use synthetic or public benchmarks, data provenance, licenses, and potential risks (e.g., amplifying retrieval biases or misuse in sensitive long-context settings) are not discussed. Per rubric, missing ethics statement caps this score. Potential weakness: lack of discussion on broader impacts and safety implications for long-context retrieval systems."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "SEAL proposes a pragmatic, low-parameter head/channel scaling approach that improves long-context retrieval in several benchmarks and shows orthogonality to training-free context extension. However, novelty is moderate given related work on head importance/pruning/gating and layer/attention scaling; the technical case lacks rigorous theoretical support; empirical evidence is single-run without statistical robustness and with limited ablations; and reproducibility is weak due to missing code/prompts/seeds. Per RBCL §2 Fatal-Flaw Logic, reproducibility ≤ 2 triggers a mandatory Reject and overrides the rubric-based mapping. Overall, the work is promising but requires stronger reproducibility, broader baselines, statistical rigor, and clearer positioning to reach acceptance."
+  }
+}

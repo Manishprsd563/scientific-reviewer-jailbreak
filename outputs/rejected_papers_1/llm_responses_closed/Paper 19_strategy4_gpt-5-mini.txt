@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic, sampling-driven token-tree expansion for speculative decoding which appears to be a meaningful extension over fixed-tree methods (Sequoia, SpecInfer, Medusa) and addresses a practical limitation (query distribution variability). However, the core idea—greedily expanding promising branches according to draft probabilities—is an incremental algorithmic contribution rather than a fundamentally new paradigm. A key unverified assumption is Hypothesis 1 (acceptance rate ≈ monotonic in draft probability) being sufficient to drive near-optimal trees in diverse settings; this relies on KL-boundedness and empirical correlation but lacks proof of robustness to adversarial or highly-misaligned draft/target pairs. (Note: Anti-Inflation Safeguard applied in aggregate; see final justification.)"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "If reliable, DYSPEC directly improves throughput/latency for large LLM inference (including 70B models) and can be practically useful in deployment contexts where draft/target model pairs are available. The demonstrated multi-fold speedups are practically meaningful. A potential weakness is that the practical gains depend heavily on engineering choices (CUDA Graph use, CPU-offloading overlap) and on draft/target pair quality; if draft models are poorly aligned in some applications, gains may vanish. The paper does not show robustness to worst-case prompts or to production distributions with distribution shift."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper provides a clear algorithm, plausible derivations of expected accepted-token counts, and claims of optimality under 'mild assumptions' with a proof pointer to the appendix. However, several assumptions are not fully justified: (1) approximating acceptance rate SD[x] by draft probability pd[x] (SD[x] ≈ pd[x]) is heuristic and can fail when draft and target differ non-uniformly; (2) independence assumptions across branches/ancestors used in expectations may not hold in practice; (3) complexity and latency models assume efficient C++ tree construction and certain layer depths that may not generalize. Appendix proofs are not verifiable from the main text alone. These unverified assumptions weaken correctness claims."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover multiple datasets, temperatures, and model scales (up to Llama2-70B) and compare to several baselines (Sequoia, SpecInfer), which supports real-world relevance. Reported throughput/latency gains are substantial. However, critical gaps remain: there is no mention of multiple runs or variance/statistical significance, no seeds reported, limited ablations on key hyperparameters (e.g., threshold C, budget m, effect of different draft models), and few stress tests for badly aligned draft/target pairs. Single-run averages appear to be reported; missing uncertainty quantification reduces confidence in empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper describes implementation details (C++ tree construction, CUDA Graph usage) and evaluation hardware, but does not state that code, exact hyperparameters, random seeds, or scripts will be released. There is no explicit reproducibility appendix listing all hyperparameters or seed/variance information. Per the reviewing rules, missing or unclear information (e.g., no code release statement, no seeds) caps this criterion at 2/5. This low reproducibility score triggers a mandatory decision constraint (RBCL §2 Fatal-Flaw Logic) that forces the overall decision to 'Reject' (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites and compares to most relevant recent works (SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, ReDrafter) and highlights concrete differences (sampling vs. selection, compatibility with standard verification). Nevertheless, some positioning is incomplete: claims of superiority over Eagle-2 / ReDrafter hinge on sampling vs. selection distinctions that are asserted rather than experimentally isolated, and the related-work discussion occasionally conflates capabilities (e.g., pruning vs. sampling) without rigorously contrasting trade-offs. More focused ablation comparing these specific design choices would improve clarity."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper lacks an explicit ethics or broader-impact statement. While evaluation uses public datasets and open Llama models, there is no discussion of potential misuse, privacy issues for deployment, licensing constraints of model weights, or environmental costs of large-scale benchmark runs. Missing an ethics statement or explicit provenance/license discussion warrants a low score (<=2) per the rubric; here I assign 1/5. This absence is a notable omission and reduces the paper's readiness for deployment guidance."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: DYSPEC presents a practically-motivated and moderately novel approach (dynamic, sampling-driven token-tree expansion) that demonstrates substantial throughput/latency gains across datasets and model scales. Strengths include a clear algorithm, reasonable theoretical framing, and multi-scale empirical comparisons. Critical weaknesses: (1) Reproducibility is insufficient—no code release statement, no seeds/hyperparameter checklist or run variance—leading to a reproducibility score capped at 2/5. Per RBCL §2 Fatal-Flaw Logic and the rubric overrides, reproducibility ≤ 2 mandates an overall 'Reject'. (2) Technical claims rely on heuristic approximations (SD[x] ≈ pd[x]) and independence assumptions that are not fully justified or stress-tested. (3) Empirical reporting omits statistical uncertainty and key ablations (threshold selection, misaligned draft/target robustness). Decision rationale: although the unadjusted sum of criterion scores indicates a borderline paper, the explicit reproducibility deficiency is a fatal flaw under the provided rules and forces rejection. Additional notes on scoring adjustments: following the Reviewer Bias Correction Layer, I applied the Anti-Inflation Safeguard (reducing each criterion by 0.5 in aggregate when computing the total, net -3.5) and adopted a conservative stance per the presumption-of-rejection policy; these corrections are reflected in the reported total_score and in the conservative final decision. To be reconsidered: release of code, full hyperparameter and seed lists, variance/statistical tests, robustness ablations (especially for poorly aligned draft/target pairs), and an ethics/broader-impacts statement would be necessary to change the recommendation."
+  }
+}

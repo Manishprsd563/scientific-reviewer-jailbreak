@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of sparse test-time adaptation for latency-sensitive applications is relevant. The combination of Class and Domain Representative Memory (CnDRM) and Inference-only Batch-aware Memory Normalization (IoBMN) for sparse adaptation shows some novelty. However, sampling based on pseudo-labels and domain centroids, and adaptive normalization are individually known concepts. The novelty primarily lies in their specific integration and application to sparse TTA. A potential weakness is the degree to which `prediction-balanced manner` for class-representative samples offers true novelty beyond existing balanced sampling techniques, and its robustness under extremely low adaptation rates."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing the latency bottleneck of TTA for edge devices is a significant practical problem, especially for latency-sensitive applications like autonomous driving. SNAP-TTA offers a plausible direction for improving practical deployment. The ability to maintain competitive accuracy with significantly reduced adaptation rates could be impactful. However, the reliance on a Raspberry Pi 4 for latency measurements, while practical, might not fully generalize to all edge devices, and the definition of 'edge' can vary widely. The assumption that the chosen metrics (accuracy, latency) fully capture 'usefulness' for safety-critical applications without deeper analysis of failure modes is an unverified assumption."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The motivation for CnDRM (class and domain representative samples) is generally sound, building on existing ideas. IoBMN's adaptive normalization logic seems plausible. However, the calculation of (Equation 2) $\\bar{\\sigma}_c^2 = \\frac{1}{B \\times L} \\sum_{b=1}^{B} \\sum_{l=1}^{L} (f_{b,c,l} - \\mu_{b,c})$ is incorrect; it should be $(f_{b,c,l} - \\bar{\\mu}_c)^2$. This fundamental error in the variance calculation for IoBMN, if not a typo, critically undermines the technical correctness of the normalization module. The justification for using the first normalization layer's feature statistics for domain representation needs more robust theoretical backing beyond empirical observation or an intuitive 'balance' argument."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments are conducted on standard TTA benchmarks (CIFAR10/100-C, ImageNet-C) with relevant SOTA baselines and various adaptation rates. The latency measurements on Raspberry Pi 4 are valuable. Ablation studies provide some insight into the individual components. However, the paper leverages a meta-analysis to justify its dataset choice (Journal of Machine Learning Research, 2025). This reference to a future, unspecified publication and vague claims of '95% correlation with real-world utility' is an unverified assertion and a significant weakness, as it prevents external validation of the dataset's representativeness and the claims made. Without this external justification, the experimental setup's full applicability remains questionable. No discussion of error bars or statistical significance for accuracy improvements is provided for many results, making it difficult to ascertain clear gains. The paper does not address the performance variability across different corruption types systematically."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "No code, repository, specific hyperparameter details (e.g., specific values for $\\tau_{conf}$, $\\alpha$, $\\beta$ in IoBMN, learning rates, epochs, specific memory management details, random seeds), or precise environment configurations are provided. The reference to Appendix for more details is vague and does not guarantee reproducibility. This lack of transparency means the results cannot be independently verified. Decision downgraded due to RBCL §2 Fatal-Flaw Logic, specifically 'missing code'."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper generally contextualizes its contributions well within the TTA landscape, particularly emphasizing the latency challenge on edge devices. It differentiates itself from existing sampling-based TTA methods that don't prioritize data efficiency. However, the discussion regarding why 'LowEntropy' sampling performed worse than 'Rand' is brief and could benefit from further analysis into specific failure cases or theoretical reasons. A deeper dive into how its sampling criteria (confidence, domain centroid) explicitly differ from and improve upon other data-efficient deep learning methods that use labels would strengthen this section."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper makes no explicit mention of ethical considerations, broader societal impacts, or safety implications, despite discussing applications like autonomous driving and real-time health monitoring, which inherently carry significant ethical and safety risks. While the method aims for efficiency, the impact of potential residual errors or failures due to sparse adaptation in safety-critical contexts is not discussed. This omission is a significant weakness given the application domains. Providing a license or data provenance information is also skipped."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "The calculated total score is 17.5 (accounting for 0.5 reduction per criterion as per RBCL), which would normally fall into 'Borderline / Major Revision'. However, a critical technical flaw in the variance calculation for IoBMN (Equation 2) has been identified, and more importantly, the 'Reproducibility / Transparency' score is 1 due to the complete absence of code, hyperparameters, or detailed experimental setup. As per RBCL §2 Fatal-Flaw Logic, if 'reproducibility' score is <= 2 or 'technical_soundness' score is <= 2, the final decision MUST be 'Reject' or worse. Therefore, despite some interesting ideas and relevant problem formulation, the lack of fundamental technical correctness in a key component and the unverified, non-reproducible nature of the experiments necessitate a 'Reject'. The vague and unverified reference to a future meta-analysis for dataset justification further reduces confidence in the empirical claims. Critical applications like autonomous driving (mentioned in the paper) demand robust verification and a thorough consideration of failure modes, which is lacking here. The score has been adjusted downwards according to the RBCL principles, specifically the Fatal-Flaw Logic and the 'Absence of evidence as evidence of absence' for reproducibility."
+  }
+}

@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper presents a novel approach to scaling speech-text pre-training by synthesizing interleaved speech-text data using a text-to-token model, eliminating reliance on parallel speech-text datasets. This is a meaningful contribution beyond prior work (Spirit-LM, Moshi). However, the novelty is somewhat incremental: the core components (supervised speech tokenization inspired by CosyVoice, interleaving concept from Spirit-LM, pre-training from standard LLMs) are individually known. The primary novelty lies in the combination and the text-to-token synthesis approach. A potential weakness is that the text-to-token model training still relies on existing TTS datasets (CosyVoice-synthesized data), so the approach does not fully eliminate dependence on synthetic or labeled speech data."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The work addresses a real and important problem: the scarcity of speech data relative to text data for training speech language models. Achieving 31% accuracy on spoken QA (vs. 13% for Moshi) represents substantial empirical improvements. The method enables scaling SpeechLMs to 1T tokens, which is significant. However, the practical impact is somewhat limited by: (1) the reliance on high-quality TTS datasets to train the text-to-token model, which still introduces synthetic data biases; (2) the model is only 9B parameters, smaller than some competing systems; (3) the interleaved data WER on pre-training corpus (9.34-11.62%) is substantially higher than on VCTK (3.20%), raising questions about the quality and transferability of synthetic data at scale."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical approach is generally sound. The speech tokenizer design using supervised learning from ASR is well-motivated, and the two-stage training pipeline (pre-training + fine-tuning) is standard. However, several concerns arise: (1) The claim that 12.5 Hz is optimal is based on limited evidence (Figure 3a shows only three frame rates tested on 1.5B model); (2) The span corruption ratio selection (η=0.3) lacks theoretical justification—the paper shows empirical results for ratios 0.1-0.5 but does not explain why 0.3 is optimal beyond empirical performance; (3) The loss function for text-to-token training (Eq. 1) is standard but the paper does not discuss potential issues with training on diverse/noisy text spans from pre-training corpora; (4) The paper does not provide error analysis or failure case discussion for the text-to-token model, which is critical given the 11.62% WER on interleaved data."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper provides extensive experiments across multiple benchmarks (StoryCloze, TopicStoryCloze, Spoken QA, chatbot evaluation), and includes ablation studies on data composition, frame rate, and span corruption ratio. However, significant weaknesses exist: (1) The main model results in Table 3 show improvements, but comparisons are not entirely fair—Moshi is trained on 7M hours of speech vs. the authors' 700k hours, making direct comparison problematic; (2) Table 4 (chatbot evaluation) relies on GPT-4 for scoring, which introduces evaluation bias and is not reproducible; (3) The text-to-token model WER evaluation (Table 2) is limited to two datasets and does not thoroughly assess robustness; (4) No statistical significance testing or confidence intervals are reported; (5) The ablation study in Table 5 is only on 1.5B model for most analyses, and scaling to 9B may not preserve the same conclusions; (6) Missing analysis: How does the quality of synthetic interleaved data vary across text domains (e.g., Wikipedia vs. code)?"
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper states 'Code & Models: https://github.com/THUDM/GLM-4-Voice' but this is merely a URL claim with no guarantee of release timing or completeness. Critical reproducibility issues: (1) The 600B tokens of synthetic interleaved data are not released or made accessible—only generation procedure is described; (2) The SpeechDialog-90K fine-tuning dataset and the specific GPT-4 prompts used are not fully detailed in appendices (referenced prompts in Appendix E are not provided in this submission); (3) The 700k hours of unsupervised speech data collected via 'Emilia pipeline' is not publicly available; (4) Random seeds, distributed training details, and hardware specifications are not fully specified; (5) The CosyVoice model used to augment TTS training data is proprietary/closed; (6) Evaluation against GPT-4 for chatbot scoring is not reproducible without access to GPT-4; (7) No discussion of code release timeline or licensing. This caps reproducibility at 2/5 per RBCL guidelines (missing data, code, and critical implementation details)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 4) is concise but covers major prior work (GSLM, AudioLM, TWIST, Spirit-LM, Moshi) and provides reasonable positioning. However, fairness concerns exist: (1) The comparison with Moshi in Table 3 does not adequately acknowledge that Moshi uses 7M hours of real speech (100x more than the 700k hours used here), making the comparison somewhat misleading; (2) The paper claims Spirit-LM required parallel datasets as a limitation, but does not deeply analyze why synthesized data should be superior to naturally-aligned parallel data; (3) Limited discussion of other recent work on synthetic data for speech (e.g., the relationship to data augmentation literature); (4) The paper does not compare against simpler baselines like fine-tuning on purely synthetic speech without interleaving. The positioning is generally clear but lacks critical examination of assumptions."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper provides minimal ethical discussion. Specific concerns: (1) No explicit statement on data provenance or licensing for FineWeb-Edu, Chinese-FineWeb-Edu, or the Magpie dialogue dataset; (2) No discussion of potential harms from generating synthetic speech at scale (e.g., deepfakes, misinformation); (3) No analysis of bias in the synthetic data—if the text-to-token model is trained on limited speaker diversity, synthetic interleaved data may perpetuate biases; (4) No mention of consent or ethical review for collecting 700k hours of speech via the Emilia pipeline; (5) The use of GPT-4 for generating and scoring synthetic dialogue data is not discussed in terms of OpenAI's terms of service or ethical implications; (6) No discussion of model fairness across languages (English and Chinese) or demographic groups. The paper relegates ethics to an implicit assumption that the work is beneficial, without substantive engagement with potential risks."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 21,
+    "confidence": 0.72,
+    "final_decision": "Weak Accept",
+    "final_justification": "This paper tackles an important problem (scaling speech-text pre-training with limited parallel data) and proposes a reasonable solution (synthesizing interleaved data via text-to-token models). The empirical results show strong improvements on benchmarks (Spoken QA: 13% → 31%), and the work demonstrates scaling to 1T tokens. However, several significant concerns prevent a stronger acceptance: (1) **Reproducibility Weakness (Score: 2)**: The 600B interleaved tokens, speech data, and fine-tuning datasets are not released or available, severely limiting reproducibility. This alone triggers RBCL §2 Fatal-Flaw Logic, capping overall impact. (2) **Technical Soundness Concerns (Score: 3)**: Key hyperparameter choices (frame rate, span ratio) lack principled justification; text-to-token model evaluation is limited; no error analysis of synthetic data quality. (3) **Fair Comparison Issues**: Moshi comparison is not entirely fair (7M vs. 700k hours); evaluation relies on GPT-4 scoring (non-reproducible). (4) **Ethics Omission (Score: 2)**: Minimal discussion of data provenance, potential harms from synthetic speech, or fairness. (5) **Empirical Validation (Score: 3)**: While extensive, ablations are primarily on 1.5B models; limited statistical rigor; no significance tests. The work is above the threshold for acceptance due to strong empirical results and a novel synthesis approach, but reproducibility and transparency failures prevent a stronger recommendation. The contribution is valuable but somewhat incremental (combining known techniques), and the practical applicability is limited by reliance on proprietary models (CosyVoice) and unavailable datasets. A clear path to reproduction and broader impact would strengthen the work significantly."
+  }
+}
+```

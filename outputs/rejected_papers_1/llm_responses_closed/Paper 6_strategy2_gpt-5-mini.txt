@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes two concrete schemes (BMT and MMT) to improve post-unlearning performance in federated unlearning; combining local isolated models and a tree of sub-FL models (including Huffman/Shannon-Fano based constructions) is an interesting engineering idea and appears partially novel in the FL-unlearning context. Potential weaknesses / unverified assumptions: the contribution reads largely as a clever combination of prior ideas (data partitioning, ensemble/submodel aggregation, and clustering) rather than a fundamentally new formal unlearning mechanism, and the paper lacks formal proofs that the approach yields exact equivalence to retraining in all cases (claims of ‘exact unlearning’ are not rigorously proven). Scalability and storage/communication overheads for large numbers of clients are not fully addressed, which weakens the claim of broad originality."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Federated unlearning is an important practical problem (regulatory right-to-be-forgotten, adversary removal, client churn). If BMT/MMT reliably deliver faster recovery with exact removal guarantees they would have meaningful impact for deployments that cannot afford long retraining delays. Potential weaknesses / unverified assumptions: the methods impose additional pre-training, storage and computation (maintaining local and many sub-FL models), and it is unclear whether these costs are acceptable at realistic production scales (thousands–millions of clients). The claimed applicability to large models (LLMs) is shown only with small-sample finetuning experiments; the operational costs and latency trade-offs in real-world federations are not quantified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The algorithmic descriptions are clear and the intuitions are plausible, but the manuscript lacks rigorous theoretical analysis or proofs that the procedures achieve exact unlearning equivalence to retraining in the general FL setting. Potential weaknesses / unverified assumptions: the paper asserts that aggregating isolated local models yields an initialization that is ‘completely free from the influence of the unlearned client’ and therefore guarantees exact unlearning, but does not provide a formal proof or precise conditions under which this holds (e.g., effect of prior global parameter mixing across rounds, stateful optimizers, and random seeds). There is also limited analysis of failure modes such as double influence in the MMT design and potential bias introduced by sub-FL partitioning. Due to these missing formal guarantees the technical soundness score is limited (decision flagged under RBCL if unresolved)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper includes experiments on several vision datasets and two language tasks, compares to multiple baselines, and presents ablations (heterogeneity, branching factor, tree construction). These are useful signals that the methods can work in practice. Potential weaknesses / unverified assumptions: the authors do not report multiple seeds/statistical variability or standard deviations (likely single-run results), they omit detailed hyperparameter search protocols and fairness checks for baselines, and experimental claims for large models (Llama/GPT-2) lack sufficient detail (size of finetuning, compute budget, seeds), making it hard to judge robustness and generality. The absence of significance testing and uncertainty estimates penalizes empirical rigor."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The manuscript lists datasets, model architectures, some optimizer hyperparameters, and hardware used, which helps reproducibility to some extent. Potential weaknesses / unverified assumptions: the authors do not provide a link to code, training scripts, seeds, exact data splits, full hyperparameter lists (e.g., scheduler, seed, random initialization details for local models), or instructions to reproduce the MMT tree construction and aggregation pipelines. Per the review rubric, missing critical artefacts caps this criterion at 2/5. This lack of released code and incomplete experiment provenance is a major reproducibility gap and, per RBCL, triggers a conservative decision posture (Decision downgraded due to RBCL §2/Fatal-Flaw Logic: reproducibility ≤ 2)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper contains an extensive related work section that cites relevant FL, machine unlearning and federated unlearning literature and positions the methods relative to several recent exact FU approaches (e.g., FedEraser, Exact-Fun, FedCIO). Potential weaknesses / unverified assumptions: while comparisons to selected baselines are included, the discussion sometimes glosses over differences in threat models, costs, and assumptions (e.g., participation constraints, need for historical updates, and privacy trade-offs). It is not fully clear whether all reasonable baselines (especially industrial-scale or stateful optimizer baselines) were tuned equivalently, so claims of superiority would be stronger with deeper cost/assumption comparisons."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper motivates unlearning using regulatory obligations (GDPR/CCPA) and adversarial client removal, which is societally relevant. Potential weaknesses / unverified assumptions: there is no dedicated ethics or broader-impact statement discussing privacy leakage risks of storing local/sub-FL models (these models may retain sensitive information), licensing and provenance of the used datasets, potential misuse (e.g., targeted removal affecting fairness across demographic groups), or mitigation strategies. The absence of a detailed ethical analysis and concrete mitigations limits the ethical assessment and caps this criterion at 2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.62,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical problem (federated unlearning) and proposes two pragmatic methods (BMT and MMT) that empirically accelerate recovery after unlearning while attempting to guarantee exact removal. Strengths include broad empirical evaluation (vision and language tasks), useful ablations, and thoughtful engineering (tree constructions leveraging coding ideas). However, there are several critical weaknesses: (1) Reproducibility is inadequate (no code, missing seeds/full experiment provenance), which per the review rules caps that criterion at 2/5 and triggers a conservative posture. (2) Technical soundness lacks formal proofs or precise conditions guaranteeing exact unlearning in the general FL setting (stateful optimizers, historical mixing, and optimizer state are not addressed). (3) Empirical claims omit variance estimates and statistical significance and provide limited accounting of computation/storage/communication costs at realistic scales. Given reproducibility ≤ 2 (and also technical gaps), RBCL mandates that the overall decision be \"Reject\" (Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility ≤ 2). Even if the empirical results are promising, the missing artefacts and lack of rigorous guarantees prevent acceptance at this venue in current form. To be reconsidered, the submission should (a) release code and exact scripts/data splits/seeds, (b) provide formal statements and proofs or precise conditions under which exact unlearning holds, (c) report repeated runs with error bars and statistical tests, and (d) include a concrete cost analysis (storage/communication) and an explicit ethics/broader-impacts section addressing model-leakage risks and mitigation."
+  }
+}

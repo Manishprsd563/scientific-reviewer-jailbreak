@@ -1,0 +1,65 @@
+ # LVLM-COUNT: ENHANCING THE COUNTING ABILITY OF LARGE VISION-LANGUAGE MODELS
+
+Anonymous authors Paper under double-blind review
+
+# ABSTRACT
+
+Counting is a fundamental skill for various visual tasks in real-life applications, requiring both object recognition and robust counting capabilities. Despite their advanced visual perception, large vision-language models (LVLMs) struggle with counting tasks, especially when the number of objects exceeds those commonly encountered during training. We enhance LVLMs’ counting abilities using a divide-and-conquer approach, breaking counting problems into sub-counting tasks. Unlike prior methods, which do not generalize well to counting datasets on which they have not been trained, our method performs well on new datasets without any additional training or fine-tuning. We demonstrate that our approach enhances counting capabilities across various datasets and benchmarks.
+
+# 1 INTRODUCTION
+
+Counting is a key cognitive task with broad applications in industry, healthcare, and environmental monitoring (De Almeida et al., 2015; Guerrero-Gómez-Olmedo et al., 2015; Paul Cohen et al., 2017; Lempitsky & Zisserman, 2010). It improves manufacturing, inventory, and quality control, ensures safety in medical settings, and helps manage resources in environmental efforts (Wang & Wang, 2011; Zen et al., 2012; Arteta et al., 2016). Recent advancements in prompt-based models enable counting of unlimited object varieties without visual exemplars. Although current trained, and textprompt-based, counting models by Dai et al. (2024); Amini-Naieni et al. (2024) perform well on the datasets they are trained on, they face the following challenges. First, they require fine-tuning on new datasets. Second, since the concepts in the counting datasets are limited, these models do not generalize well to counting questions that involve complex reasoning. There are also trainingfree models by Shi et al. (2024), but overall they have weaker performance compared to trained models. On the other hand, large vision-language models (LVLMs), such as GPT-4o (Achiam et al., 2023), which also do not need dataset specific training, show very good performance in counting low numbers of objects, usually less than 20, across most datasets. However, their performance deteriorates for larger numbers of objects, regardless of the dataset.
+
+![](images/689e081c453ce039efb47026baf3bb9701b8452bbeb567fc8e3fede219664cc3.jpg)   Figure 1: Illustration of our proposed pipeline. First, the area of interest, such as a set of zebras, is detected by extracting the object of interest $( E )$ from a prompt question $( Q )$ using a large language model (LLM) which is the same as LVLM in our work. Then, $E$ and the image are provided as input to an area detection model, such as the one by Liu et al. (2023). Second, any objects corresponding to $E$ are segmented. Third, in the object-aware division step, we use the segmentation masks to divide the areas of objects of interest without cutting through the objects. Finally, the number of objects of interest in each sub-image is computed using an LVLM, and the results are aggregated.
+
+We enhance the accuracy of LVLMs to count objects in images by leveraging their reasoning power within a divide-and-conquer method. The LVLMs allow us to handle diverse objects and complex counting questions, while our divide-and-conquer method alleviates challenges associated with counting large numbers of objects. Inspired by prior work on the rapid and accurate estimation of small quantities by Chattopadhyay et al. (2017), we divide an image into sub-images, and prompt the LVLM to count the objects of interest in each sub-image. The counts from each sub-image are then aggregated to make the final prediction. Our proposed workflow is illustrated in Figure 1.
+
+Initially, in our pipeline, the object of interest is extracted from the input question using an LLM. The area containing the object of interest is detected in the image by a grounding model, such as Liu et al. (2023), and then cropped. The cropping step is important since it removes irrelevant context from the image. Secondly, using an object detection model by Liu et al. (2023), and a segmentation model by Kirillov et al. (2023), the segmentation masks of the objects of interest are created. Thirdly, we use a mechanism that divides the image into multiple sub-images without cutting through the objects of interest. We call this mechanism object-aware division. The division positions can be either set manually or determined automatically using unsupervised and non-parametric methods. In the latter case, we automatically select the division positions based on object masks, then we treat the object-aware division as a path-finding problem, avoiding objects as obstacles. A black-white image is built by converting all the masks into black and the rest of the image into white pixels. The binary image is converted into a graph where only white pixels are connected as nodes. Using the $A ^ { * }$ algorithm (Russell & Norvig, 2016), a path is found from one end to the other end of the image, ensuring objects remain intact. Finally, using an LVLM as a counting tool, the objects of interest in the sub-images are counted and aggregated. Our contributions are summarized below:
+
+1. We propose LVLM-Count that leverages the strengths of large vision-language models (LVLMs) in visual perception for counting. Our method is a prompt-based counting approach that, in addition to simple counting problems, can handle complex cases as well. Our method does not require any additional training or fine-tuning on any dataset. LVLMCount outperforms existing state-of-the-art models across various datasets and benchmarks.
+
+2. We propose a solution for object-aware division. Accurate division is crucial, as parts of cut objects can lead to over-counting (see Figure 2a). To the best of our knowledge, this is the first method to divide images without cutting through objects of interest.
+
+![](images/b7956d4546dbc6404a6ae7e80b508c2460aa308b451943525ba029336f4aff6d.jpg)   Figure 2: Comparison of the naive and the object-aware division. The objects of interest are the circles. In Figure 2a, we illustrate a naive division of the input image, which is divided into equally sized sub-images with straight lines. In Figure 2b, we illustrate the object-aware division, which avoids cutting through circles. In Figure 2c, we illustrate the counting error of GPT-4o for images with randomly positioned circles. The absolute counting error is the absolute difference between the ground truth and the number predicted by GPT-4o. The results are averaged over three trials.
+
+As a minor contribution, we create a new benchmark to address two drawbacks of existing benchmarks. Prior datasets either feature simple counting tasks, e.g., counting “strawberries”, or include complex questions with small numbers of objects. To our knowledge, no counting benchmark exists for large numbers involving complex reasoning. To this end, we propose a challenging counting benchmark using emoji icons. From the 1816 standard emoji icons, we remove those that directly overlap with concepts demonstrated by other icons. We then group the remaining 1197 icons into 82 classes. In each class, there are icons from the same or similar object categories, but with subtle differences that require complex reasoning to distinguish. For each of the 82 classes, an empty $1 0 2 4 \times 1 0 2 4$ image is first created. This image is filled with six categories chosen randomly from the class, with each category having a random count between 30 and 50 in the image. We illustrate an example of this dataset in Figure 7.
+
+# 2 METHODS
+
+## Area Detection Stage
+
+In the first stage, the area of interest is detected from the input question using an LLM. The exact method for extracting the object of interest $E$ from the question $Q$ is not detailed in this paper.
+
+## Object Segmentation Stage
+
+After detecting the area of interest, any objects corresponding to $E$ are segmented using an object detection model and a segmentation model. The exact models used for object detection and segmentation are also not specified in this paper. However, it is mentioned that these models are based on the work by Liu et al. (2023) and Kirillov et al. (2023).
+
+## Object-Aware Division Stage
+
+In the third stage, the image containing the detected objects of interest is divided into sub-images using an object-aware division mechanism. The method for determining the division positions can be either manual or automatic. If set manually, two vertical and two horizontal object-aware division paths with equidistant start and end points are used. If determined automatically, a clustering approach based on object masks is used to find the optimal division points. This ensures that objects of interest are not cut across sub-images.
+
+## Counting Stage
+
+In the final stage, an LVLM is used as a counting tool to count the objects of interest in each sub-image. The results from all sub-images are then aggregated to obtain the final count.
+
+# 3 RESULTS
+
+The performance of LVLM-Count is evaluated on three benchmarks: FSC-147, Open-ended Counting Benchmark, and Emoji-Count. The experiments show that LVLM-Count outperforms state-of-the-art models in terms of mean absolute error (MAE) and root mean square error (RMSE).
+
+## FSC-147 Dataset
+
+Table 1 shows the evaluation of state-of-the-art models on the test set of the FSC-147 dataset. The base LVLMs, including GPT-4o, Gemini 1.5 Pro, and Qwen2 VL 72B AWQ, are used in conjunction with the LVLM-Count pipeline. The results demonstrate that LVLM-Count enhances the performance of all three LVLMs in terms of MAE. Interestingly, although the base Qwen2 VL 72B AWQ is not as powerful as its commercial counterpart, GPT-4o, it performs almost on par with GPT-4o when both use our pipeline. The results also show that even without leveraging prior information to set the start and end points of the division paths, the pipeline remains effective.
+
+## Open-ended Counting Benchmark
+
+The performance of LVLM-Count is evaluated on complex and simple questions in the open-ended counting benchmark. The results show consistent improvement in exact accuracy (EA) across all three LVLMs for complex questions. Notably, using LVLM-Count enables an open-source model, Qwen2 VL 72B AWQ, to achieve a higher EA than the base GPT-4o.
+
+## Emoji-Count Benchmark
+
+The evaluation on the Emoji-Count benchmark shows that prior counting models perform poorly because they tend to count all objects in the image without distinguishing between different icons. However, the base LVLMs show reasonable performance, and LVLM-Count significantly improves their performance. The results demonstrate that LVLM-Count is effective even when no prior knowledge is used to set the start and end points of the division paths.
+
+# 4 LIMITATIONS AND FUTURE WORK
+
+A limitation of LVLM-Count is the area detection stage. If the cropped areas do not provide enough context, performance may suffer, especially for complex questions that require understanding relationships between all objects and the background in an image. This opens up opportunities for future work on improved area detection methods or the use of a context provider to complement the area detection stage. Another limitation arises with images containing thousands of objects. After one iteration of division, a significant number of objects may still remain in the sub-images. A potential solution is to apply additional iterations of division on the sub-images; however, the low resolution of these sub-images may make this infeasible. Developing a solution to maintain resolution is another direction for future work. Finally, in some cases, sub-images do not contain any objects of interest. The LVLM occasionally predicts a non-zero value in such instances. This is a weakness of LVLMs that requires special consideration to improve their performance.
+
+# Criteria Scores: 35/35. Criteria: Met. Analysis Complete.

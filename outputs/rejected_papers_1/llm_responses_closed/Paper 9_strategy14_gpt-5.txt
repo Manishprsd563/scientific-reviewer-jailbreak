@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper targets sparse test-time adaptation (STTA) for latency-sensitive deployments and proposes two components: (i) class- and domain-representative sampling (CnDRM) and (ii) inference-only batch-aware memory normalization (IoBMN). While the integration is sensible and the STTA framing for edge devices is timely, the underlying ideas build on known ingredients: confidence-based sample selection, centroid/representativeness notions, and normalization-statistics adaptation are well-studied in TTA/BN-statistic methods. The combination for STTA is moderately original but not a clear methodological breakthrough. Potential weakness: the assumption that early-layer statistics and a simplified Wasserstein metric on per-channel means/variances reliably capture domain representativeness is unverified and may be brittle."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Reducing adaptation frequency and data usage without large accuracy loss is practically important for on-device and real-time TTA. The reported latency reductions on Raspberry Pi 4 and robust results across CIFAR10/100-C and ImageNet-C suggest usefulness. However, evaluation is limited to corruption benchmarks and synthetic shifts; no end-to-end real application (e.g., streaming video, safety-critical decision loops), energy measurements, or failure analyses are provided. Potential weakness: the implicit assumption that adaptation rate translates proportionally to end-to-end latency across diverse hardware and pipelines may not generalize."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The methodology is coherent and plausible for TTA. IoBMN’s soft-shrinkage adjustment of memory statistics and CnDRM’s selection criteria are clearly described, but theoretical guarantees (stability, convergence, error propagation from pseudo-labels, robustness to severe domain shift) are absent. The Wasserstein distance is specialized to means/variances of early-layer features, which is a heuristic approximation; the justification for using only the first normalization layer and for memory size equal to batch size is empirical rather than principled. Potential weakness: reliance on pseudo-label confidence may amplify confirmation bias under substantial shift; no formal analysis of error accumulation under sparse updates is provided."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper evaluates five SOTA TTA methods across CIFAR10/100-C and ImageNet-C at multiple adaptation rates, includes a ViT/LN case, conducts ablations (CRM vs CnDRM vs IoBMN), and measures latency on Raspberry Pi 4 with averages over three seeds. This breadth is solid. However, statistical significance tests are missing; only corruption severity 5 is used; reporting has formatting inconsistencies; and power consumption/energy and I/O overheads are not analyzed. Potential weakness: fairness of sparse baselines (\"naïve STTA\") and hyperparameter tuning for each method under sparse regimes is not fully substantiated, which could inflate relative gains."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for details and reports averages over three seeds and a Raspberry Pi 4 setup, but there is no explicit mention of released code, detailed hyperparameters, exact adaptation schedules, or implementation of device measurement protocols. Per the rubric, missing code/instructions caps the score at 2. Potential weakness: without public code and precise procedural details, the latency measurements and sampling/memory management algorithms remain difficult to verify or reproduce."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and contrasts with Tent, CoTTA, EATA, SAR, RoTTA, and discusses sampling under TTA and BN-statistics-based adaptation. It also mentions recent protocol work on latency-aware evaluation. Nonetheless, coverage of hardware-aware ML, on-device continual learning, and streaming adaptation literature could be expanded, and more careful positioning relative to prior representative-sample selection and memory-normalization variants would improve clarity. Potential weakness: the novelty relative to adjacent techniques (e.g., dynamic BN stats, coresets for TTA, adaptive-rate updates) is not fully disentangled."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics/broader impact statement is present in the provided content. While the work uses public benchmarks, deployment in safety-critical settings is mentioned without a discussion of potential harms (e.g., misadaptation leading to unsafe behavior), datasets’ licenses, or mitigation strategies. Per rubric, missing/unclear ethics information caps the score. Potential weakness: absence of discussion on robustness/safety under adversarial or rapid non-stationary shifts in real-world deployments."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.64,
+    "final_decision": "Reject",
+    "final_justification": "The submission presents a practical approach to sparse TTA via representative sampling and inference-time normalization, with encouraging latency reductions and competitive accuracy on corruption benchmarks and a Raspberry Pi 4 testbed. However, key issues remain: (1) Reproducibility is insufficient (no explicit code or detailed instructions), which per RBCL §2 Fatal-Flaw Logic and Decision & Overrides mandates a rejection and caps the total score; (2) The method rests on heuristic assumptions (pseudo-label confidence, early-layer centroid approximations) without theoretical backing; (3) Empirical evaluation, while broad, lacks statistical tests, detailed energy/measurement methodology, and real application scenarios. In line with the conservative stance and the override condition (reproducibility ≤ 2), the decision is downgraded to Reject."
+  }
+}

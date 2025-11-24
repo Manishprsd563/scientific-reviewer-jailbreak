@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes learning per-head and per-channel attention scaling (SEAL-H/C) using small synthetic datasets to improve long-context retrieval, and shows that these scalings can be combined with training-free context extension. While the application to long-context retrieval with tiny data and the channel-wise granularity are interesting, the core mechanism—learning head-wise gates/scales to modulate attention contributions—resembles prior head importance, pruning, and gating methods (e.g., learned head masks/pruning) and PEFT approaches (LoRA/DoRA). The main novelty is problem-specific targeting and small-scale synthetic training rather than a fundamentally new architectural idea. Potential weakness: the assumption that simple linear scaling on attention outputs suffices to robustly enhance retrieval across diverse contexts may be optimistic and under-examined."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If reproducible, a lightweight, fast fine-tuning procedure (1k–128k learnable parameters; ~50 samples) that boosts long-context retrieval and enhances training-free context extension could be practically valuable. The reported improvements on Needle-in-a-Haystack and line retrieval, and some gains on LongBench QA, suggest utility. However, demonstrated gains concentrate on synthetic-style retrieval tasks; broader LLM capabilities (reasoning, real-world QA, safety) are scarcely evaluated, and robustness across models and datasets is limited. Potential weakness: real impact may be constrained if benefits do not translate beyond format-specific retrieval tasks or if gains are sensitive to synthetic data construction details."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The mechanism—learning scalar gates per head or per channel—is plausible and consistent with prior observations about head specialization. The qualitative ‘direct effect’ analysis provides some intuition, though it omits normalization and more rigorous causal diagnostics. Important implementation specifics (e.g., precise insertion points for scales, interaction with residuals/LayerNorm, stability considerations) are described at a high level, and the claim that scales can be baked into V/O projections without side effects is not fully justified. Potential weakness: reliance on synthetic training and unnormalized direct effect metrics may overstate causal contribution; no theoretical guarantees are provided regarding stability or generalization across contexts."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Results are shown on LongEval line retrieval, Needle-in-a-Haystack, and selected LongBench QA subsets, with comparisons to LoRA/DoRA and training-free context extension (NTK, Self-Extend). There are helpful pruning/scaling analyses. However, the evaluation lacks multiple runs, statistical significance tests, error bars, and comprehensive comparisons to strong long-context baselines. Details on prompts/seeds/data generation variability are limited, and out-of-domain claims are modestly substantiated. Potential weakness: single-run reports and limited ablations make it difficult to verify robustness; sensitivity to hyperparameters and data generation is not systematically explored."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper mentions Axolotl, optimizer settings, and some learning rates, and describes using 50 synthetic samples per task. However, there is no explicit code release, no repository link, limited implementation detail about exactly where/how scalings are inserted and baked into weights, and no random seeds or full configs. Dataset generation prompts are only partially specified. Per rubric, missing/unclear information caps this criterion at 2. Potential weakness: without code and exact data generation scripts/seeds, reproducing both the tuning and the reported gains is uncertain."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper reviews circuit analysis, context-length extension, and benchmarks. However, it under-cites or under-positions closely related work on attention head pruning/gating and importance estimation (e.g., Michel et al. 2019; Voita et al. 2019; learnable gating/masking approaches) and other PEFT variants that effectively reweight channel/attention contributions. Potential weakness: limited discussion of prior head-scaling/gating/pruning literature weakens the claim of novelty and obscures how SEAL differs methodologically and empirically."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The manuscript contains no explicit ethics/broader impacts discussion, data licensing, or provenance details for any real-world data used. Risks related to long-context processing (e.g., privacy leakage in long documents, misuse in surveillance settings) are unaddressed. Per rubric, missing sections should be penalized. Potential weakness: absence of an ethics statement and data provenance details prevents assessment of societal risks or compliance with community norms."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.66,
+    "final_decision": "Reject",
+    "final_justification": "SEAL presents an intuitively plausible and practically appealing approach—learning per-head/channel attention scalings with tiny synthetic data—to improve long-context retrieval and complement training-free context extension. The reported gains on line retrieval and Needle-in-a-Haystack are encouraging, and some transfer to LongBench QA is shown. However, key shortcomings include: (1) limited empirical rigor (single-run results, no statistical tests, sparse ablations), (2) incomplete reproducibility (no code, missing seeds/configs, partial data generation details), (3) under-positioned related work on attention head gating/pruning, and (4) no ethics/broader impacts statement. Per RBCL §2 Fatal-Flaw Logic and the stated overrides, a Reproducibility score ≤ 2 necessitates Reject regardless of other strengths; additionally, with total score in [16, 20), ICLR calibration advises rejection absent multiple dimensions ≥ 4. Therefore, despite potential, the paper requires substantial revisions to meet top-tier standards."
+  }
+}

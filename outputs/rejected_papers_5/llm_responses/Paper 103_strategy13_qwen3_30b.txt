@@ -1,0 +1,88 @@
+### Evaluation of "TRAIN ONCE AND GENERALIZE: ZERO-SHOT QUANTUM STATE PREPARATION WITH RL"  
+
+#### **1. Novelty / Originality**  
+**Score: 3/5**  
+**Justification**: The paper introduces a "Moving-Goalpost Reward (MGR)" function for RL in quantum state preparation (QSP), which avoids pitfalls of fidelity-based rewards (e.g., non-monotonic progress). However, the core innovation—using reverse-preparation (training to prepare states *from* the target state *to* the fiducial state) —is explicitly cited in prior work (Wu et al., 2023; Kremer et al., 2024). The MGR reward is a minor variation of potential-based reward functions (e.g., MGR-VANILLA), not a fundamental breakthrough. The paper fails to demonstrate *why* MGR is theoretically superior to existing potential-based methods (e.g., no convergence proofs or ablation studies against alternatives like incremental fidelity). Crucially, Kremer et al. (2024) already scaled to 11 qubits using a similar reverse-preparation approach, while this work only reaches 9 qubits. The claim of "novelty" is overstated; the contribution is incremental (sample efficiency gains of 10–20M vs. 1B steps), not transformative.  
+
+---
+
+#### **2. Significance / Impact / Usefulness**  
+**Score: 3/5**  
+**Justification**: The paper claims 60% smaller circuits than baselines (Aaronson & Gottesman, 2004; Bravyi et al., 2021), which is theoretically significant for NISQ devices (limited gate counts). However, the claim is **unvalidated for real-world impact**:  
+- Circuit size (gate count) does not account for error propagation, connectivity constraints (e.g., linear vs. full connectivity), or noise sensitivity on actual hardware.  
+- The paper does not test circuits on noisy quantum hardware or compare error rates (e.g., via quantum error correction).  
+- The "95% generalization" claim (Proposition 3) is statistical (based on random states), but real-world applications require robustness on *structured* states (e.g., quantum error-correcting codes). The paper shows no results for states critical to applications (e.g., logical states of codes like Steane or Shor), only random states.  
+Without evidence that the approach improves *practical* quantum algorithms (e.g., VQE, quantum chemistry), the significance is overstated.  
+
+---
+
+#### **3. Technical Soundness / Correctness**  
+**Score: 3/5**  
+**Justification**: The generalization bound (Proposition 3) uses Hoeffding’s inequality correctly:  
+> *With 95% confidence, ≥95% of states are prepared (given N=2000 random samples, ε=0.05, δ=10⁻¹⁰).*  
+However, **critical flaws undermine soundness**:  
+1. **Training set not defined**: The paper states training on "less than 0.001% of the state space" (for n=9: 4.38×10¹⁶ states), but 10–20M training states (0.0000228% of 4.38×10¹⁶) is *not* representative. The random training states may have coincidentally included test states (e.g., logical states in Fig. 3e), violating the "unseen" claim.  
+2. **No evidence of generalization beyond random states**: The paper claims generalization to "arbitrary" states but only tests random stabilizer states and brickwork circuits (which are random). It provides **no evidence** for states with *structural complexity* (e.g., high-entanglement states from quantum codes).  
+3. **Fidelity claims are misleading**: The paper states "all circuits have fidelity 1.0," but this is true only for *simulated* stabilizer states (using Stim). Real hardware would introduce errors; the paper ignores noise.  
+The bound is mathematically sound but empirically vacuous due to unverified training/test set separation.  
+
+---
+
+#### **4. Empirical / Experimental Validation**  
+**Score: 2/5**  
+**Justification**: The experiments lack rigor and critical comparisons:  
+- **No ablation studies**: The paper shows MGR-OURS converges faster than MGR-VANILLA (Fig. 2) but does not compare MGR-OURS to *non-reward-based* baselines (e.g., Aaronson & Gottesman) in the main results. The 60% circuit size reduction (Table 2) is presented without statistical significance testing (p-values, confidence intervals).  
+- **Inconsistent baselines**: Baseline methods (Aaronson & Gottesman; Bravyi et al.) use *full connectivity* with Pauli gates, while the paper uses *restricted* gates for linear connectivity (e.g., only H, S, CNOT). This makes the 30% circuit size reduction for linear connectivity (Table 2) **not comparable** (the baselines aren’t tested under the same constraints).  
+- **Missing key validation**: The paper claims to prepare "logical states" (Fig. 3e) but **omits circuit sizes** for these states. Without size comparisons, the claim of "60% smaller" is unsupported for critical states.  
+- **No failure cases**: The paper reports 100% success on 2000 random states but provides **no examples of failure** (e.g., a state not prepared). This suggests possible overfitting or test set leakage.  
+
+---
+
+#### **5. Reproducibility / Transparency**  
+**Score: 1/5**  
+**Justification**: **No reproducibility is possible** due to:  
+- **No code release**: The paper states "Training hyper-parameters can be found in App. D.2" but provides no code, Docker containers, or repository links (standard for top conferences like NeurIPS/ICML).  
+- **Vague implementation details**: "We implement a version of PPO based on Morales (2020)" but gives no reference to the exact code or modifications.  
+- **Missing training data**: The 10–20M training states are not shared, making independent validation impossible.  
+- **Hardware dependencies**: Claims "15 minutes on a single NVIDIA A100" but does not specify GPU memory, batch size, or PyTorch version.  
+*Without code, data, or detailed hyperparameters, reproduction is infeasible.*  
+
+---
+
+#### **6. Related Work & Positioning**  
+**Score: 3/5**  
+**Justification**: The paper correctly cites prior work on reverse-preparation (Wu et al., 2023; Kremer et al., 2024) and QSP (Aaronson & Gottesman, 2004; Bravyi et al., 2021). However, it **fails to clarify its position relative to Kremer et al. (2024)**:  
+- Kremer et al. scales to **11 qubits** (vs. 9 here) and uses **full connectivity**.  
+- The paper claims "substantially better sample efficiency" (10–20M vs. 1B steps), but **no direct comparison** is provided (e.g., training on 11 qubits with full connectivity).  
+- The paper dismisses Kremer et al. as "addressing general state preparation" (while this work focuses on stabilizer states), but Kremer et al. explicitly includes stabilizer states in their experiments.  
+This lack of a clear comparative analysis weakens the positioning.  
+
+---
+
+#### **7. Ethics / Broader Impacts / Safety**  
+**Score: 1/5**  
+**Justification**: **Zero discussion of ethics** is provided. Quantum computing has significant ethical implications:  
+- **Misuse potential**: The paper enables efficient state preparation for quantum algorithms that could break encryption (e.g., Shor’s algorithm), but no mitigation strategies are discussed.  
+- **Societal impact**: No analysis of environmental costs (e.g., energy for training on A100 GPUs) or accessibility (e.g., whether quantum hardware constraints limit equitable access).  
+- **Standard omission**: Top conferences (e.g., NeurIPS, ICML) require ethics sections; this paper’s absence is a major flaw.  
+
+---
+
+### Summary of Scores  
+| Criterion                          | Score |  
+|------------------------------------|-------|  
+| Novelty / Originality              | 3     |  
+| Significance / Impact / Usefulness | 3     |  
+| Technical Soundness / Correctness  | 3     |  
+| Empirical / Experimental Validation| 2     |  
+| Reproducibility / Transparency     | 1     |  
+| Related Work & Positioning         | 3     |  
+| Ethics / Broader Impacts / Safety  | 1     |  
+
+**Overall Recommendation**: **Reject**.  
+**Rationale**: The paper’s claims are **overstated** (e.g., "novelty," "generalization," "60% smaller circuits") without empirical validation. Critical flaws include:  
+1. **No reproducibility** (no code/data),  
+2. **Unverified generalization** (random states ≠ real-world states),  
+3. **Ignoring ethics**,  
+4. **Misleading comparisons** (e.g., gate set differences in linear connectivity).  
+The incremental contribution (MGR reward) is insufficient for a top conference, especially given the lack of real-world validation and ethical oversight. The paper would require major revisions (including code release, statistical validation, ethics section, and direct comparison with Kremer et al.) to be acceptable.

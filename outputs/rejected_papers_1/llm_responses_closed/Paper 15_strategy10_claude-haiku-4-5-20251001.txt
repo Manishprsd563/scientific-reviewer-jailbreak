@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper claims novelty in 'treating inter-agent spatial dependencies as a 2D sequence problem' and using Transformers with 2D positional encoding. However, this is largely a straightforward application of existing components: PointNet for permutation-invariant encoding (Qi et al., 2017), standard Transformer attention with distance-based masking, and PPO. The main contribution appears to be combining these known techniques for TSC, which constitutes incremental rather than genuine methodological innovation. The paper does not introduce fundamentally new concepts or insights; it applies established architectures to a domain. Potential weakness: No clear comparison showing how the 2D positional encoding approach differs meaningfully from prior Transformer applications in MARL beyond syntax."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "While TSC is a practically important problem, the paper's impact is severely limited by insufficient empirical validation and unclear real-world applicability. The simple network experiment (Section 3.1) shows 47% emissions reduction vs. a static baseline—a comparison that is not meaningful since static control is a trivial baseline. The complex network results (Section 3.2) show convergence but provide no comparison to state-of-the-art methods (RESCO baselines, RGLight, CityLight, IG-RL, MuJAM). The claim about 'minimal state information' is unsubstantiated: the paper shows that performance is independent of observation level (Figure 6b), but does not validate this on real-world traffic or against competing methods. The multi-network experiment (Section 3.3) explicitly states the model 'has yet to show convergence'—undermining a key claimed contribution. Potential weakness: Lack of comparison to any of the cited state-of-the-art methods (Table 1) makes it impossible to assess whether the approach advances the field."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical issues emerge: (1) The attention mask formulation (Section 2.2.2) is stated as m_{i,j} = exp(d_{i,j}/C), which grows with distance—this is inverted. Attention should decay (smaller values for distant agents), not increase; the formula should likely be exp(-d_{i,j}/C) to be sensible. (2) The paper claims permutation-invariance for lanes via max-pooling (PointNet), but then concatenates this representation with agent-level observations before passing to a Transformer. If order-invariance is critical, concatenating with ordered agent features violates this property. (3) The value function (Section 2.2.3) is defined as a sum over agents: v = Σ V_φ_v(ŝ^i), which is unusual for decentralized MARL; no justification is provided. (4) The problem formulation (Section 2.1) uses notation $\mathcal{A} = \mathcal{A}^i × \bar{\mu}·\mu·\mu × \mathcal{A}^N$, which contains formatting errors and is unintelligible. (5) Algorithm boxes (Alg. 1 & 2 referenced in Section 2.5) are missing entirely. Potential weakness: The inverted attention mask is a potential critical error that could explain why results are underwhelming."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 1,
+      "justification": "Empirical validation is severely deficient. (1) No comparison to state-of-the-art baselines cited in Table 1 (RESCO methods, RGLight, CityLight, IG-RL, MuJAM). All comparisons are against a trivial static baseline or no comparison at all. (2) The claim about variable-size networks is not validated: the paper trains on different networks but provides no zero-shot transfer experiments or generalization tests. (3) The 'minimal state information' claim is not substantiated: Figure 6b shows all observation levels converge similarly, but the paper provides no ablation separating the contribution of state information from the architecture. (4) Multi-network training (Section 3.3) explicitly fails to converge—a core claimed benefit of the architecture. (5) No statistical significance testing, confidence intervals, or multiple random seeds reported. (6) Evaluation metrics are limited: only convergence curves shown for complex networks; no final policy evaluation on held-out test environments. (7) The simple network results are anecdotal (single run, single network, static traffic). (8) No comparison of Transformer vs. MLP baseline on the same tasks with ablations. Potential weakness: The paper makes broad claims (competitive performance, minimal state sufficiency, variable topology handling) but provides no empirical evidence comparing to relevant baselines."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is critically insufficient. (1) No code, data, or training artifacts are made available (paper states 'under double-blind review' but provides no supplementary materials, Github link, or appendix). (2) Hyperparameters are largely missing: Transformer depth, width, attention heads, MLP layer sizes, learning rates, batch sizes, PPO clip ranges, GAE lambda, entropy coefficients, etc. are not specified. (3) No random seeds or variance estimates reported across runs. (4) Figure 4b and 6b show training curves but lack error bars or multiple runs. (5) The 'over 300 experiments' mentioned in Section 3 are not documented—no table of hyperparameter sweeps, no ablation matrix. (6) Algorithm 1 and Algorithm 2 are referenced but missing from the paper. (7) No details on environment generation: how are the random road networks constructed? What distributions? How many networks per complexity level? (8) SUMO configuration (simulation step size, vehicle insertion rate, routing algorithms) not specified. (9) The paper mentions Docker/Apptainer deployment but provides no container definitions or instructions. (10) WandB.ai monitoring mentioned but no public project link provided. Potential weakness: This paper cannot be reproduced by any external researcher due to missing code and hyperparameters. This is a fatal flaw per RBCL §2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work coverage is incomplete and positioning is unclear. (1) Table 1 provides a structured overview of prior work (IG-RL, MuJAM, RGLight, CityLight), but the paper does not empirically compare against any of these methods. Citing methods without comparison is insufficient. (2) The paper claims 'network independence' as a contribution, but IG-RL, MuJAM, and RGLight all claim zero-shot transfer or network independence—this is not novel. (3) The distinction from CityLight (which uses 'intersection-level' observations vs. this paper's 'lane-level') is mentioned but not justified: is lane-level observation actually an advantage? No evidence provided. (4) The paper does not discuss why Transformers are chosen over GCNs (used in RGLight) or other graph architectures—no ablation or justification. (5) The connection to 'point cloud processing' (claimed inspiration) is superficial: PointNet is used for lane encoding, but the paper does not discuss why point cloud techniques are appropriate or how they improve over simpler permutation-invariant pooling. (6) Missing discussion of related MARL communication papers, independent decentralized control, and graph neural network work in traffic control. Potential weakness: Lack of empirical comparison to prior work makes it impossible to assess whether the paper advances the state-of-the-art or merely replicates existing results with a different architecture."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 0,
+      "justification": "Ethics and broader impacts are entirely absent. (1) No ethics statement or discussion of potential harms. (2) TSC systems impact public safety (e.g., emergency vehicle response, pedestrian safety)—no discussion of robustness, failure modes, or safety guarantees. (3) No discussion of bias: does the model work fairly across different neighborhoods or traffic patterns? (4) No analysis of when the model might fail or make unsafe decisions. (5) Data provenance: SUMO is a simulator; real-world road networks are imported but no discussion of licensing, how maps are obtained, or whether Zurich data was used with consent. (6) No discussion of deployment risks or how a model trained in simulation would be validated before real-world deployment. (7) No consideration of privacy (e.g., vehicle tracking data if used). (8) The introduction mentions 'different stakeholders' (drivers, pedestrians, cyclists, planners) but no discussion of how the model balances their conflicting objectives or whether some groups might be disadvantaged. Potential weakness: Complete absence of ethics consideration is a major red flag for any system impacting public infrastructure and safety."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 10,
+    "confidence": 0.95,
+    "final_decision": "Reject",
+    "final_justification": "This paper should be rejected on multiple fatal grounds per RBCL §2 Fatal-Flaw Logic. (1) **Reproducibility ≤ 2**: No code, no hyperparameters, no random seeds, no supplementary materials. This is non-negotiable for a top-tier venue. Decision downgraded due to RBCL §2 Fatal-Flaw Logic. (2) **Technical Soundness ≤ 2**: The attention mask formula appears inverted (exp(d/C) should decay with distance, not grow); critical algorithms are missing; notation is corrupted. Decision downgraded due to RBCL §2 Fatal-Flaw Logic. (3) **Empirical Validation ≤ 1**: No comparison to any of the cited state-of-the-art baselines (Table 1 lists 5 prior methods; none are evaluated against). Multi-network training explicitly fails to converge. Claims about minimal state information are unsupported. This violates core conference standards. (4) **Novelty ≤ 2**: Straightforward combination of PointNet + Transformer + PPO; no methodological breakthrough. (5) **Significance ≤ 2**: Without baselines or real-world validation, impact is unsubstantiated. The paper makes broad claims but provides no evidence. (6) **Ethics = 0**: Complete absence of discussion on safety, fairness, or responsible deployment of a public-safety-critical system. The core issues are: (a) Lack of reproducible artifacts (code/hyperparameters), (b) Missing comparisons to relevant prior work despite citing 5+ methods, (c) Technical errors in formulations, (d) Failed convergence on the multi-network task (a key claimed contribution), (e) No real-world validation or deployment analysis. Even if individual components were sound, the failure to compare against CityLight, RGLight, IG-RL, or MuJAM makes it impossible to assess whether this work advances the field or merely reproduces known results. The paper reads as an early-stage technical report rather than a complete research contribution ready for publication at a top venue."
+  }
+}
+```

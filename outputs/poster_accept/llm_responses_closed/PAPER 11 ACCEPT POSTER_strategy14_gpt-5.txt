@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper extends compositional/amortized SBI from i.i.d. observations to Markovian time series by training on single-step transitions and composing local posteriors/scores (FNSE, FNLE, FNRE). Adapting the noisy-parameter score composition (via covariance-weighted aggregation inspired by Linhart et al.) to the Markov setting is a reasonable contribution. However, the core idea largely follows from the Markov factorization and prior i.i.d. compositional SBI; learning transition-level components and composing globally is conceptually natural and has parallels in data assimilation and likelihood factorization. Potential weakness: the novelty depends heavily on the aggregation approximation for a>0, which is adapted rather than fundamentally new, and assumes time-homogeneous transitions and proposal-state independence that may limit generality."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the approach can improve simulation efficiency for amortized SBI on long, high-dimensional Markovian simulators, which is valuable for scientific applications (e.g., the Kolmogorov flow case). Demonstrations on Lotka–Volterra, SIR, and a large fluid-dynamics simulator suggest practical promise. Potential weakness: impact is tempered by sensitivity to the proposal distribution and by limited comparisons to strong sequential baselines (e.g., particle MCMC/SMC, advanced attention-based NPE, or data-assimilation pipelines). External validity beyond studied simulators and robustness under model mismatch remain unverified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The factorization of the posterior score for a=0 is sound under the stated assumptions (Markov property, parameter-independent initial condition, time-homogeneous transitions, and proposal-state independence). For a>0, the paper relies on an approximation that aggregates local noisy scores using estimated covariances (GAUSS/JAC), adapted from the i.i.d. case; this is plausible but introduces approximation error. Potential weakness: the covariance estimation from local posteriors can be biased or unstable, and there are no formal consistency or error bounds for the composed global score; violation of the proposal-independence or stationarity assumptions would invalidate the factorization. Coverage of edge cases (e.g., higher-order Markov, parameterized initial state) is relegated to appendices without rigorous guarantees."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper evaluates on synthetic tasks, Lotka–Volterra, SIR, and a high-dimensional Kolmogorov flow, reporting sW1, C2ST, and some SBC analyses across multiple seeds; FNSE often outperforms an NPE baseline under a fixed transition-budget. Potential weaknesses: key baselines are missing or limited (e.g., particle MCMC/SMC-ABC, stronger sequence models/embeddings, rigorous NLE/NRE comparisons in all settings). There is limited ablation on the composition rule (GAUSS vs JAC), proposal design, and sensitivity to T and dimensionality. For Kolmogorov flow, no ground-truth posterior is available; evaluation relies on MAE/predictive metrics without uncertainty calibration across longer horizons, and statistical significance reporting is sparse."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The submission, as presented, does not provide a code repository, detailed hyperparameters, exact architectures, training schedules, environment specifications, or full simulator configuration details. While budgets (e.g., number of transition evaluations) and some procedures are described, critical implementation details to fully reproduce results are missing. Potential weakness: absence of code/data release and explicit seeds limits verifiability. Per policy, missing resources cap this criterion at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and positions itself relative to compositional SBI in the i.i.d. setting (Geffner, Linhart, Boelts), data assimilation (Rozet & Louppe), score-based SBI, and summary-statistic approaches. Potential weakness: limited discussion and empirical comparison to sequential Bayesian inference baselines (particle filters, particle MCMC/SMC2) and recent strong amortized time-series models; the degree of methodological overlap with filtering/smoothing literature and its practical trade-offs is not fully articulated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "This is a methodological paper using synthetic and simulation-based datasets with relatively low immediate societal risk; however, no explicit ethics or broader impacts statement is evident in the provided text. Potential weakness: missing discussion on data provenance, simulator licensing, computational costs/carbon footprint, and downstream misuse or bias when applied to real-world decision-making contexts. Per policy, missing or unclear ethics information caps this criterion at 2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper presents a plausible and practically relevant extension of compositional SBI to Markovian time series, with a reasonable adaptation of noisy-parameter score aggregation and encouraging results on several simulators, including a high-dimensional Kolmogorov flow. Nevertheless, reproducibility is insufficient (no code or detailed hyperparameters), and empirical validation lacks several strong sequential baselines and deeper ablations on crucial components (proposal design, composition method, sensitivity to assumptions). Under the Reviewer Bias Correction Layer (RBCL) §2 Fatal-Flaw Logic, a reproducibility score ≤ 2 mandates rejection irrespective of other strengths; thus the decision is Reject. The work could become competitive with a thorough code release, expanded baselines, stronger statistical analysis, and more rigorous treatment of the composition approximation."
+  }
+}

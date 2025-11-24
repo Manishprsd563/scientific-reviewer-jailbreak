@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "SWR is a straightforward modification of existing weight rescaling methods (Niehaus et al., 2024; Alabdulmohsin et al., 2021). The core idea—scaling weights by the ratio of initial to current Frobenius norm, with a softening parameter λ—is a modest incremental contribution. Theorem 1 on proportionality is sound but well-known in the literature (scaling parameters while preserving network behavior via bias adjustments). The main novelty lies in the layer-wise adaptive scaling factor and EMA modification, which is limited in conceptual depth. The paper lacks a fundamentally new insight; it is primarily an engineering optimization of existing ideas."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "While weight regularization is an important problem, SWR's practical significance is limited. The method shows modest improvements over baselines (often 1–2% gains), and the paper does not demonstrate compelling advantages in challenging real-world scenarios. The experiments are restricted to small to medium-scale models (VGG-16) and toy datasets (CIFAR, TinyImageNet). For modern large-scale models (transformers, very deep networks), the applicability is unverified. The continual learning results, while interesting, do not provide sufficient evidence that SWR solves a critical problem that practitioners face. The paper acknowledges that L2 sometimes outperforms SWR (Section 5), raising questions about its general utility."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "While Theorem 1 and its proof are technically sound, several critical issues undermine the work. (1) The proof that SWR bounds weight magnitude (Appendix B, referenced but not fully evaluated) is claimed but not rigorously verified in the main paper. The softened version in Eq. (3) breaks hard constraints; the authors state 'the algorithm still prevents unlimited growth' but provide no formal analysis. (2) The use of Frobenius norm as a proxy for weight change rate is arbitrary; no justification is provided for why this choice is optimal or even principled compared to alternatives (spectral norm, trace norm). (3) The claim that SWR 'balances weight magnitude between layers' (Section 3.4) relies on intuition and a toy experiment in Appendix C; no formal theorem or rigorous analysis is provided. (4) The proportionality requirement assumes homogeneous activation functions and affine/convolution layers, yet the algorithm is applied to modern architectures with batch normalization and other non-standard components without formal justification."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Multiple weaknesses limit empirical validation. (1) Results lack statistical significance testing; only standard deviations are reported, with no formal tests (t-tests, confidence intervals) to establish statistical significance. Many reported differences (e.g., 0.4348 vs. 0.3915 in Table 1) are within 1–2 standard deviations. (2) Experimental scope is narrow: only image classification on CIFAR-10/100, MNIST, TinyImageNet. No experiments on NLP, RL, or large-scale vision (ImageNet). (3) Baselines are limited and potentially outdated. L2 regularization is compared favorably in some settings, but modern techniques (AdamW, label smoothing, mixup) are not considered. (4) Critical ablation studies are missing: the paper does not systematically vary λ or justify its choice; no analysis of sensitivity to initialization schemes; no ablation comparing proportionality-aware vs. naive scaling. (5) Warm-start and continual learning setups are somewhat artificial (random 50% splits, 10 random chunks). Real-world continual learning scenarios are not tested. (6) The claim that SWR preserves information better than re-initialization (Section 4.2–4.3) lacks rigorous evaluation; no analysis of learned feature similarity or knowledge retention metrics is provided."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility issues. (1) No code is provided or promised. The paper is anonymous and provides no mention of code availability, repository link, or supplementary materials. (2) Hyperparameter choices are relegated to Appendix D, which is not fully inspected here, but the main paper lacks detail. For instance, λ (the softening parameter in Eq. 3) is not discussed; its value for each experiment is unclear. (3) Random seed management is mentioned only as '5 runs' with standard deviations; no seed values or reproducibility protocols are specified. (4) Training procedures vary across experiments (100 epochs for warm-start, 200 for generalization, varying schedules in Appendix E), but the rationale is not clearly explained. (5) No implementation details for normalization handling (Algorithm 1) are provided in the main paper. (6) Computational cost comparisons are absent; the claim of 'minimal computational overhead' is not quantified. These omissions make independent reproduction extremely difficult and raise concerns about whether claims are fully reproducible."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 2) is reasonably comprehensive in covering weight regularization, re-initialization, and unbounded weight growth. However, there are gaps and inconsistencies. (1) Recent work on weight magnitude and plasticity (Lyle et al., 2024a, 2024b) is discussed, but the paper does not deeply engage with the fundamental causes of plasticity loss beyond weight growth. (2) The comparison to Niehaus et al. (2024)'s weight rescaling method is cursory; the paper claims SWR is simpler and does not require 'finding a proper rescaling interval,' but does not provide a rigorous comparison or empirical head-to-head evaluation. (3) The paper positions SWR as combining advantages of regularization and re-initialization methods, but this claim is overstated—SWR is fundamentally a regularization approach and does not reinitialize weights. (4) Related work on initialization (Kumar et al., 2020; Neyshabur et al., 2017) is cited but not thoroughly analyzed for how SWR relates to good initialization design. (5) The paper does not discuss connections to other adaptive regularization schemes (e.g., adaptive learning rates, per-layer normalization) that might achieve similar effects."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethical discussion or broader impact statement is provided. The paper completely omits any consideration of ethical implications, data provenance, or potential harms. This is a critical failure for a modern venue. While the method itself is low-risk (a regularization technique for image classification), the paper should at minimum discuss: (1) potential misuse in adversarial or surveillance contexts, (2) dataset sourcing and any copyright or privacy concerns (CIFAR-10, TinyImageNet, MNIST are public but provenance should be mentioned), (3) environmental impact of training large models multiple times (relevant for continual learning), (4) fairness implications if SWR improves performance heterogeneously across data subgroups. The complete absence of such discussion violates modern publication standards and constitutes a major oversight."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper proposes Soft Weight Rescaling (SWR), a method to regularize neural network weights and recover plasticity. While the work addresses a relevant problem and demonstrates modest empirical improvements, it suffers from critical weaknesses that preclude acceptance. (1) **Novelty is limited**: SWR is an incremental modification of existing weight rescaling methods (Niehaus et al., 2024; Alabdulmohsin et al., 2021), with the main contribution being an adaptive layer-wise scaling factor and EMA softening. Theorem 1 on proportionality, though correct, is not novel. (2) **Theoretical rigor is insufficient**: The claim that SWR bounds weight magnitude is stated but not formally proven in the main paper. The softened version breaks hard constraints, yet no analysis of the behavior under this relaxation is provided. Claims about layer balancing lack formal justification. (3) **Reproducibility is severely compromised**: No code is provided, critical hyperparameter choices (e.g., λ) are not explained, random seed protocols are unclear, and implementation details are missing or relegated to appendices. This violates standards for top-tier venues. (4) **Empirical validation is weak**: Experiments lack statistical significance testing, baselines are limited, experimental scope is narrow (only image classification on small datasets), critical ablations are missing, and the improvements are often marginal (1–2%) and sometimes within noise. (5) **Ethics and broader impact are completely absent**: No discussion of societal implications, data provenance, or potential harms. This is a significant oversight for modern venues. (6) **Technical soundness concerns**: The choice of Frobenius norm as a proxy for weight growth is not justified; assumptions about homogeneous activations and affine layers are not validated in practice; the relationship between proportionality preservation and the final softened algorithm is unclear. The paper acknowledges that L2 regularization sometimes outperforms SWR (Section 5), undermining claims of superiority. **Verdict**: While the work is technically sound at a basic level, the limited novelty, weak empirical validation, missing code/reproducibility infrastructure, absence of ethical discussion, and marginal improvements over baselines do not meet the standards for acceptance at a top-tier venue (NeurIPS, ICML, ICLR). The paper would benefit from: (i) rigorous theoretical analysis of the softened version, (ii) comprehensive ablations and significance testing, (iii) evaluation on modern large-scale models and datasets, (iv) full code release, (v) an ethics section, and (vi) deeper engagement with why SWR outperforms or underperforms relative to simpler baselines."
+  }
+}
+```

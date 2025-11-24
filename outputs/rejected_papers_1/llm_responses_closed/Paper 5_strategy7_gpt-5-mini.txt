@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a multi-actor centralized-critic pipeline (MAC-CAFE) to edit textual KBs using expert feedback — a combination of existing ideas (actor-critic MARL, document-level actors, MCTS, and LLM-based reasoning). This composition is useful but appears more like a novel system integration than a fundamentally new methodological insight. Potential weakness / unverified assumption: the core novelty claim hinges on the notion of a \"textual gradient\" produced by LLMs as a substitute for analytic gradients; this is asserted but not theoretically justified or empirically isolated, leaving it unclear whether the contribution is a new method or an engineering combination of existing pieces."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Improving KB quality for RAG systems is an important practical problem; a method that can incorporate expert feedback to update KBs without re-training LLMs would be broadly useful across applications (documentation, code, time-varying facts). Potential weakness / unverified assumption: the approach assumes ready availability of precise expert feedback and accurate assignment of blame to specific documents; in many real-world settings such strong oracle feedback or reliable responsibility attribution may not exist or may be expensive, limiting practical impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several central technical claims are underspecified or rest on unproven assumptions. In particular, the paper treats reward gradients w.r.t. documents (∂R/∂D_j) and proposes using LLM-generated \"textual gradients\" as a stand-in for formal gradients; there is no formal justification, bounds, or analysis of when this approximation is meaningful. The actor-critic formulation and MCTS integration lack proofs/guarantees and the chosen approximations (clustering reflections, partial textual gradients) are not analyzed theoretically. Potential weakness / unverified assumption: assuming LLM reflections reliably approximate gradients and that these surrogates enable stable optimization of KB states is unverified. Because technical_soundness ≤ 2, RBCL §2 (Fatal-Flaw Logic) requires the overall decision be Reject (see final justification)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports experiments across several datasets and an adapted baseline (PROMPTAGENT-E), and claims gains. However, critical empirical details are missing or unclear: tables are poorly formatted and some reported numbers appear inconsistent; there is no evidence of multiple random seeds or statistical significance testing; important ablations (e.g., effect of clustering, LLM choice, number of critic iterations, ablation of textual-gradient usage) are absent. Potential weakness / unverified assumption: it appears results may be from single runs without variance estimates, and the adapted baseline may be insufficiently strong or tuned, making it hard to trust the claimed improvements."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Reproducibility is limited: while some system configuration settings (MCTS params, embedding models, token budgets) are mentioned, there is no public code link, no full list of hyperparameters, no random seeds, and data-split descriptions are incomplete (some splitting heuristics are described but exact splits and scripts are not provided). Potential weakness / unverified assumption: absence of released code and full experimental artifacts prevents independent verification and triggers the reproducibility cap. Because reproducibility ≤ 2, RBCL §2 (Fatal-Flaw Logic) requires the overall decision be Reject (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript surveys relevant areas (RAG, knowledge editing, MARL, prompt optimization) and cites many pertinent works, showing awareness of the landscape. Potential weakness / unverified assumption: positioning could be strengthened by more concrete contrasts to the closest KB-editing and model-editing methods (with quantitative comparisons or discussion of limitations), and some recent works on LLM-based optimization of discrete structures may be missing or not thoroughly compared."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper does not include an explicit ethics / broader-impact statement. Given the subject (automatically editing KBs that downstream systems rely upon), there are notable risks: introducing incorrect edits could propagate misinformation or harm, and the provenance/licenses of KB sources (especially news or private docs) are not discussed. Potential weakness / unverified assumption: absence of mitigation strategies for malicious or erroneous edits and lack of discussion about data provenance, consent, or licensing."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: MAC-CAFE addresses an important problem (feedback-driven KB editing) and assembles promising components (document-level actors, centralized critic, MCTS, LLM-based reflections). However, the submission has critical weaknesses that prevent acceptance in its current form. The most serious issues are (1) technical soundness and (2) reproducibility: both are capped at 2/5 due to unverified assumptions and missing artifacts. Technical concerns include an unformalized notion of \"textual gradients\" computed by LLMs, lack of theoretical analysis showing when or why the proposed surrogate gradients yield useful updates, and no analysis of convergence or stability of the actor-critic + MCTS procedure. Reproducibility concerns include the absence of released code, incomplete hyperparameter and seed reporting, and unclear experimental protocols. Empirically, tables are inconsistently presented, key ablations and statistical significance tests are missing, and baseline comparisons are limited. Decision rationale & RBCL application: Per the Reviewer Bias Correction Layer (RBCL) and the instructions provided, technical_soundness ≤ 2 and reproducibility ≤ 2 are fatal flaws that mandate a Reject decision (RBCL §2 Fatal-Flaw Logic). I also applied the anti-inflation safeguard by reducing each criterion by 0.5 before computing the total, which contributed to a conservative numeric score (final total = 13). Recommendations for revision: 1) Provide a clear formalization and justification for the \"textual gradient\" concept or replace it with a better-grounded mechanism; include theoretical analysis or empirical diagnostics that demonstrate the surrogate gradient's fidelity. 2) Release code, data splits, exact hyperparameters, random seeds, and an inference/evaluation script to enable reproducibility. 3) Improve experiments with multiple seeds, variance reporting, statistical tests, and stronger/tuned baselines (and show ablations isolating each component: critic vs independent actors, clustering vs no clustering, different LLMs and temperatures). 4) Add an ethics / broader impacts section covering provenance, licensing, potential harms from erroneous edits, and proposed mitigations. If the authors address these issues and demonstrate robust, repeatable gains with clearer theoretical or empirical grounding, the work could be reconsidered for acceptance. Note: Decision downgraded due to RBCL §2 Fatal-Flaw Logic (technical_soundness ≤ 2 and reproducibility ≤ 2) and the Anti-Inflation Safeguard described in the review instructions."
+  }
+}

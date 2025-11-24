@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a novel application of generative diffusion models + transformers + attention for patient-specific genomic data augmentation and couples this with multi-task pseudolabelling — a combination that appears useful and non-trivial. However, the core components (DDPMs, transformers, CORAL alignment, MTL pseudolabelling) are existing methods assembled in a new pipeline rather than a fundamentally new algorithmic insight. A key unverified assumption is that the generated 'patient-like' samples faithfully capture biologically meaningful patient-specific variation (beyond distributional similarity); biological validation of generated variants is lacking. Also the claim of being 'first' is plausible but may overlook niche prior augmentation work; novelty is therefore moderate, not transformational."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If reliable, generating labelled patient-like genomic profiles could materially aid personalized oncology models where clinical labels are scarce, which is of clear practical importance. The empirical gains reported (AUROC/AUPRC improvements) suggest potential impact. Weaknesses/uncertainties: translation to clinical decision-making requires stronger biological validation, prospective clinical evaluation, and assessment of risks from using synthetic/pseudolabelled data. Also experiments cover only a small set of drugs and it is unclear how broadly the improvement generalizes across cancer types and broader drug sets."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The methodology is plausible and builds on established techniques (VAEs/DDPM, transformers, CORAL alignment, MTL). The training pipeline, losses, and pseudolabelling selection are described and ablations show component contributions. Weaknesses / unverified assumptions: several heuristics lack rigorous justification — e.g., assuming a shared latent Z_s ~ N(0,I) across domains, adequacy of CORAL for aligning complex genomic latent distributions, and using cell-line-derived labels to annotate patient-like samples without explicit modeling of domain-dependent label shifts (beyond separate heads). Details on hyperparameter choices and stability of training (DDPM + MTL interplay) are limited, raising concerns about fragility and reproducibility. No formal guarantees are provided about when generated labels are expected to be correct."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper compares against multiple recent baselines, reports AUROC/AUPRC with mean±std, and provides ablations and augmentation baselines which support component claims. This is good practice. Main weaknesses: experimental scope is limited to five drugs (apparently those present across folds), so generalization beyond these is uncertain; the paper does not detail exact dataset sizes per drug/fold in the main text (makes assessing statistical power hard). It is unclear whether hyperparameter tuning per-drug could introduce leakage (tuning on validation that overlaps choice of augmented samples). Biological validation of generated samples is limited to distributional comparisons; no wet-lab or expert assessment. Statistical testing for significance of improvements is not reported (p-values or confidence intervals beyond mean±std), and there is limited discussion of variability across random seeds."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The authors state that code and data are available on GitHub, which is an important positive. However, the paper lacks explicit details in-text about hyperparameters, random seeds, exact environment, data preprocessing scripts, license/usage terms, and explicit instructions for reproducing the training pipeline (multi-stage pretraining + DDPM sampling + MTL + pseudolabel selection). Per RBCL 'treat absence of evidence as evidence of absence', I cannot assume all necessary artifacts (seeds, full preprocessing, Docker/conda specs, exact hyperparameters, checkpointing) are present or sufficiently documented; thus score capped at 2. This reproducibility shortcoming triggers the RBCL fatal-flaw rule (see final decision)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript surveys a broad set of DRP and genomic augmentation literature, situating its contributions relative to transfer-learning and pseudo-labelling baselines and discussing limitations of prior domain-invariant shared-space methods. Weaknesses: some claims (e.g., being the first to perform patient-side generative augmentation for DRP) could be overstated unless niche prior work is thoroughly excluded; also the related-work discussion gives limited engagement with biological literature on functional impacts of mutation combinations and with methods for biologically-constrained generative modelling. Comparative discussion of potential failure modes (when augmentation could harm performance) is limited."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly mentions future directions and notes data sources, but there is no dedicated ethics / broader-impacts section addressing patient privacy, consent, data provenance, risks of synthetic data in clinical decision-making, or misuse. No discussion of licensing of datasets/code or regulatory considerations for clinical deployment is provided. This omission is material given the clinical domain; thus score is capped at 2 for missing explicit ethics documentation and risk mitigation."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: GANDALF presents a thoughtful, well-engineered pipeline combining generative DDPMs, transformers, attention, and multi-task pseudolabelling to augment patient genomic profiles for drug response prediction. Empirical results and ablations indicate the approach can improve metrics over several baselines on the reported tasks, and the idea is of genuine interest to the community. However, there are critical concerns that prevent acceptance in its current form. The most important is reproducibility/transparency: although the authors point to a GitHub repo, the manuscript lacks explicit in-paper details about hyperparameters, seeds, environment, and full preprocessing, and per RBCL rules we treat these absences as evidence of incomplete reproducibility (reproducibility score = 2). Because Reproducibility ≤ 2, RBCL §2 Fatal-Flaw Logic mandates an overall decision of 'Reject' (override applied). Additional substantive weaknesses include reliance on strong modelling assumptions (shared latent prior, adequacy of CORAL alignment), limited biological validation of generated samples (distributional matching without expert/functional assessment), limited experimental scope (only five drugs analyzed, unclear per-drug sample sizes and potential tuning leakage), and absent dedicated ethics / broader-impacts discussion. Notes on scoring adjustments: scores were assigned conservatively in line with the RBCL principles (presumption of rejection), and I applied the Anti‑Inflation Safeguard by keeping criterion ratings conservative and explicitly capping reproducibility and ethics due to missing in-text details. Recommendation: reject in current form, but the work is promising — authors should (1) provide a fully-documented reproducibility package (data preprocessing pipelines, hyperparameters, random seeds, environment/container, scripts to reproduce reported results and train the multi-stage pipeline end-to-end), (2) add more extensive experiments (wider drug sets, per-drug sample counts, statistical significance testing, and robustness across multiple random seeds), (3) include biological validation of generated samples (expert review, pathway/co-occurrence analyses, or wet-lab validation where feasible), and (4) add an explicit ethics/broader-impacts section detailing data provenance/consent, potential harms, and licensing. Because reproducibility is a fatal flaw per RBCL, this remains a rejection until addressed."
+  }
+}

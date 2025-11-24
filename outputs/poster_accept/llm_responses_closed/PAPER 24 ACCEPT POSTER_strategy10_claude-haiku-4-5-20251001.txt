@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper proposes weight embedding as a method to learn weight-specific representations for multi-objective combinatorial optimization. While the core idea of incorporating weight vectors into neural CO models is sensible, the conceptual novelty is moderate. The 'addition' variant (WE-Add) is straightforward linear addition of weight and instance embeddings. The conditional attention variant (WE-CA) extends this with feature-wise affine transformations and dual embedding updates, but these techniques are not fundamentally new (feature-wise modulation is well-established from FiLM and similar work). The paper itself acknowledges that CNH and PMOCO already input weight information; the distinction is primarily in the mechanism (addition vs. hypernetwork vs. attention). The paper does not present a conceptually breakthrough insight into weight-instance interaction beyond incremental refinement of existing architectural choices."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The work addresses an important problem: improving neural methods for multi-objective combinatorial optimization. The reported improvements over baselines are meaningful (e.g., 0.24% gap vs. PMOCO's 4.14% on Bi-CVRP100), and cross-size generalization is a valuable property. However, the significance is moderated by several factors: (1) the improvements, while consistent, are often incremental (sub-1% in many cases); (2) the problems studied (TSP, CVRP, knapsack) are classical benchmarks but limited in scope; (3) the practical applicability to real-world constrained MOCO problems is not demonstrated, and the authors acknowledge this limitation; (4) the method primarily improves convergence within the decomposition framework, which is orthogonal to diversity concerns in MOCO. The impact on the broader field remains to be seen, as the work is solidly incremental within the neural MOCO literature."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical approach is sound in execution but lacks theoretical rigor and clarity. Strengths: (1) the architectural components (multi-head attention, layer normalization, feed-forward networks) are standard and correctly implemented; (2) the training with REINFORCE and baseline is appropriate for RL-based CO; (3) the experimental setup is well-defined. Weaknesses: (1) no theoretical justification for why WE-CA should outperform WE-Add—the claim that simultaneous update of weight and node embeddings 'diminishes disharmony' is informal and unsubstantiated; (2) the feature-wise affine transformation (Equation 8) lacks motivation—why is this the right way to condition node embeddings on weights compared to alternatives?; (3) ablation studies (Appendix H, not fully detailed in main paper) suggest WE-CA w/o C (attention model without conditional embedding) performs similarly to WE-CA on some subproblems (Table 4), yet the benefit of the full model is not rigorously explained; (4) no analysis of model capacity, expressiveness, or convergence properties."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 4,
+      "justification": "Experiments are comprehensive in scope and generally well-executed. Strengths: (1) evaluation on three classic MOCO problems (MOTSP, MOCVRP, MOKP) across multiple sizes and objectives; (2) comparison with diverse baselines (multi-model, single-model, and non-learnable heuristics); (3) statistical significance testing (Wilcoxon rank-sum at 1% level); (4) ablation studies on weight-instance interaction patterns and embedding models; (5) generalization tests on unseen sizes and out-of-distribution scenarios; (6) visualization of Pareto fronts (Figure 2). Weaknesses: (1) all 200 random instances per problem/size—no validation on structured or hardness-varied benchmarks; (2) hypervolume is the only metric; other MOCO metrics (e.g., epsilon-dominance, spread, inverted generational distance) would strengthen claims; (3) the 'instance augmentation' technique is mentioned but not clearly explained in the main paper, making it unclear whether improvements come from WE or augmentation; (4) no confidence intervals or error bars on results; (5) limited analysis of which types of instances or weight vectors are harder for each method; (6) the scalarized objective analysis (Table 4) only includes three weight vectors—a more systematic study across the weight space would be valuable."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper provides some reproducibility information but lacks completeness. Provided: (1) hyperparameter settings (learning rate, batch size, number of epochs, weight vector generation method); (2) architecture details (layer counts, attention heads, embedding dimensions); (3) code is stated to be 'publicly available' with a footnote, but the actual repository link is not visible in the submission; (4) problem definitions and dataset generation methods are referenced or described. Missing or unclear: (1) random seed specification—critical for neural training reproducibility, not explicitly stated; (2) no discussion of training variance or seed sensitivity; (3) the instance augmentation technique is mentioned as part of some results but not fully detailed in the main paper (Appendix F reference); (4) code availability is claimed but not verified in the review; (5) no specification of PyTorch version, CUDA version, or other environment details; (6) computational resources used for training (e.g., total GPU hours) are not reported. The lack of explicit code availability and detailed environment specifications limits reproducibility despite the general detail provided."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "Related work section is well-organized and covers the main research areas: traditional MOCO methods (exact and heuristic), neural CO methods, and neural MOCO methods (multi-model and single-model). The paper clearly positions itself relative to key baselines like PMOCO, MORAM, and CNH, explaining their limitations (e.g., PMOCO's weight-agnostic encoder, CNH's complex size-aware decoder). The distinction from prior work is articulated: the paper claims to focus on 'neat' weight embedding rather than complex auxiliary techniques. However, some issues: (1) the comparison to CNH is somewhat dismissive ('contrary to our neat principle')—a fairer characterization might acknowledge that complexity can enable cross-size generalization, which WE-CA achieves differently; (2) the claim that weight-instance interaction is 'overlooked by most current methods' is overstated—PMOCO's hypernetwork and CNH both incorporate weights, just in different ways; (3) limited discussion of diversity-oriented MOCO methods beyond a brief mention of Chen et al. (2023b); (4) the paper positions weight embedding as a 'fundamental method' for the field, which is aspirational but not rigorously justified given the incremental nature of improvements. The related work is solid but could be more balanced in acknowledging trade-offs."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no discussion of ethics, broader impacts, safety, or societal implications. There is no statement regarding data provenance, licensing, or ethical considerations related to the problems studied (TSP, CVRP, knapsack). While the problems themselves are abstract benchmarks without obvious direct societal harm, a responsible AI paper should at least discuss: (1) potential use of MOCO methods in supply chain optimization with labor or environmental implications; (2) fairness in multi-objective trade-offs (whose objectives are prioritized?); (3) the environmental cost of training large neural models; (4) responsible disclosure if the work enables new capabilities that could be misused. The complete absence of any ethics section or discussion, even a brief one, is a significant omission by modern standards for top-tier venues. This is a clear weakness that should be corrected in any revision."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 23,
+    "confidence": 0.72,
+    "final_decision": "Weak Accept",
+    "final_justification": "This paper presents a solid engineering contribution to neural multi-objective combinatorial optimization, proposing weight embedding as a simple and effective mechanism to improve decomposition-based methods. The empirical results are comprehensive and consistently demonstrate improvements over strong baselines across multiple problems and problem sizes. The method is elegant in its simplicity (particularly WE-Add) and achieves state-of-the-art performance.\n\nHowever, the work has significant limitations that prevent a strong accept: (1) Limited conceptual novelty—weight embedding is a sensible idea but not a fundamental breakthrough; conditioning mechanisms and weight incorporation have been explored before; (2) Modest theoretical contribution—no principled analysis of why WE-CA should outperform alternatives; the design choices lack rigorous justification; (3) Incremental improvements—while consistent, gaps are often <1%, which is non-trivial but not transformative; (4) No ethical or societal impact discussion—completely absent; (5) Reproducibility concerns—code availability is claimed but not verifiable, random seeds not specified, environmental details missing; (6) Limited scope—evaluation on classical benchmarks only; applicability to real-world constrained MOCO problems is acknowledged but not demonstrated.\n\nThe paper makes a credible contribution to the neural MOCO literature and will likely be useful to researchers in this area. The experiments are well-executed and the writing is generally clear. However, the work is primarily a well-done but incremental advance rather than a significant methodological innovation. For a top-tier venue like ICLR or NeurIPS, the bar is high; this paper is above rejection but below the threshold for acceptance as a strong contribution. It would be strengthened by: (1) theoretical analysis of weight embedding mechanisms; (2) evaluation on constrained or real-world problems; (3) deeper investigation of failure modes or problem classes where the method struggles; (4) ethics discussion; (5) reproducibility details. The score of 23/35 reflects solid execution with limited novelty and some unaddressed rigor gaps."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes structure-aware masks that target heads and filters for parameter-efficient unlearning in Transformers, which is a reasonably novel specialization of parameter-efficient techniques to the unlearning setting. However, the core ideas (masking, sparse updates, second-order approximations) are combinations of known components rather than a clearly fundamental new methodological insight; the novelty is incremental rather than a breakthrough. Potential weaknesses/unverified assumptions: the claimed theoretical gains (tighter approximation bounds proportional to sparsity) are asserted but not rigorously proved in the provided text; it is unclear whether mask learning yields qualitatively different behavior than existing importance metrics. (RBCL: score kept conservative per anti-inflation/strictness rules.)"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If effective at scale, structure-aware parameter-efficient unlearning could materially reduce cost of complying with data-removal requests for large Transformer models and thus is of practical importance. The empirical focus on common Transformer architectures and GLUE/SQuAD tasks supports potential impact. Potential weaknesses/unverified assumptions: extrapolation to truly large models (e.g., 13B+ models mentioned in future work) is untested and nontrivial; practical deployment considerations (frequency of removal requests, integration with MLaaS pipelines) are not fully addressed."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The method builds on second-order approximations and a diagonal FIM approximation, which are common; the derivation sketches appear plausible at high level. However, multiple technical claims lack full justification in the manuscript: claims like off-diagonal FIM elements being negligible by a specified factor and the asserted bound reductions proportional to sparsity are stated without rigorous proof or tight empirical verification. The mask optimization and greedy warm-start algorithm are described at high level with insufficient detail to verify correctness or convergence. Potential weaknesses/unverified assumptions: reliance on diagonal FIM and unquantified approximation error for Transformer architectures; insufficient proof that the mask selection objective reliably isolates influence-critical structures. Note: technical_soundness <= 2 triggers RBCL §2 Fatal-Flaw Logic and thus mandates a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments cover multiple Transformer architectures (BERT, DistilBERT, RoBERTa) and several tasks (GLUE, SQuAD) with comparisons to several baselines, which is a strength. Reported metrics include efficacy (unlearning accuracy, MIA), fidelity, and runtime/memory. However, the experimental validation has important gaps: results appear to be single-run point estimates with no variance/error bars or statistical tests, ablation details for mask learning hyperparameters and sparsity regimes are limited (90% sparsity highlighted but rationale for choice is not fully explored), and some potentially relevant recent baselines or stronger unlearning methods may be missing or not compared. Potential weaknesses/unverified assumptions: single-run reporting and lack of seeds/statistical significance reduces confidence in robustness; details of MIA setup and thresholds are underspecified."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper states that detailed hyperparameters are in an appendix, and standard datasets/models are used, but there is no mention of released code, experiment scripts, random seeds, precise environment (hardware/accelerators), or pretrained model checkpoints. The masking optimization and greedy search algorithm are described only at a high level; critical implementation details that affect reproducibility (precise mask initialization, selection thresholds, number of greedy steps, random seeds) are missing. Potential weaknesses/unverified assumptions: absence of public code and missing seeds/environment details make reproducing results difficult. (RBCL §3 Evidence Severity Scaling applied: absence of code and seeds treated as evidence of absence and leads to a low score; because reproducibility <= 2, RBCL §2 Fatal-Flaw Logic requires a Reject decision — Decision downgraded due to RBCL §2 Fatal-Flaw Logic.)"
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites relevant strands: unlearning literature, influence-function/second-order approaches, and parameter-efficient/pruning methods, and it positions its contribution as structure-aware masking for Transformers. However, the related-work discussion is somewhat high-level and omits in-depth comparison to recent more specialized parameter-efficient adaptation techniques (and possibly to any concurrent Transformer-specific unlearning methods). Potential weaknesses/unverified assumptions: fairness of experimental baselines depends on hyperparameter tuning details that are not fully disclosed; positioning claims (e.g., being 'first' to categorize memory-free vs memory-aided second-order successive unlearning) are plausible but not exhaustively evidenced."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper motivates the work via GDPR and the right to be forgotten, but it contains no dedicated ethics or broader-impact statement, no discussion of potential misuse, and no details on dataset provenance, licenses, or consent. Potential weaknesses/unverified assumptions: failure to discuss risks of unlearning (e.g., adversarial manipulation of deletion requests, signal removal harming minority representation) and lack of provenance/license/consent discussion for datasets used."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 11,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Overall summary: The paper introduces a plausible and practically relevant idea—structure-aware masks for parameter-efficient unlearning in Transformers—and supports it with multi-model experiments and reported gains in efficiency and memory. However, there are critical concerns that prevent acceptance at a top-tier venue in its current form. The manuscript lacks sufficient technical rigor in several theoretical claims (diagonal FIM approximation implications, sparsity-linked error bounds) and omits critical reproducibility artifacts (public code, seeds, full algorithmic detail). Experimental reporting is incomplete (single-run point estimates, no confidence intervals or statistical tests) and some baseline/ablation details are under-specified. Per the RBCL (presumption of rejection and fatal-flaw logic), the review treats reproducibility and technical soundness as non-compensable: both technical_soundness (2) and reproducibility (1) are <= 2, which triggers RBCL §2 Fatal-Flaw Logic and mandates a Reject decision. I explicitly applied RBCL rules: (1) Decision downgraded due to RBCL §2 Fatal-Flaw Logic because technical_soundness ≤ 2 and reproducibility ≤ 2; (2) Evidence Severity Scaling and Anti-Inflation Safeguard influenced conservative scoring (I adopted conservative per-criterion scores and factored in strictness in the final total). The total_score of 11 reflects conservative scoring (sum of criteria reduced in spirit per RBCL anti-inflation guidance — per-criterion conservatism was applied and the effective aggregate is low). To become acceptable, the paper should (a) provide full proofs or tighter empirical quantification of the theoretical claims about approximation error and sparsity effects; (b) release code, seeds, exact hyperparameters, and a scriptable evaluation pipeline; (c) report multiple runs with variance/error bars and statistical tests; (d) include a focused ethics/broader-impact section discussing data provenance, consent, and potential misuse; and (e) clarify/strengthen comparisons to the strongest baselines and provide deeper ablations on mask learning dynamics. Without these fixes, the work remains interesting but insufficiently rigorous/transparent for acceptance."
+  }
+}

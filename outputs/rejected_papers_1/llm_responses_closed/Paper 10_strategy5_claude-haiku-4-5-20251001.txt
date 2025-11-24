@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), which combines proportionality-preserving weight scaling with layer-wise regularization. However, the novelty is limited: (1) Theorem 1 on proportionality is a straightforward application of homogeneous activation properties, well-known in the literature. (2) The core contribution—scaling weights by the ratio of initial to current norms—is an incremental modification of prior work (Niehaus et al., 2024; Alabdulmohsin et al., 2021), which already proposed weight rescaling methods. (3) The soft variant (Equation 3) introduces a hyperparameter λ for EMA-based softening, but this is a minor algorithmic tweak rather than a conceptual breakthrough. The paper claims to avoid issues of prior rescaling methods (architecture dependence, finding proper intervals) but provides limited evidence that SWR fundamentally solves these problems rather than merely sidestepping them."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "SWR addresses weight regularization and plasticity loss, which are relevant problems in continual learning and transfer learning. However, the practical significance is questionable: (1) The empirical improvements are often marginal (e.g., Table 1 shows ~0.4–0.8% improvement over baselines on most datasets). (2) Standard L2 regularization, widely deployed in practice, remains competitive or superior in several settings (acknowledged by authors in Section 5). (3) The method introduces a hyperparameter λ that requires tuning, reducing its practical appeal compared to weight decay. (4) Results are limited to relatively small-scale image classification tasks; generalization to modern large-scale models (ResNets, Vision Transformers) is undemonstrated. (5) The continual learning experiments use artificial chunk-based splitting rather than realistic task sequences, limiting real-world applicability."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical contributions have significant issues: (1) Theorem 1 is correct but trivial—it merely formalizes that scaling weights by constants while appropriately scaling biases preserves output up to a multiplicative constant, a property well-established in deep learning. The proof is elementary and does not constitute a novel insight. (2) The claim that SWR 'bounds weight magnitude' (Section 3.3 and referenced Appendix B) is vague. The soft rescaling (Eq. 3) does not strictly bound weights; it interpolates between initial norms and current norms, allowing unbounded growth if λ is small. The bound proof is deferred to Appendix B but not provided in the main text, making it difficult to verify. (3) The connection between proportionality (Definition 1) and preventing plasticity loss is asserted but not rigorously established. Why should maintaining proportionality-preserving rescaling fundamentally recover plasticity better than other methods? This causal claim lacks theoretical justification. (4) Section 3.4's claim that SWR improves 'balancedness' relies on empirical toy experiments in Appendix C; the theoretical argument is incomplete."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experimental validation has critical gaps: (1) **Limited scope**: Experiments use only small-scale models (3-layer MLP, 2-layer CNN, VGG-16) and small datasets (MNIST, CIFAR-10/100, TinyImageNet). No experiments on modern architectures (ResNets, DenseNets, Vision Transformers) or large-scale datasets (ImageNet). This severely limits generalizability. (2) **Weak baselines**: Comparisons include only L2, L2 Init, Head Reset, and S&P. Missing comparisons to recent weight regularization methods (e.g., spectral normalization, other plasticity-focused regularizers mentioned in related work). (3) **Insufficient ablations**: No ablation on the critical hyperparameter λ. How sensitive is performance to λ? How should λ be set per task? No analysis provided. (4) **Statistical rigor**: Table 1 reports standard deviations over 5 runs, but no statistical significance tests (t-tests, confidence intervals). Some results (e.g., VGG-16: 0.4348 ± 0.0025) show very low variance, raising questions about variance estimation. (5) **Experimental setup concerns**: Warm-start and continual learning experiments use artificial data splits (50% then 100%, or random chunks). Real continual learning benchmarks (e.g., CIFAR-IL, DomainNet) would be more convincing. (6) **Missing details**: Learning rate for SWR is not clearly specified in main text; hyperparameter tuning procedure is relegated to appendix."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised: (1) **No code**: The paper is under review and does not provide source code, making reproduction impossible. (2) **Incomplete hyperparameter details in main text**: Critical hyperparameter λ is introduced but not discussed in Section 3.3 or the main experiments. How is λ selected? Is it fixed (e.g., λ=0.5) or tuned per dataset? This is unclear. (3) **Deferred specifications**: Key experimental details are 'provided in Appendix D', but the appendix is not fully included in the submission. Only fragmentary references are visible. (4) **Missing algorithmic details**: Algorithm 1 is mentioned but not presented in the provided text. (5) **Random seed and variance**: While standard deviations are reported, no mention of random seed fixing or number of independent runs per configuration is made (only '5 runs' mentioned for Table 1, but unclear for other experiments). (6) **Normalization layer treatment**: The extension to batch normalization (Section 3.3 and Algorithm 1) is described informally; the exact update rules are not clearly formalized. This prevents reproduction. Criterion score capped at 1 per RBCL guidance on missing critical reproducibility information."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is reasonable but has limitations: (1) **Good breadth**: The paper covers unbounded weight growth, weight regularization (L2, spectral norm, empirical Wasserstein), re-initialization methods, and weight rescaling, providing context. (2) **Positioning issues**: The distinction from prior weight rescaling (Alabdulmohsin et al., 2021; Niehaus et al., 2024) is overstated. The paper claims these methods 'depend on model architecture and require to find a proper rescaling interval', but does not provide evidence of this limitation or show how SWR avoids it without similarly requiring λ tuning. The 'soft' variant is presented as novel, but EMA-based softening is a standard technique. (3) **Missing recent work**: Recent plasticity-loss papers (Kumar et al., 2023; Lewandowski et al., 2023; Elsayed et al., 2024) are cited but not thoroughly compared experimentally. What are the empirical differences? (4) **Incomplete positioning against normalization**: While Section 3.3 mentions batch normalization, the interaction between SWR and normalization is not deeply analyzed. This is important given that normalization is ubiquitous in modern networks. (5) **Continual learning context**: The paper does not cite or compare against standard continual learning benchmarks and methods (e.g., EWC, DER, etc.), treating continual learning as a secondary application rather than engaging with the specialized literature."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics discussion is present: (1) **No ethics statement**: The paper contains no section addressing ethical implications, societal impacts, or potential risks. (2) **No data provenance discussion**: Datasets used (MNIST, CIFAR-10/100, TinyImageNet) are standard benchmarks, but the paper does not discuss their origins, potential biases, or licensing. (3) **No broader impacts**: Given that weight regularization affects model training, generalization, and robustness, the paper should discuss implications for fairness, robustness to adversarial examples, or unintended consequences. None is addressed. (4) **Missing code availability statement**: No mention of whether code will be released or under what license. (5) **Reproducibility tied to ethics**: The lack of code release (noted in criterion 5) prevents verification of claims and community benefit. Per RBCL guidance, missing ethics statement and broader impact discussion cap this criterion at 1."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.80,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper proposes Soft Weight Rescaling (SWR), a weight regularization method for preventing unbounded weight growth and recovering neural network plasticity. While the paper is generally well-written and addresses a relevant problem, it suffers from critical weaknesses that prevent acceptance at a top-tier venue. **Key Issues:** (1) **Limited Novelty**: Theorem 1 on proportionality is a straightforward formalization of known properties; the core method is an incremental modification of recent work (Niehaus et al., 2024; Alabdulmohsin et al., 2021). The soft variant introduces only a hyperparameter λ, not a conceptual advance. (2) **Weak Empirical Validation**: Experiments are confined to small models and datasets; no modern architectures tested. Improvements are often marginal (0.4–0.8% over baselines). Baselines are limited; no comparison to recent plasticity-focused methods. Critical ablations on λ are missing. (3) **Reproducibility Crisis**: No code provided. Key algorithmic details (Algorithm 1, exact λ selection, hyperparameter tuning) are missing or deferred to incomplete appendices. Criterion capped at 1 per fatal-flaw logic. (4) **Theoretical Gaps**: The connection between proportionality and plasticity recovery is asserted but not rigorously justified. The 'bound' on weight magnitude claimed in Section 3.3 is vague and lacks proof in the main text. (5) **No Ethics Discussion**: Absent entirely, failing contemporary standards for ML papers. **Overrides Applied:** Reproducibility ≤ 2 triggers rejection per RBCL fatal-flaw logic (§2). The lack of code and algorithmic transparency makes independent verification impossible. While Technical Soundness ≥ 3, the reproducibility failure alone justifies rejection. **Recommendation:** Reject. The paper would benefit from: (i) providing complete code and clear algorithm descriptions; (ii) expanding experiments to modern architectures and real-world benchmarks; (iii) rigorous ablations on λ and comparisons to recent methods; (iv) formalizing the theoretical connection between proportionality and plasticity; (v) addressing ethics and broader impacts. With substantial revision addressing reproducibility and experimental rigor, this could become a borderline paper for a future submission."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper presents a sizable, practically-motivated benchmark (EXE) focused on executing real-world Python code at scale. This is a meaningful contribution relative to synthetic execution tasks and many code-generation benchmarks. However, it is largely an engineering/benchmarking contribution rather than a new methodological insight (not a novel algorithm or theory). Potential weaknesses / unverified assumptions: the claim that this avoids training-set contamination is asserted but not convincingly verified (no analysis showing overlap with common pretraining corpora), and the pipeline appears to be a careful combination of existing techniques (AST-based filtering, input generation, execution) rather than a fundamentally new idea. I therefore rate novelty as moderate (3/5)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If reproducible and adopted, EXE could materially help the community measure LLMs' ability to 'execute' or trace real-world code and detect error cases, informing model development and safety work. The dataset's scale and diversity (many repos, many testcases) increases its practical usefulness. Potential weaknesses / unverified assumptions: the impact claim hinges on public release and adoption (unclear), and the present scope is limited to typed/deterministic Python snippets which may bias results and limit generalisability to other languages or side-effectful code. There is also risk of enabling misuse (e.g., automated vulnerability-finding) that the authors note but do not mitigate in detail."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The core methodology (AST-based filtering, dependency inlining, program execution to obtain ground truth, and generation of typed test inputs) is plausible and described at a high level. The paper also reports sensible analysis correlating task metrics and model performance. Potential weaknesses / unverified assumptions: important implementation details are omitted or left to appendices (how side-effects are reliably detected, exact inlining methodology, correctness guarantees of dependency resolution), and the claim that all selected snippets are pure/deterministic may not hold without rigorous provenance checks. There is no rigorous validation showing the filtering/inlining process does not alter semantics, which is a key assumption for correctness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates multiple SOTA models on a large corpus and reports pass@1 numbers and many correlational analyses across task statistics, which is a strength. However, critical experimental details are missing or unclear: there are no reported statistical uncertainties/confidence intervals, no description of number of runs / seeds per evaluation, and few details on prompting, timeouts, or postprocessing. Ablation studies and comparisons to close baselines (e.g., alternative test-generation methods, human baseline for execution accuracy, or comparisons to other execution datasets) are limited. Per the review guidelines, missing statistical tests / single-run reporting and absent ablations justify a conservative score and cap at 2/5. Potential weakness / unverified assumption: it is unclear whether the reported pass@1 differences are statistically significant or stable under variations in prompting/evaluation parameters."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Reproducibility is currently insufficiently supported in the manuscript text: the paper describes pipelines and appendices but does not explicitly state that code, the generated dataset, prompts, evaluation scripts, random seeds, or precise environment/container specifications will be publicly released. Critical details (exact filtering code, inlining implementation, test-case generation prompts, and evaluation/JSON comparison code) are not available in the main text. Per the submission rules, missing/unclear reproducibility information caps this criterion at 2/5. Potential weaknesses / unverified assumptions: without released artifacts it is impossible to verify dataset validity, confirm the pipeline did not introduce label errors, or reproduce the reported results. Note: Because reproducibility is <= 2, this triggers the RBCL / Fatal-Flaw Logic override requiring the overall decision to be 'Reject' (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites relevant prior benchmarks and execution-related work (HumanEval, MBPP, Learning to Execute, CRUX-Eval, CodeNet, The Stack) and positions EXE as complementary and more realistic in sourcing real-world code. The discussion is reasonably comprehensive. Potential weaknesses / unverified assumptions: the paper downplays or omits some possible baselines (e.g., classical program-analysis tools, static analyzers, or exact comparisons to other execution-oriented datasets); it would benefit from more direct empirical comparisons to closest alternatives and clearer discussion of limitations versus curated/synthetic datasets."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The authors acknowledge potential ties to cybersecurity (vulnerability discovery) and state that repositories were filtered to permissive licenses, which is positive. However, an explicit ethics / broader-impacts section is missing or insufficient: there is no detailed mitigation strategy for dual-use risks, no explicit provenance table of included repositories/licenses, and no discussion of privacy/PII risk or consent. Per guidance, absence of a clear ethics statement and incomplete provenance details justify capping this criterion at 2/5. Potential weaknesses / unverified assumptions: the claim that license filtering was sufficient is not evidenced with a released provenance list, and the cybersecurity implications are stated but not responsibly mitigated (no red-team policy or usage restrictions described)."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "Summary: EXE is an ambitious, practically-relevant benchmark: large-scale, diverse, and focused on an important capability (predicting program outputs and exceptions for real-world Python snippets). The strengths include the scale (tens of thousands of tasks), thoughtful pipeline ideas (AST filtering, inlining dependencies, automatic test-case generation), and a multifaceted analysis of difficulty correlates. However, several critical weaknesses prevent acceptance in its current form. The most important is insufficient reproducibility and transparency: the submission does not commit to releasing the dataset, code, prompts, seeds, or exact evaluation scripts in a way that would allow independent verification. Per the review rules, reproducibility <= 2 constitutes a fatal flaw and mandates a Reject decision (RBCL §2 Fatal-Flaw Logic) — Decision downgraded due to RBCL §2 Fatal-Flaw Logic. Additional serious concerns include lack of statistical/uncertainty reporting and ablations (empirical validation capped at 2), incomplete validation that the AST-based filtering/inlining preserves semantics (technical-soundness caveat), and an absent/delimited ethics mitigation plan (ethics capped at 2). The submission makes several claims that are plausible but unverified in the manuscript (e.g., effective avoidance of training contamination, semantic-preserving inlining, cost accounts). Taken together, these are non-compensatory flaws: strengths in scale and analysis do not overcome the inability to reproduce results or to inspect dataset provenance. Recommended path to acceptability: (1) publicly release the dataset (or a clear data-provenance manifest) and the full pipeline code (filtering, inlining, test-case generation, evaluation scripts and prompts) with environment specs and seeds; (2) add statistical analyses (confidence intervals / multiple runs) and ablations comparing key pipeline choices; (3) provide validation that filtering/inlining preserves semantics and that generated testcases avoid overlap with large pretraining corpora (or quantify overlap); (4) include an explicit Ethics / Broader Impacts section that documents licenses, provenance, and dual-use mitigation. After addressing these points, the paper would likely be a strong contribution. Note on RBCL adjustments: I applied the prescribed conservatism (including the guideline that missing/unclear reproducibility information caps that criterion at 2/5) and the Fatal-Flaw Logic (reproducibility <= 2) which directly determines the reject outcome. I also followed the Anti-Inflation safeguard by maintaining conservative scores throughout given missing details."
+  }
+}

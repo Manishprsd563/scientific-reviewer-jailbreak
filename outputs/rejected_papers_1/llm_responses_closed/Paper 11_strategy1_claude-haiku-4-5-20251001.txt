@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper combines existing memory transformer architectures (RMT, ATM, RATE) with multi-agent RL by pooling and broadcasting individual memories. While the application to multi-agent pathfinding is sensible, the core novelty is limited. The shared memory mechanism is a straightforward extension of existing memory transformers rather than a fundamentally new insight. The paper acknowledges it extends prior work (Bulatov et al., 2022; Yang et al., 2022) but does not articulate what novel algorithmic or theoretical contribution distinguishes SRMT beyond this engineering combination. Potential weakness: No clear theoretical analysis or algorithmic innovation beyond aggregating memory vectors via cross-attention."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper addresses multi-agent pathfinding, a relevant problem, but the practical significance is unclear. SRMT is competitive with but not superior to existing methods on most POGEMA benchmarks. On bottleneck tasks, SRMT outperforms some baselines, yet this is a toy environment with only 2 agents. The centralized planning method RHCR consistently outperforms SRMT on key metrics (Cooperation, Out-of-Distribution, Performance), undermining claims of superiority. Potential weakness: Limited evidence that SRMT offers practical advantages over simpler, deterministic planning approaches like RHCR, which require no training. The real-world applicability remains unclear."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper lacks rigorous technical exposition. The POMDP formulation (Section 3) is standard but the derivation of how SRMT solves it is missing. Critical issues: (1) The shared memory mechanism is described informally ('pooling and globally broadcasting') without formal definitions or convergence properties. (2) The cross-attention mechanism is stated to be from Huggingface GPT-2 but not adapted or analyzed for the multi-agent setting. (3) No theoretical justification for why shared memory should improve coordination—only intuitive appeal to global workspace theory. (4) The claim that SRMT is 'fully decentralized' is misleading: agents access a globally shared memory, violating decentralization during both training and execution. Potential weakness: The paper conflates information sharing (shared memory access) with decentralization, a fundamental conceptual error not adequately addressed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experimental validation has serious gaps: (1) Bottleneck task uses only 2 agents in a toy environment; scaling to 64-128 agents on POGEMA is not directly comparable. (2) Missing statistical significance testing—error bars shown but no p-values or hypothesis tests. (3) Ad-hoc baseline comparisons: RRNN, RATE, and ATM are modified post-hoc to use learned memory initialization (RATE_gen), invalidating fair comparison. The authors claim this explains 'drastic differences' but provide no ablation on the original implementations. (4) POGEMA results show SRMT is often middle-ranked; RHCR, MATS-LP, and MAMBA outperform it on several metrics. (5) Only 1B environment steps training—no multiple seeds reported for most experiments. (6) Generalization claims: SRMT generalizes to 400-cell corridors but performance degrades at 1000 cells, conflicting with 'consistent outperformance' claim. Potential weakness: The paper cherry-picks results and lacks rigorous statistical analysis. Comparisons are not controlled fairly."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility failures: (1) No code provided (paper states 'anonymous authors' but provides no code link or supplementary material reference). (2) Hyperparameters partially listed in Appendix A.1 Table 1 but many details are missing (e.g., exact architecture dimensions, learning rates, optimizer settings for all variants). (3) No random seeds reported. (4) Training procedure references 'Skrynnik et al. (2024b)' but critical details are outsourced to another paper. (5) No discussion of computational cost, hardware used, or wallclock training time. (6) POGEMA framework is external but version/commit hash not specified. (7) The spatial encoder (ResNet) configuration is vague ('additional MLP in output layer'). (8) Memory initialization procedure is crucial but poorly documented. Potential weakness: The paper is not reproducible in its current form. Without code and detailed hyperparameters, independent verification is impossible. This is a fatal reproducibility flaw."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work section (Section 2) is comprehensive in breadth but fails in critical depth. Issues: (1) SRMT's relationship to ATM and RATE is not clearly differentiated—all three maintain agent memories; the paper claims SRMT 'facilitates shared access' but ATM and RATE could do so trivially via broadcast. (2) The comparison to decentralized-with-communication methods (DCC, MAMBA, SCRIMP) is superficial. SCRIMP also uses transformer architecture for communication; why is SRMT's shared memory fundamentally better? No direct comparison to SCRIMP. (3) The paper contrasts 'fully decentralized' SRMT to centralized methods but then compares against RHCR (centralized), making the decentralization claim seem irrelevant. (4) No positioning against recent neuro-symbolic or learning-and-planning hybrids. (5) Claims SRMT is 'decentralized throughout training and execution' but doesn't address that shared memory requires global synchronization, violating true decentralization. Potential weakness: The positioning is confused; the paper cannot decide whether decentralization is a feature or an incidental byproduct."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no ethics statement, discussion of societal impacts, data provenance, or safety considerations. This is a critical omission for a top-tier venue. Although the task is pathfinding (potentially low-risk), modern ML standards require: (1) Discussion of real-world deployment scenarios and failure modes (e.g., autonomous warehouse robots deadlocking). (2) Data provenance for POGEMA and MovingAI benchmarks. (3) Computational resource use (1B training steps is non-trivial). (4) Potential misuse in surveillance or adversarial coordination. (5) Fairness: Do all agent types benefit equally or do some starve? The paper provides zero reflection on these issues. Potential weakness: Complete absence of ethical consideration. This alone violates publication standards for top-tier venues like NeurIPS/ICML/ICLR."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.85,
+    "final_decision": "Reject",
+    "final_justification": "This paper proposes SRMT, combining memory transformers with multi-agent pathfinding via shared memory. While the application domain is relevant, the work suffers from fatal flaws across multiple dimensions. **Fatal-Flaw Analysis (RBCL §2):** (1) **Reproducibility ≤ 2 (score: 1):** No code provided, hyperparameters incomplete, random seeds absent, critical details outsourced to other papers. Independent verification is impossible. This alone triggers a Reject decision. (2) **Technical Soundness ≤ 2 (score: 2):** The core contribution (shared memory via cross-attention) lacks formal analysis. The decentralization claim is contradicted by the requirement for global memory access. No theoretical justification for the approach. (3) **Novelty = 3:** The method is a straightforward combination of existing techniques (RMT, cross-attention, pooling) without algorithmic innovation. (4) **Empirical Validation = 2:** Experiments lack statistical rigor, use cherry-picked baselines modified post-hoc, and show SRMT is often mid-ranked on POGEMA (outperformed by RHCR, MATS-LP). The toy Bottleneck task (2 agents) does not validate scalability claims. (5) **Ethics = 1:** No ethics statement or discussion of societal impacts. This violates modern publication standards. **Additional Concerns:** The paper claims 'fully decentralized' operation but uses a globally synchronized shared memory, contradicting standard definitions of decentralization. The positioning against related work is confused. SRMT generalizes poorly beyond 400-cell corridors despite claims of robust scaling. **Per RBCL (Presumption of Rejection, Fatal-Flaw Logic, and Practical ICLR Calibration):** Given reproducibility and technical soundness scores ≤ 2, combined with weak empirical evidence and missing ethics, the **final decision must be Reject**, regardless of the numeric total. The paper requires major revisions including: (1) Release of code and complete hyperparameters. (2) Rigorous theoretical analysis of the shared memory mechanism. (3) Fair, controlled comparisons with multiple random seeds and statistical tests. (4) Honest positioning (address decentralization contradiction). (5) Ethics statement addressing deployment risks. In its current form, the work is not ready for publication at a top-tier venue."
+  }
+}
+```

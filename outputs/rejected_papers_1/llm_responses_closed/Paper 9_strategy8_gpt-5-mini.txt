@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper combines class-/domain-representative sampling (CnDRM) with an inference-only normalization adjustment (IoBMN). This combination is a useful and pragmatic design for latency-sensitive TTA, showing some novelty in the specific pairing and engineering for STTA. Potential weakness / unverified assumption: the approach is primarily an assembly of existing ideas (coreset-like sampling, centroid-based domain measures, BN/LN statistic correction) rather than a fundamentally new methodological insight; the claim that early-layer mean/variance reliably capture domain shifts across diverse real-world shifts is assumed but not theoretically proven."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing latency-aware TTA for edge devices is an important and practical problem; demonstrating reduced latency on an actual Raspberry Pi and maintaining accuracy across several TTA algorithms suggests real-world applicability. Potential weakness / unverified assumption: significance is evaluated mostly on synthetic corruption benchmarks (CIFAR-C, ImageNet-C) and a single device (Raspberry Pi 4); it is unclear how well SNAP-TTA generalizes to continuous, non-i.i.d. real-world domain shifts (e.g., driving videos, sensor drift) or to other hardware constraints and pipelines."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proposed IoBMN and CnDRM mechanisms are described with concrete formulas and an implementable algorithm; the soft-shrinkage update and the use of statistics are sensible and consistent with prior BN/LN adaptation literature. Potential weakness / unverified assumption: several aspects are heuristic (choice of α=4, thresholds, shrinkage scaling) without theoretical justification or sensitivity analysis; some formulas and descriptions in the manuscript contain typos/formatting errors (e.g., variance expressions, garbled inline math) that make exact reproduction/verification of derivations harder; no formal guarantee that centroid-based Wasserstein distance on first-layer stats yields robust sample selection across arbitrary domain shifts."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover multiple standard TTA benchmarks (CIFAR10-C, CIFAR100-C, ImageNet-C), several representative TTA baselines, multiple adaptation rates, an ablation study, and latency measurement on Raspberry Pi 4; reporting averages over three seeds is better than a single-run. Potential weakness / unverified assumption: presentation is inconsistent (tables contain formatting issues and some unclear entries), standard deviations and statistical significance tests are not consistently shown; evaluation is concentrated on synthetic corruption benchmarks rather than diverse real-world domain shifts; some important comparisons (e.g., to other latency-aware TTA or streaming-adaptation protocols) are limited or missing."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The manuscript states that implementation details and hyperparameters are in appendices and reports three seeds and some hyperparameter choices (e.g., α=4), which helps reproducibility. Potential weakness / unverified assumption: no public code repository, no full hyperparameter lists, incomplete specification of thresholds (e.g., τ_conf values and tuning), unclear exact Raspberry Pi setup and OS/software versions; because key artifacts (code, scripts to reproduce latency on-device) are not provided, reproducibility is limited and therefore capped at 2 per the review rules."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and compares to a wide range of recent TTA methods (Tent, CoTTA, EATA, SAR, RoTTA) and situates SNAP-TTA as orthogonal to those methods, which is appropriate. Potential weakness / unverified assumption: discussion of prior work on latency-aware or streaming evaluation protocols is brief (a single recent work referenced), and there is limited discussion of alternative lightweight adaptation or continual/adaptive sampling strategies; the paper could more directly contrast the algorithmic novelty and trade-offs with prior coreset/coreset-like selection and BN/LN adaptation literature."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper contains a brief 'Limitations and future work' paragraph acknowledging some deployment considerations, which is helpful. Potential weakness / unverified assumption: there is no explicit ethics statement addressing potential misuse, privacy implications of on-device adaptation, dataset licensing/provenance considerations for deployment, or safety concerns in high-stakes applications (e.g., autonomous driving); absence of an explicit broader-impacts discussion and concrete data provenance/license statements limits assessment of ethical considerations."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "Summary: SNAP-TTA addresses an important practical problem (latency-aware test-time adaptation) and proposes a pragmatic combination of class-and-domain representative sampling (CnDRM) with an inference-only, memory-aware normalization correction (IoBMN). The empirical results on corruption benchmarks and measured latency on Raspberry Pi 4 show promise and the ablations suggest the two components are useful. Critical issues driving the decision: (1) Reproducibility is insufficient — no public code, incomplete hyperparameter and environment specification, and unclear exact thresholds and implementation details, which caps reproducibility at 2/5; (2) presentation and some technical descriptions contain formatting/math errors that hinder verification; (3) evaluation, while broad on corruption benchmarks, lacks diverse real-world continuous-shift scenarios and consistent statistical reporting. Per the mandated Reviewer Bias Correction Layer (RBCL) and evaluation logic: because Reproducibility score <= 2, the paper triggers the RBCL §2 Fatal-Flaw Logic resulting in an overall decision of 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility <= 2). Additional concerns that reinforce rejection: heuristic choices (e.g., α, shrinkage thresholds) lack sensitivity analyses or theory; some claims of generality (across devices, continuous streams) are not validated; ethics/broader-impacts statements are minimal. Recommendation to authors: release code, full configs, and device setup/scripts; fix typos and clarify derivations; provide thorough hyperparameter and threshold values and seed handling; add experiments on continuous, real-world shifts and more thorough statistical reporting; include explicit ethical/data-provenance statements. If these issues (especially reproducibility) are addressed with a public release and stronger, clearer experimental evidence, the work could be reconsidered for acceptance."
+  }
+}

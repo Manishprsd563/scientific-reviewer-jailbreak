@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The proposed Soft Weight Rescaling (SWR) is a straightforward per-layer scaling with bias adjustments built on homogeneity; similar layerwise rescaling ideas and initialization-proximal regularizers exist (e.g., recent weight rescaling methods and penalties to initialization). The proportionality theorem largely restates known invariances of homogeneous networks and argmax-invariance under logit scaling. A potential weakness is that the novelty over Niehaus (2024) and related rescaling/normalization approaches is not clearly delineated beyond doing it at every step with an EMA toward initialization norms, which appears incremental. An unverified assumption is that proportionality extends cleanly across common architectural components (e.g., residual connections) without material behavioral changes."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If robust, mitigating plasticity loss via simple rescaling could be useful. However, demonstrated impact is limited to small-to-mid-scale image classification (MNIST/CIFAR/TinyImageNet) with classic architectures (MLP/CNN/VGG-16), without evidence on modern large-scale settings (ResNets, ViTs, transformers, language models) or challenging continual-learning benchmarks. Gains over strong baselines are modest and inconsistent. A potential weakness is the lack of evaluation on more realistic non-stationary distributions and tasks where plasticity loss is most consequential. An unverified assumption is that the observed improvements translate to large-scale or foundation-model training regimes."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The proportionality theorem for homogeneous activations appears plausible but is conceptually simple and sensitive to architectural details; the claim that proportional networks have identical behavior in classification tasks is only true for argmax, not calibrated probabilities, which affects training with cross-entropy. The boundedness proof of weights under EMA-based scaling is deferred to the appendix (not available), so a key claim remains unverified. Handling of normalization layers is stated informally and may not fully address optimizer interactions or residual connections. A potential weakness is the lack of rigorous analysis for non-homogeneous components and for the interaction with softmax loss and normalization layers. Unverified assumptions include that per-step rescaling does not destabilize optimization or calibration."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover standard small datasets and a single larger dataset (TinyImageNet) with VGG-16, showing some improvements. However, the evaluation omits modern architectures (ResNet/ViT/transformers), stronger baselines (e.g., layer normalization variants, spectral norm regularization, recent plasticity remedies), and standard continual learning protocols/metrics (e.g., average accuracy/forgetting on Split CIFAR/TinyImageNet with rehearsal). Ablations and sensitivity to SWR hyperparameters (e.g., λ, EMA schedule, scaling frequency) are missing; statistical rigor is limited to a few mean±std reports with unclear number of runs across all settings and no significance testing. A potential weakness is the reliance on limited setups and absence of key baselines. An unverified assumption is that the observed trends generalize broadly."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper references appendices for hyperparameters, but there is no explicit mention of released code, seeds, or detailed setup scripts. Algorithm 1 is referenced but not presented here; implementation specifics for handling normalization layers and exact rescaling schedules are unclear. Per RBCL, absence of concrete resources and missing details should be treated as missing evidence. A potential weakness is that independent verification may not be feasible. An unverified assumption is that the appendices (not provided) sufficiently document all experimental settings."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites classical regularization, spectral norm, initialization-proximal penalties, and recent plasticity literature, including recent weight rescaling methods. However, empirical comparisons omit key contemporaries (e.g., spectral norm methods, layer-wise normalization strategies, layer norm as a plasticity solution per Lyle et al., 2024, and other modern regularization techniques). Positioning of novelty vs. prior rescaling methods is not sharply articulated. A potential weakness is incomplete empirical contrast with the most relevant alternatives. An unverified assumption is that cited methods are either incompatible or unnecessary to compare empirically."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics statement, data licensing, or broader impacts discussion is provided in the main text. While the domain is low-risk, best practice requires at least brief consideration of data provenance and potential misuse. Per the rubric, missing ethics information should be penalized. A potential weakness is lack of transparency regarding dataset licenses and any human subjects considerations. An unverified assumption is that standard benchmarks were used in compliance with their licenses."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 12,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "While the paper presents a simple and potentially useful idea—per-step, per-layer weight rescaling with bias adjustments to mitigate weight growth—the novelty over existing rescaling and initialization-proximal techniques is limited, the theory is modest and leaves key claims (boundedness and normalization/residual handling) unverified in the provided text, and the empirical validation lacks coverage of modern architectures, strong baselines, and ablations. Critically, reproducibility resources appear missing (no code/seeds/instructions), triggering RBCL §2 Fatal-Flaw Logic and requiring rejection regardless of other scores; this also dominates given the Error Asymmetry Principle. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility ≤ 2), incomplete empirical comparisons, and insufficient technical verification."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "ToolGen frames tool retrieval as generative retrieval by mapping tools to virtual tokens and combining memorization + retrieval + agent tuning. This is a meaningful extension of recent generative-retrieval and action-token ideas (e.g., generative retrieval, ToolkenGPT, RT2) and shows engineering scale (47k tools). However, the core idea is conceptually an application/scale-up of existing paradigms rather than a fundamentally new methodological insight. Potential weaknesses / unverified assumptions: (1) claims of seamless integration via vocabulary expansion assume the model can accommodate tens of thousands of new atomic tokens without degrading language capabilities — no formal capacity analysis is provided; (2) potential catastrophic interference or embedding collisions from large vocabulary extension is not theoretically addressed; (3) some comparisons to closest prior work (ToolkenGPT, generative retrieval) emphasize differences but do not clearly isolate fundamentally novel algorithmic contributions. These limitations reduce the degree of novelty from a breakthrough to a notable, but partially incremental, contribution."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust and practical, unifying retrieval+tool-calling inside an LLM could materially simplify agent stacks and reduce latency/costs for large tool repositories, which is relevant to real-world agent systems. The empirical scale (47k APIs) and end-to-end agent evaluations indicate practical potential. Potential weaknesses / unverified assumptions: (1) practical deployment costs and engineering constraints (vocabulary growth, model re-training, memory and inference-time overhead) are not fully evaluated; (2) the approach may be brittle when tool sets are updated frequently — no discussion of incremental updates or continuous integration of new tools; (3) the broader applicability to smaller models or constrained production systems is not shown, so impact claims may be overstated without these clarifications."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The method is described coherently and the training stages are plausible, but the paper lacks rigorous theoretical analysis and omits important technical characterizations. Potential weaknesses / unverified assumptions: (1) no analysis of capacity limits, interference, or how adding ~47k tokens impacts pretrained model behavior and downstream language modeling performance; (2) constrained decoding and tokenization interactions are presented empirically but without proof or bounds on failure modes (e.g., why constrained beam search eliminates hallucination without hurting generation quality); (3) some equations are high level and key assumptions (e.g., independence of memorization and retrieval stages, stability of embeddings initialized by averaging) are not justified theoretically. Given these gaps and lack of formal guarantees, I err on the conservative side. Note: per RBCL, technical-soundness being low is a serious concern; while here it is marginally above a fatal threshold, several unverified technical assumptions remain."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper provides substantial empirical work: retrieval and end-to-end evaluations on a large ToolBench-derived collection (47k APIs), comparisons to several baselines, indexing ablations, and an end-to-end agent evaluation with ablations. This breadth supports many claims. Potential weaknesses / unverified assumptions: (1) many critical experimental details are missing or unclear (training seeds, number of runs, variance, whether copied baseline results were re-run under identical conditions), so reported improvements may not be statistically validated; (2) tables in the manuscript show formatting inconsistencies and some results are reported as 'copied' from other papers rather than reimplemented, raising reproducibility/equivalence concerns; (3) no significance testing or multiple random seeds are reported and there is limited discussion of failure cases and latency/resource tradeoffs — these omissions weaken empirical rigor."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is weak. While the paper lists some high-level training hyperparameters (model family, vocab sizes, epochs, LR), it does not provide a public codebase, exact training recipes, random seeds, environment/container specifications, full hyperparameter sweeps, or the exact data splits and preprocessing scripts needed to reproduce results. Potential weaknesses / unverified assumptions: (1) absence of released code or scripts prevents verification of large-scale vocabulary extension and constrained decoding mechanics; (2) reliance on copied baseline numbers (some marked as not reimplemented) means results are not verifiable under uniform conditions; (3) critical implementation details (Deepspeed config, batch sizes per GPU, exact constraint-decoder implementation, seed and checkpoint availability) are missing. Because of these omissions and the guidance in the rubric, this criterion is capped low. Decision impact: reproducibility <= 2 triggers a Reject per the review rules (RBCL Fatal-Flaw Logic / Overrides)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself within tool retrieval, generative retrieval, and LLM-agent literature and discusses closely related efforts (ToolkenGPT, ToolBench, IterFeedback). The indexing-method comparison and ablations help position contributions. Potential weaknesses / unverified assumptions: (1) the related-work discussion is selective in places (some recent work on scalable action vocabularies and continual tool addition are not discussed); (2) certain claims of superiority over prior methods rely on copied numbers rather than unified reimplementation, which complicates fair comparison; (3) potential tradeoffs (e.g., model maintenance costs vs. retriever-based approaches) are not deeply analyzed, so positioning around deployment concerns is incomplete."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper lacks a dedicated ethics or broader-impacts section and does not meaningfully discuss risks. Potential weaknesses / unverified assumptions: (1) deploying models with embedded tool tokens raises safety/privacy concerns (unauthorized API calls, leakage of credentials, misuse via automated tool chains) that are not analyzed; (2) there is no discussion of data provenance, licensing of the APIs/tools included in the 47k collection, or potential legal/ethical constraints on invoking third-party services; (3) failure modes (e.g., tool misuse, cascading errors from incorrect API calls) and mitigation strategies (e.g., permissioning, runtime checks, human-in-the-loop) are not presented. Missing ethical analysis and lack of safeguards warrant a low score and is a material concern for production use."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: ToolGen presents a compelling engineering approach that scales generative tool retrieval and end-to-end tool-calling by virtualizing tools as tokens and fine-tuning an LLM across memorization, retrieval, and agent stages. The empirical breadth (large tool corpus, ablations, and end-to-end tasks) and attention to indexing strategies are strengths. However, multiple critical weaknesses prevent acceptance at a top-tier venue in its current form. The most important flaw is poor reproducibility/transparency: code, full training recipes, seeds, and concrete reimplementation details are not released or sufficiently specified, and some baseline numbers are copied rather than re-run, which makes verification impossible. Per the Evaluation Logic and RBCL Fatal-Flaw Logic, reproducibility <= 2 mandates a Reject; accordingly, the overall decision is Reject. Additional serious concerns include limited theoretical/technical analysis of capacity and interference when adding tens of thousands of tokens (technical soundness borderline), missing statistical rigor and uncertainty estimates in experiments (empirical validation), and an absent ethics/broader-impacts treatment. Several rubric/adjustment rules applied: (1) Missing implementation/code details capped reproducibility and triggered the RBCL Fatal-Flaw override (\"Reproducibility <= 2 => Reject\"); (2) I applied the Anti-Inflation and conservative RBCL principles in scoring (tending to favor lower scores when evidence is ambiguous); (3) practical ICLR calibration: total score falls in the 'Borderline / Major Revision' range but RBCL and reproducibility fatal-flaw logic force Reject. To improve for resubmission: release full code and data splits and seeds; provide exact Deepspeed/training configs, beam-constraint implementation, and checkpoints; include multiple runs and statistical tests; add a rigorous analysis of vocabulary expansion effects (capacity, catastrophic forgetting, token interference), and include a detailed ethics and risk-mitigation section (data provenance, licensing, safety controls for tool invocation). Once these issues are addressed and results are reproducible, the paper could be reconsidered as it contains promising, practically relevant ideas."
+  }
+}

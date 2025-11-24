@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core idea is a straightforward combination of existing batching strategies (monolingual X-X and cross-lingual X-Y) into a stochastic hybrid; this is an incremental methodological contribution rather than a fundamentally new technique. Potential weaknesses / unverified assumptions: (1) the paper assumes that simple mixing (alpha=0.5) is generally sufficient across datasets and architectures without demonstrating theoretical reasons why this mitigates language bias beyond empirical correlations; (2) reliance on machine-translated parallel data presumes translation quality preserves retrieval/relevance signals — an assumption not validated. I applied a conservative stance per the RBCL presumption of rejection and the Anti-Inflation Safeguard (scores reduced relative to a lenient baseline)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the approach is useful: it offers an inexpensive, architecture-agnostic way to improve multilingual retrieval trade-offs and reduce language bias, which is practically relevant to multilingual IR deployments. Potential weaknesses / unverified assumptions: (1) claims about zero-shot generalization to unseen languages rest on a few example languages (el, vi) and may not hold for typologically distant or extremely low-resource languages; (2) practical impact depends on availability/quality of parallel or translated QA pairs and on how translation artifacts affect downstream retrieval in real-world corpora. I remain conservative due to limited real-world domain evaluation and potential engineering costs (MT pipeline) that are not fully characterized."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical formulation (dual encoder, InfoNCE loss, in-batch negatives, cosine scoring) is standard and correctly described. Potential weaknesses / unverified assumptions: (1) some methodological choices are under-specified (e.g., details of in-batch negative construction across languages, treatment of hard negatives, curriculum over differing dataset sizes); (2) early stopping is performed using an English-only validation set (SQuADShifts), which can introduce bias and is not justified as appropriate for multilingual checkpoint selection. While no glaring mathematical errors are evident, these under-specified design choices reduce confidence in complete technical correctness and generality."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experimental suite (XQuAD-R, MLQA-R, MIRACL; two base models XLM-R and LaBSE) is a strength, and results show consistent improvements across many metrics. However, important empirical weaknesses lower confidence: (1) missing reporting of random seeds and number of runs — appears to be single-run results with no variance/confidence intervals or statistical significance testing; (2) limited set of baselines: experiments compare X-X, X-Y, and hybrid but omit some stronger or recent SOTA multilingual retrieval/augmentation approaches (e.g., translation-at-index/query, stronger distillation/contrastive alignment baselines); (3) ablation details are limited (the paper states alpha in [0.4,0.6] is stable but does not show sensitivity curves or per-language effects for other hyperparameters). Per the Empirical Rigor rule I penalize single-run/no-statistics and missing critical baselines."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Reproducibility is limited: the paper states use of an in-house machine translation pipeline to create parallel QA pairs and lists many source datasets, but does not provide the translation pipeline, the translated training data artifacts, or released code/configs. Potential weaknesses / unverified assumptions: (1) absence of released code, MT pipeline, and translated corpora prevents independent replication; (2) many hyperparameters are omitted (e.g., exact batching implementation, seed values, number of training epochs, negative sampling details, full validation protocol for multilingual checkpointing). Because of missing artifacts and details I cap this criterion at 2 per the rubric. This reproducibility shortcoming triggers RBCL Fatal-Flaw Logic (see final decision rationale)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and positions itself relative to many relevant prior works (mBERT/XLM-R, LaBSE, InfoXLM, contrastive/translation-based approaches). Potential weaknesses / unverified assumptions: (1) the empirical comparisons are mostly to X-X and X-Y batching variants and do not include some competitive multilingual retrieval approaches or translation-based retrieval baselines that could be strong (e.g., explicit translate-query/translate-index pipelines, recent distillation methods or stronger cross-lingual alignment objectives); (2) the discussion assumes the proposed batching strategy is the simplest remedy without fully comparing against lightweight loss or regularization tweaks that might offer similar gains. Overall coverage is decent but comparisons could be more comprehensive and include more recent SOTA implementations."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes a brief Limitations section noting fairness and bias as future work, but lacks a formal ethics statement, discussion of dataset licenses or provenance for the translated corpora, and no analysis of potential harms from translation errors or biased retrieval. Potential weaknesses / unverified assumptions: (1) in-house MT translations may introduce cultural or factual distortions but the authors do not analyze or release the translations to allow assessment; (2) no discussion of dataset licenses/consent or whether any copyrighted content was translated and redistributed. Per rubric, missing a formal ethics statement and data provenance details leads to a conservative cap at 2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper investigates a pragmatic and useful hybrid batching strategy to trade off monolingual and cross-lingual dense retrieval objectives. Empirically, the method shows consistent improvements across multiple benchmarks and two pre-trained models, and the language-bias metric analysis is informative. However, the contribution is primarily incremental (a mixture of existing batching schemes) rather than a new methodological insight, and several critical weaknesses prevent acceptance in its current form. The most important flaw is reproducibility: the authors rely on an in-house machine translation pipeline and do not release the translated training data, MT pipeline, or code/configs (no seeds or full hyperparameter list). Following the Reviewers' Bias Correction Layer (RBCL) and the Evaluation Logic: (1) because Reproducibility <= 2 (capped due to missing code/data/pipeline), the RBCL Fatal-Flaw Logic mandates a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). (2) Empirical issues (single-run reporting, lack of statistical tests, limited ablations and missing stronger baselines) further lower confidence in the claimed gains. I applied the Anti-Inflation Safeguard and a conservative presumption of rejection when scoring. To be potentially acceptable, the authors should at minimum: (a) release code, the translated datasets or provide a reproducible MT pipeline and clear provenance/licenses for all data; (b) report multiple runs with seeds and statistical significance tests, and include detailed hyperparameters (batching implementation, negative sampling, number of epochs, early stopping criteria across languages); (c) add stronger baselines (e.g., translate-at-index/query, recent alignment/distillation methods) and more thorough ablations and sensitivity analyses (including checkpointing on multilingual/held-out-languages validation); (d) include a formal ethics statement addressing translation artefacts, licenses, and potential harms. Given the reproducibility and empirical rigor gaps, and applying the RBCL rules strictly, the correct outcome is Reject."
+  }
+}

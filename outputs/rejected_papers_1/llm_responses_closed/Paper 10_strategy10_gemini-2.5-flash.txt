@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of Soft Weight Rescaling (SWR) by scaling weights based on their initial norms and using an EMA for regularization is a moderately novel approach to weight regularization. While weight regularization and re-initialization are well-studied, the specific proportionality argument for preserving network behavior and the dynamic scaling mechanism based on individual layer growth show some originality. However, it builds significantly on prior work in weight regularization and re-initialization, making it an evolution rather than a complete paradigm shift. A potential weakness is that the 'novelty' relies heavily on the theoretical proportionality argument, which might be overly specific to homogeneous activation functions and could limit broader applicability without further generalization."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper addresses a significant problem in deep learning: plasticity loss due to unbounded weight growth. Improving warm-start, continual learning, and generalization through a computationally light method could have a noticeable impact. The empirical results suggest benefits across various settings. However, the claimed 'significant advantage' over methods like L2 regularization in some key benchmarks (e.g., Table 1 for CNN and CNN-BN) is not always substantial, raising questions about its practical significance across all scenarios. The method's generalizability to more complex architectures like Transformers (mentioned as future work) is an unverified assumption."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The theoretical proof for proportionality (Theorem 1) seems plausible given the stated conditions (feed-forward, affine, homogeneous activation functions). However, the crucial step from this proportionality to the specific SWR formulation (Equation 2) and its theoretical guarantees on boundedness (Appendix B) needs more rigorous justification. The claim that this modification 'breaks hard constraints' but 'still prevents unlimited growth' needs very clear mathematical backing, which is briefly sketched in Appendix B but not fully elaborated, especially concerning the role of EMA. The assumption that normalization layers allow only the final layer's learnable parameters to be considered for proportionality could be an oversimplification without a detailed proof."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments cover multiple scenarios (warm-start, continual learning, standard generalization) and various architectures (MLP, CNN, VGG-16) and datasets (MNIST, CIFAR-10/100, TinyImageNet). However, the experimental setup has several weaknesses. The 'warm-start' comparison (Figure 2) shows SWR often outperforming other methods, but the baseline without warm-start is not always clearly defined, making direct performance comparisons difficult. In continual learning (Figure 3, 4), while SWR shows good performance, the 'performance drop' for re-initialization methods is described qualitatively without sufficient quantitative analysis or a standard metric for catastrophic forgetting. The generalization experiments (Table 1) show SWR outperforming L2 and L2 Init, but the improvements are often marginal and lack statistical significance tests. Crucially, there are no ablation studies on the parameter lambda in SWR, or on the impact of the Exponential Moving Average, which are critical components of the proposed method. This lack of ablation severely limits the understanding of SWR's specific mechanisms and their contributions. Also, the comparison does not include other strong regularization baselines beyond L2 and L2 Init."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper explicitly mentions 'Detailed experimental settings, including hyperparameters for each method, are in Appendix D.' However, without access to the full appendix or supplementary materials (e.g., code repository), it is impossible for a reviewer or reader to fully verify the reproducibility of the results. The absence of a public code release or detailed algorithmic pseudocode (beyond Algorithm 1, which is high-level) significantly hinders reproducibility checks. This directly leads to a low score, as per RBCL §2 Fatal-Flaw Logic and RBCL §4 Error Asymmetry Principle. The specific random seeds used for each run are not mentioned."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper provides a decent overview of prior work related to unbounded weight growth, various weight regularization techniques (L2, L2 Init, spectral norm regularization), and re-initialization methods. It attempts to position SWR as a method combining the advantages of both. However, the discussion tends to highlight the weaknesses of previous methods (e.g., 'optimization difficulties' for additional loss terms, 'loss of knowledge' for re-initialization) without always fairly acknowledging their strengths or typical mitigation strategies. For instance, the authors state that L2 Init requires 'additional gradient computations' as a drawback, but SWR also involves additional computations (norm calculations and scaling), which isn't framed as a drawback. The comparison with Niehaus et al. (2024) and Alabdulmohsin et al. (2021) is brief, and a deeper dive into the specific limitations of these rescaling methods would strengthen the positioning of SWR. A more comprehensive discussion of other techniques that address plasticity loss (beyond just weight regularization or re-initialization) could also be beneficial. The claim that SWR 'outperformed other regularization methods across most datasets and models' is often true, but the margin of improvement is sometimes quite small, which could be misconstrued as a more substantial lead than it actually is."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper does not include an explicit ethics statement or discussion of broader impacts, societal implications, or potential risks associated with the proposed method or the datasets used. While the research area itself (improving neural network training) might seem benign, acknowledging and discussing ethical considerations, data provenance, potential biases in datasets (e.g., TinyImageNet), or computational resource usage is crucial for a top-tier conference. The absence of any such discussion is a significant oversight."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "The paper proposes Soft Weight Rescaling (SWR) to address plasticity loss and unbounded weight growth in neural networks. While the idea shows some novelty, particularly with the theoretical proportionality, the technical soundness is not fully robust, with reliance on appendices for proofs and lack of detailed justification for key aspects of the algorithm. The empirical validation is somewhat weak due to the absence of critical ablation studies and insufficient statistical rigor for the observed performance differences. The most significant flaw is the reproducibility score of 1, as crucial experimental details, hyperparameters, and especially the code are not provided or accessible to the reviewer, rendering the results unverifiable. This lack of reproducibility triggers the RBCL Fatal-Flaw Logic, requiring a decision of 'Reject'. Additionally, the absence of an ethics statement further detracts from the paper's completeness. Even without the reproducibility fatal flaw, the total score (15 after RBCL adjustment) falls into the 'Weak Reject' category, and given the ICLR calibration guidelines for borderline scores, a 'Reject' is warranted due to the cumulative weaknesses, especially the lack of ablations and the marginal improvements in many cases."
+  }
+}
+```

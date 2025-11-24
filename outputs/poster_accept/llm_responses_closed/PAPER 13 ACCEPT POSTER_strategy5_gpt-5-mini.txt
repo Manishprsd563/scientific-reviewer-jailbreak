@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper applies orbit-based symmetry information to design an augmentation scheme for GNNs on ILPs and provides principled guidance (distinguishability, parsimony, isomorphic consistency). This is a meaningful and coherent adaptation of symmetry-breaking ideas to the ILP+GNN setting rather than a trivial tweak. Potential weakness / unverified assumption: the approach is largely a transfer and adaptation of existing symmetry-breaking concepts (orbits, positional IDs, random features) rather than a fundamentally new methodology; claiming high novelty depends on how substantially the orbit sampling/Space-parsimony analysis departs from prior work (Morris et al., Xie & Smidt, Chen et al.). Also, the theoretical novelty hinges on assumptions (e.g., Assumption 1 on equivariance/invariance) that do not hold for all practical GNN variants (some architectures or input encodings break pure equivariance), which is not fully discussed. Note: I applied the Reviewer Bias Correction Layer (RBCL) anti-inflation caution in the overall scoring rationale (see final_justification)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Handling formulation symmetry in ILPs is practically important: symmetries are common in many MILP benchmarks and can degrade learned models. If orbit-based augmentation reliably improves prediction quality and solver integration, it could improve ML-for-CO approaches on symmetric instances and speed solver workflows. Potential weakness / unverified assumption: the claimed impact is limited to ILPs with substantial formulation symmetry; many industrial instances have limited or different kinds of symmetry, so applicability may be narrower than suggested. Further, scalability/overhead of symmetry detection and augmentation in very large industrial pipelines (time to run Bliss, additional sampling, label transformations via SymILO) is not quantified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper gives a clear formalization of formulation symmetry, orbits, and shows via Proposition 1 that permutation-equivariant/invariant GNNs cannot distinguish orbit-equivalent variables, which is a sound and intuitive theoretical claim. The three augmentation principles are reasonable and the orbit-based sampling design is logically consistent with those principles. Potential weakness / unverified assumption: key theoretical statements rely on Assumption 1 (exact equivariance/invariance) and on availability of alternative optimal solutions for isomorphic consistency; many practical GNN designs or output pipelines (positional encodings, learned asymmetric encoders) may violate Assumption 1, limiting the generality of the proofs. Also, proofs are referenced to the appendix (not shown here), and the treatment of cases with approximate symmetries/noisy coefficients is not analyzed. The interaction with SymILO (resolving label consistency) assumes ability to find or transform to matching optimal solutions, which may be nontrivial or infeasible on hard instances."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports experiments on three benchmark ILP families (BPP, BIP, SMSP) and compares several augmentation schemes (No-Aug, Uniform, Position, Orbit, Orbit+), and describes model/training settings. Potential weakness / unverified assumption: quantitative results (numerical tables, statistical significance, standard deviations, single-run vs multi-run reporting) are not provided in the provided excerpt; the manuscript as presented lacks detailed numeric performance numbers, ablation studies that isolate individual design choices (e.g., effect of orbit detection costs, impact of number of augmentation samples at test time), and statistical tests. The evaluation metric (Top-m% error) is reasonable but the paper does not show whether improvements generalize across seeds or are robust to label suboptimality (they used best-found SCIP solutions within 3600s, which are not guaranteed optimal). According to the scoring rules, missing/unclear experimental detail caps this criterion at 2/5."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The authors state that source code is available at a GitHub URL and they give some training and model hyperparameters (Adam lr, batch size, epochs, sampling strategy). Potential weakness / unverified assumption: the paper excerpt does not include a link that was verified here, nor detailed release artifacts in the text (complete training scripts, exact random seeds, hardware used, dependencies, full hyperparameter sweep ranges, exact data splits, pre-processing scripts, license and data provenance). The RBCL rules require treating missing/unclear critical reproducibility information conservatively; therefore this criterion is capped at 2/5. Decision downgraded due to RBCL §3 Fatal-Flaw Logic (reproducibility <= 2 forces Reject or worse)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a range of relevant literature from ILP symmetry handling (Margot, Ostrowski, Puget), ML-for-CO (Gasse et al., Khalil et al.), and recent symmetry-breaking / augmented features work (Xie & Smidt, Lawrence et al., Morris et al., Chen et al.). It positions orbit-based augmentation relative to Uniform and Position baselines and discusses SymILO for label handling. Potential weakness / unverified assumption: the discussion could more deeply compare methodological differences with recent equivariant/positional encoding advances and explicitly discuss limitations of alternative architectures that already break equivariance, as well as the computational trade-offs of orbit detection versus learned positional encoders. Some recent related work might be missing or only superficially compared; concrete empirical baselines (strong solver-integrated methods) are not fully detailed in the presented excerpt."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper contains no explicit ethics / broader impact statement in the provided content. Potential weakness / unverified assumption: there is no discussion of societal risks, data licenses or provenance for dataset generation and use (e.g., generated BPP instances, ML4CO subsets, large SMSP instances), nor any consideration of potential misuse. While this may be less critical for methodological ML-for-optimization research, best practices require at least a short section noting data provenance, limitations, and potential downstream impacts. According to RBCL guidelines, missing explicit ethics / broader impacts information caps this criterion at 2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical shortcoming of permutation-equivariant GNNs on symmetric ILPs and proposes principled orbit-based feature augmentation with theoretical justification and experimental evaluation. Strengths include clear problem formulation, reasonable theoretical observations (Proposition 1), and a design that leverages orbit structure to reduce augmentation space while enabling distinguishability. Critical weaknesses: (1) Reproducibility concerns — while the authors claim a code release, the manuscript excerpt lacks complete, verifiable reproducibility artifacts (full scripts, seeds, environment, exact data splits, and numerical result tables). Under the Reviewers' Bias Correction Layer (RBCL), missing/unclear reproducibility information mandates capping that criterion at <=2 and requires an overall 'Reject' decision (RBCL §2 Fatal-Flaw Logic). I explicitly apply this rule: 'Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2)'. (2) Empirical validation is under-specified in the presented material: no numeric performance tables, variance estimates, or ablations to convincingly show robustness across seeds, datasets, and label optimality; reliance on best-found (not guaranteed optimal) SCIP solutions further complicates interpreting gains. (3) Some theoretical assumptions (exact equivariance/invariance, availability of alternative optimal labels for isomorphic consistency) may not hold across practical architectures and problem instances; their implications are not fully explored. Given these critical weaknesses and the RBCL requirement that reproducibility faults are non-compensable, I recommend 'Reject'. If the authors can (a) publicly release the full code and scripts with environment, seeds, and exact data splits and (b) provide detailed numerical results (tables of metrics with standard deviations over multiple seeds, ablations isolating key components, timing/overhead of symmetry detection and SymILO), and (c) expand discussion on generality when Assumption 1 is relaxed, the paper could be reconsidered for a future submission. Note: the numeric total_score (18) reflects the sum of the per-criterion scores above; RBCL was used to cap and mandate the reject decision because reproducibility <= 2 (see justification)."
+  }
+}

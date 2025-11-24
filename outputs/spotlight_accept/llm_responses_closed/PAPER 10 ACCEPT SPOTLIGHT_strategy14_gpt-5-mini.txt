@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper introduces the Process Advantage Verifier (PAV) concept — using advantages computed under a distinct 'prover' policy to shape per-step rewards — which is a clear conceptual departure from prior work that primarily used Q-values or outcome verifiers. The theoretical characterization of a \"complementary\" prover set and the practical demonstration across multiple model scales strengthen the novelty claim. Potential weakness / unverified assumption: the novelty hinges on the practical usefulness of the prover concept beyond the particular MATH setup; it is not shown whether this idea generalizes to other reasoning domains or non-chain-of-thought tasks. Additionally, some aspects (e.g., why BoK with intermediate K is generally optimal) are argued but may depend on assumptions about the problem distribution that are not fully validated."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "If robust, PAVs could materially improve exploration in test-time search and RL for multi-step reasoning, addressing recognized limitations of sparse outcome rewards; reported gains (compute and sample efficiency) would be impactful for scaling reasoning systems. Potential weakness / unverified assumption: the empirical claims are demonstrated primarily on the MATH benchmark and Gemma models; it's unclear how broadly applicable these gains are to other tasks (e.g., commonsense reasoning, code generation, real-world decision-making) or to different model families, so the claimed broad impact is not yet established."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper provides formal definitions and derivations linking the combined effective reward (Q^pi + alpha * A^mu) to policy gradients and gives an analysis of prover properties; proofs are said to be in the appendix. This indicates reasonable technical grounding. Potential weakness / unverified assumption: key theoretical guarantees rely on assumptions about the prover's correlation and distinguishability properties that appear strong and may not hold in practice; the robustness of proofs to approximation errors in PAV fitting, non-stationary provers, or finite-sample rollout noise is not fully addressed. I did not verify the appendix proofs in detail and there may be unstated regularity conditions required for claims."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover several model scales (2B, 9B, 27B) on the MATH benchmark, compare to reasonable baselines (ORM, Q^pi variants), explore different BoK provers, and report both search and RL metrics including sample-efficiency. Potential weaknesses / unverified assumptions: important experimental details appear limited or are relegated to appendices (number of random seeds, variance across runs, statistical significance, exact compute accounting for comparisons, and sensitivity to hyperparameters such as alpha); evaluation is concentrated on one domain (math reasoning), so generalization is uncertain. Single-run or unreported-run-count experiments would reduce confidence in robustness; the paper does not clearly report multiple seeds or confidence intervals in the main text."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper includes a reproducibility statement pointing to appendices for experimental details, and references public pretrained checkpoints and the MATH dataset. However, critical reproducibility artifacts are not clearly provided in the paper text: there is no explicit claim of released training/evaluation code, nor a public repository with hyperparameters, exact seeds, environment specs, or scripts to reproduce RL runs. Potential weakness / unverified assumption: without code / runnable scripts and precise hyperparameter and seed lists, reproducing the reported RL and test-time compute-efficiency results will be difficult. Because of these missing/unclear items the score is capped per the rubric. Decision impact: this low reproducibility score triggers RBCL §2 Fatal-Flaw Logic -> overall decision downgraded to Reject (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript situates itself relative to ORMs, prior PRM efforts, and recent Q-value-based automated process supervision and cites a broad set of relevant recent works; it contrasts conceptual differences and empirical gaps in prior literature. Potential weakness / unverified assumption: the related-work discussion is selective in some places (e.g., alternative exploration techniques and expert-iteration style methods are briefly mentioned but not deeply compared experimentally), and does not fully address whether some reported gains could be obtainable with more careful baselines (e.g., stronger Q-value estimation, ensemble ORMs, or tuned temperature/diversity sampling)."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes a short reproducibility statement but lacks a substantive ethics / broader impacts section discussing potential risks, misuse, biases, environmental cost estimates, licensing limitations of models/datasets used, or data provenance issues beyond noting public checkpoints/dataset. Potential weakness / unverified assumption: methods that increase model capability or exploration could enable misuse (e.g., more efficient generation of harmful content); these risks and mitigation strategies are not analyzed. Because high-level adherence statements (e.g., public dataset used) are insufficient, the paper provides limited ethical analysis and mitigation guidance."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes a thoughtful and plausibly impactful idea—Process Advantage Verifiers (PAVs)—backed by theoretical reasoning and empirical results on the MATH benchmark across multiple model scales. Strengths include a clear conceptual contribution (using advantages under a distinct prover to encourage step-level progress), experiments demonstrating improvements in test-time search and RL sample efficiency, and exploration of prover selection. However, there are critical weaknesses that prevent acceptance in its current form. The most decisive issue is reproducibility: the manuscript does not provide clear, public code, exact hyperparameters, seed lists, or runnable scripts for reproducing the RL and compute-efficiency claims; this lack of reproducibility artifacts is explicitly capped by the review rubric and triggers RBCL §2 Fatal-Flaw Logic. Per the mandated overrides, reproducibility <= 2 requires the overall decision be 'Reject' (this rule caused the downgrade). Additional concerns: (1) empirical validation is concentrated on a single domain (MATH) with limited reporting of run variability and statistical significance; (2) theoretical claims depend on assumptions about prover complementarity and estimator fidelity that are not fully stress-tested under realistic approximation error; (3) ethical and broader-impact analysis is minimal. Given these factors and the RBCL anti-inflation and fatal-flaw rules (I applied the RBCL anti-inflation adjustment when computing the aggregate score and enforced the reproducibility-triggered override), I recommend rejection. To improve the submission, the authors should (a) publicly release code, training/evaluation scripts, exact hyperparameters, random seeds, and detailed compute accounting so the community can reproduce RL and search experiments; (b) report multiple runs with confidence intervals and statistical tests; (c) extend evaluations to additional reasoning domains and model families to show generality; (d) clarify theoretical assumptions and provide robustness analyses to PAV estimation error and non-stationary provers; and (e) include a substantive ethics/broader-impacts section discussing potential misuse, environmental costs, and data/model licensing."
+  }
+}

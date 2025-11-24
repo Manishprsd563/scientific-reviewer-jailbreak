@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper introduces a clearly new formal task (Video Action Differencing) and a dedicated benchmark (VidDiffBench), which is an original contribution in task formulation and dataset curation. However, the proposed VidDiff method is an agentic pipeline that composes existing components (LLMs for proposals, CLIP for localization, VLMs for comparison) rather than introducing a genuinely new modeling or algorithmic insight; this limits methodological novelty. Potential weaknesses / unverified assumptions: (1) the core method is largely a clever orchestration of off-the-shelf models rather than a new technique, (2) the paper assumes that LLM-generated taxonomies and proposals are broadly reliable across domains without strong evidence, and (3) reliance on proprietary LMMs for crucial steps may hide practical limitations."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The task and benchmark address an important and practical problem (skill coaching, surgical training, sports analytics), and a labeled dataset of fine-grained differences could catalyze future work. The demonstrated utility (closed-set improvements via the pipeline) suggests reasonable impact. Potential weaknesses / unverified assumptions: (1) the dataset size (549 pairs) and coverage may be insufficient for broad generalization to real-world coaching scenarios, (2) domain selection and sampling may bias what differences are considered skill-relevant, and (3) evaluation relies heavily on zero-shot performance of current LMMs, which may not translate to deployed systems or downstream training paradigms."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The pipeline and algorithmic choices are plausible and many components (Viterbi decoding over CLIP similarities, frame-level VQA) are reasonable. The ablations (oracle vs. random vs. Viterbi) support the claim that localization helps. However there are multiple technical concerns and unclear or insufficiently justified choices: (1) reliance on GPT-4o to create dataset splits and to perform open-set matching creates potential circularity and dataset bias that is not rigorously analyzed, (2) key implementation and evaluation details are missing or only briefly described (exact prompts, CLIP variants and thresholds, Viterbi hyperparameters, how multi-frame differences are handled), (3) statistical testing is claimed but not reproducibly reported (no p-values/CI or multiple runs), and (4) no formal error model is provided for LLM-sourced taxonomy/proposals. Per RBCL, these unresolved methodological issues contribute to downgrading: \"Decision downgraded due to RBCL §2 Fatal-Flaw Logic\" (technical soundness ≤ 2)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper provides a useful benchmark evaluation (closed and open settings), ablation studies (frame localization, oracle frames) and error analyses across 148 difference types, which are strengths. However, experimental reporting lacks critical rigor in some areas: (1) no evidence of multiple independent runs, variance estimates, or confidence intervals are presented (single-run metrics appear to be reported), (2) the open-set matching procedure uses GPT-4o to match predicted strings to ground truth, which risks circular evaluation and could bias recall estimates, (3) some important baselines are missing or not fully explored (trained pairwise comparison models or supervised fine-tuning baselines), and (4) details of statistical tests are not fully reported. These issues reduce confidence in empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is weak in the manuscript as provided: although the paper states the intent to release benchmark and code, there are no concrete links, no detailed hyperparameter lists, no random seeds or environment details, and no full prompt sets included in the body. Potential weaknesses / unverified assumptions: (1) absence of explicit code/data links or exact prompts prevents independent verification, (2) use of proprietary models (GPT-4o, Gemini-pro, Claude) without documented API versions or seeds hampers reproducibility, and (3) critical evaluation steps (LLM-based matching and split assignment) are underspecified. Per the scoring rules, missing/unclear information caps this criterion low. Per RBCL, reproducibility ≤ 2 triggers an overall Reject: \"Decision downgraded due to RBCL §2 Fatal-Flaw Logic\"."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself well across skill feedback, change captioning, action localization, and prior video-pair literature and cites many relevant datasets and works. The taxonomy and distinction from Nagarajan & Torresani (2024) and image differencing literature are explained. Potential weaknesses / unverified assumptions: (1) comparisons to supervised pairwise training approaches and learned difference-detection methods are limited, (2) reliance on LLM-processed expert commentary (e.g., extracting taxonomies) is not deeply critiqued relative to purely human-curated taxonomies, and (3) potential prior art in fine-grained pairwise video assessment might be under-emphasized."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly mentions that videos are publicly available and that domain experts were consulted, and it contains a short limitations section. However, it lacks an explicit ethics / broader impacts section discussing privacy, consent, potential harms (e.g., incorrect coaching leading to injury), dataset licensing, and potential biases in annotator judgment. Potential weaknesses / unverified assumptions: (1) no explicit statement that all video sources permit this kind of annotation/redistribution, (2) limited discussion of safety risks associated with automated feedback in high-stakes domains like surgery, and (3) no mitigation strategies for annotator bias or domain shifts."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes a well-motivated new task (Video Action Differencing) and a dedicated benchmark (VidDiffBench) with detailed taxonomy and localization annotations; these are valuable contributions that could spur future work. The proposed VidDiff pipeline and ablations are promising and show that temporal localization helps. However, there are critical shortcomings that prevent acceptance at a top-tier venue in its current form. Most importantly, reproducibility is poor (no concrete code/data/seed/prompt links or comprehensive experiment artifacts), and several methodological choices raise technical concerns (use of GPT-4o for split assignment and open-set matching creating potential circularity/bias, underspecified hyperparameters and algorithms, and insufficient statistical reporting). per RBCL fatal-flaw rules: technical_soundness ≤ 2 and reproducibility ≤ 2 mandate a Reject decision and non-compensatory handling of these flaws (\"Decision downgraded due to RBCL §2 Fatal-Flaw Logic\"). Other issues include limited methodological novelty beyond dataset and pipeline composition, potential evaluation circularity, and incomplete ethics discussion. Recommendation: Reject in current form. The work would be significantly strengthened by (1) releasing full code, prompts, exact data splits, and seeds; (2) replacing or validating LLM-based matching/splitting with human-verified or non-circular procedures and reporting statistical significance/variance across runs; (3) providing additional baselines (trained pairwise/supervised models); and (4) adding an explicit ethics/broader-impacts statement. If these are addressed, the dataset and task could merit publication in a future submission."
+  }
+}

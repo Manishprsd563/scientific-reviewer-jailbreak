@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic, greedy token-tree construction for speculative decoding that allocates sampling budget at runtime and aims to remain compatible with standard verification by sampling rather than selection. This is a meaningful departure from fixed-tree methods and selection-based dynamic approaches (e.g., EAGLE-2, ReDrafter). However, the core heuristic—using draft probabilities as surrogates for acceptance likelihood—closely aligns with existing intuitions and may be seen as an incremental refinement rather than a fundamentally new theoretical insight. Potential weakness: the claimed optimality depends on unverified assumptions (e.g., SD[x] ≈ p_d[x]) and is not convincingly demonstrated in the main text."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If broadly validated, the reported speedups (up to ~9x on Llama2-70B in specific settings) would provide practical value for LLM inference. The approach could generalize to diverse workloads and improve throughput/latency under standard verification. Potential weakness: the gains appear sensitive to hardware configurations (e.g., CPU offloading), temperature, and the draft-target gap; missing comparisons to strong self-speculative baselines may limit the claimed impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Theoretical grounding relies on a heuristic link from KL constraints to acceptance monotonicity and substitutes SD[x] with p_d[x] as an estimator. While intuitively plausible, this replacement is not generally justified (acceptance depends on the ratio T/D) and can fail when the draft overestimates certain tokens. The claimed optimality is tied to these assumptions and is stated to be proven in an appendix, but the main text does not provide sufficient details to verify its correctness or the exact conditions. Potential weakness: the threshold-based layer-wise construction may alter sampling dynamics; the paper does not rigorously show that unbiasedness is preserved under all proposed heuristics."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Results cover multiple datasets and target sizes, and compare against Sequoia and SpecInfer with consistent speedups. However, key baselines are missing (e.g., Medusa, SpecTr, EAGLE/EAGLE-2, ReDrafter). There is limited analysis of variance, no statistical tests, and minimal ablation on critical design choices (e.g., the SD[x] ≈ p_d[x] surrogate, thresholding policy, tree depth/budget sensitivity, effect of draft-target mismatch). Potential weakness: the 70B setting includes differing engineering choices (e.g., no CUDA Graph), which may confound fairness; single-run metrics without error analysis reduce evidential strength."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper does not indicate code release, explicit hyperparameters, seeds, or environment configs; key implementation details (e.g., C++ token-tree builder, CPU offloading specifics, CUDA Graph capture sets) are mentioned but not fully specified for replication. Per policy, missing code/instructions caps this criterion. Potential weakness: without public artifacts and precise settings, results are not independently verifiable."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper discusses many relevant approaches (SpecInfer, Sequoia, Medusa, SpecTr, EAGLE-2, ReDrafter, dynamic depth decoding) and clarifies compatibility with standard verification. However, empirical comparisons exclude several strong baselines (especially Medusa/EAGLE-2), and some claims (e.g., incompatibility with standard verification) could be substantiated with more careful, quantitative analysis. Potential weakness: positioning would benefit from head-to-head experiments across hardware regimes and draft-target pairs."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics statement is provided. The work accelerates LLM generation, which can have implications for misuse, energy consumption, and deployment-scale impacts; datasets and licensing are briefly named but not discussed in terms of provenance or compliance. Per policy, absence of an ethics discussion caps this criterion. Potential weakness: risks and mitigations are not addressed."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the idea of dynamically expanding a speculative token tree via greedy sampling is appealing and shows promising speedups, the paper’s theoretical justification hinges on heuristic assumptions (e.g., SD[x] ≈ p_d[x]) that are not rigorously validated, and key empirical baselines and ablations are missing. Critically, reproducibility artifacts (code, seeds, detailed configs) are not provided. In accordance with RBCL §2 Fatal-Flaw Logic and the Scoring Overrides, Reproducibility ≤ 2 mandates a Reject regardless of strengths elsewhere; this review is thus downgraded to Reject and the total score reflects strict calibration."
+  }
+}

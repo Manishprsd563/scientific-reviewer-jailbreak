@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of Soft Weight Rescaling (SWR) as a weight regularization method that scales weights based on their initial norms and layer-wise growth rates is somewhat novel in its specific formulation. However, the underlying concept of preventing unbounded weight growth and improving plasticity through weight regularization is an active research area with existing solutions like L2 regularization and re-initialization methods. The theoretical insight regarding network proportionality given homogeneous activation functions is interesting but not entirely new to the field of network scaling. A potential weakness is that the novelty might be seen as an incremental refinement of existing weight regularization techniques rather than a fundamentally new paradigm, especially given the similarities to existing 'weight-anchoring' ideas."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper tackles a significant problem in deep learning: plasticity loss due to unbounded weight growth. The demonstrated improvements across warm-start, continual learning, and single-task learning setups, particularly for larger models like VGG-16, indicate a potentially useful contribution. If consistently effective, SWR could simplify training and improve generalization in scenarios where plasticity is crucial. However, the impact might be limited by the fact that L2 regularization often shows comparable or better performance in some smaller model settings, as acknowledged by the authors. This suggests SWR might not be a universal replacement but a specialized tool. One unverified assumption is whether the method scales effectively to even larger, state-of-the-art models beyond VGG-16 and TinyImageNet, given the computational overhead mentioned for other methods. Its practical utility might also depend on ease of integration into existing frameworks and whether the observed performance gains outweigh any parameter tuning efforts."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper provides a theoretical basis for SWR, particularly Theorem 1 on network proportionality for homogeneous activation functions, which is crucial for justifying the scaling of bias vectors. They also claim a proof for the boundedness of weight magnitude in Appendix B, which is essential for the method's core premise. However, without direct access to Appendix B, the full rigor of this boundedness proof cannot be thoroughly assessed. The justification for the specific exponential moving average formulation for the scaling factor (lambda) seems heuristic, aiming for a balance between maintaining initial magnitude and allowing deviation, rather than strictly derived. A potential weakness is that the detailed conditions under which Theorem 1 holds (e.g., exact definitions of 'homogeneous activation functions' beyond ReLU/Leaky ReLU) and its practical implications for complex modern architectures (e.g., Transformers with various non-linearities and normalization layers) are not fully explored in the main text. The claim about SWR improving 'balancedness' between layers also requires stronger theoretical backing or empirical evidence beyond a toy experiment mentioned in Appendix C. RBCL: Initial score reduced due to unverified theoretical claims in appendix."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The empirical validation covers warm-start, continual learning (full and limited access), and standard generalization, which is commendable. A variety of models (MLP, CNN, VGG-16) and datasets (MNIST, CIFAR-10/100, TinyImageNet) are used. Baselines include L2, L2 Init, Head Reset, and S&P, offering a reasonable comparison set. However, a significant weakness is the lack of detailed ablation studies on SWR's components, especially the parameter lambda (λ) and the impact of the EMA formulation. It is unclear how sensitive SWR's performance is to different lambda values or scaling frequencies. The claim that SWR 'consistently outperformed' is not always strongly supported; for small models, L2 often performs similarly or better (e.g., MNIST and CIFAR-10 CNN in generalization). There's no discussion of computational overhead comparison beyond a qualitative statement ('minimal computational overhead'). Moreover, the statistical significance of the results, beyond presenting standard deviations, could be more rigorously addressed, especially given some small performance differences."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper does not explicitly state the provision of code, data, or detailed hyperparameter settings in the main text or appendices listed. While Appendix D is mentioned for 'Detailed experimental settings, including hyperparameters for each method,' without access to this appendix or a clear statement about code availability (e.g., a link to a GitHub repository), the reproducibility score must be low. This critically impacts the ability of other researchers to verify the claims. RBCL: Reproducibility score <= 2 triggers a 'Reject' override. This constitutes a fatal flaw, as empirical results cannot be independently verified. Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL §4 Error Asymmetry Principle."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section provides a good overview of unbounded weight growth, various weight regularization methods (L2, L2 Init, spectral norm regularization), and re-initialization techniques (Head Reset, S&P). It correctly identifies strengths and weaknesses of these prior works in relation to plasticity loss and information preservation. However, the discussion of the specific weight rescaling methods (Alabdulmohsin et al., 2021; Niehaus et al., 2024) is brief, and a more thorough comparison focusing on their mechanisms and limitations compared to SWR would strengthen the positioning. The paper positions SWR as combining the advantages of both regularization (preventing growth) and re-initialization (recovering plasticity) without their drawbacks (information loss, computational cost), which is a fair claim if substantiated. One potential weakness is the lack of deeper engagement with the mechanistic reasons why SWR might be superior to some complex re-initialization strategies."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper does not include an explicit ethics statement or discussion of broader impacts. While the presented method is a technical contribution to deep learning optimization and does not directly raise immediate ethical concerns, modern NeurIPS/ICLR/ICLR submissions typically require consideration of potential societal impacts, biases in datasets, or computational resource usage. The absence of such a discussion is a weakness. There is no mention of licenses for code/data (if provided), data provenance beyond dataset names, or potential misuses of improved models. A general statement on the minimal ethical and societal risks from a general optimization technique is often sufficient, but its complete absence is notable."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "This paper proposes Soft Weight Rescaling (SWR), a novel weight regularization method aimed at recovering network plasticity by preventing unbounded weight growth. The theoretical grounding of network proportionality and claims of improved performance in warm-start, continual learning, and generalization tasks are promising. The method's ability to balance weight magnitudes across layers is also a potentially valuable contribution. However, the paper suffers from critical weaknesses that necessitate a 'Reject' decision. The primary fatal flaw is the complete lack of information regarding reproducibility (score 1/5). Without access to implementation details, code, or comprehensive hyperparameters (which are merely mentioned as being in an unprovided appendix), the empirical claims cannot be verified, rendering the paper's contributions unverifiable. This triggers the RBCL §2 Fatal-Flaw Logic, overriding any potential strengths. Furthermore, while the technical soundness has promising theoretical components, the full proofs are relegated to an inaccessible appendix, and some aspects of the method's heuristic choices lack rigorous justification. The empirical validation, while broad, lacks crucial ablation studies on key hyperparameters and comprehensive comparisons of computational costs. The overall impact, while potentially significant, is attenuated by these fundamental issues. The absence of an ethics statement is a further, albeit secondary, concern. Given the critical lack of reproducibility, the paper cannot be accepted in its current form. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility score <= 2)."
+  }
+}
+```

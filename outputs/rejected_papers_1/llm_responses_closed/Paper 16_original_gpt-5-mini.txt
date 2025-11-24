@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper presents an application-oriented optimization of ESM2 fine-tuning and proposes the rBME metric. While the empirical finding that LoRA matches full fine-tuning and the introduction of rBME are useful, they do not constitute a fundamentally new modeling paradigm; much of the methodology (PLM fine-tuning, LoRA, regression heads) is an application and combination of existing techniques. Potential weaknesses/unverified assumptions: (1) rBME's design choices (binning strategy, epsilon handling, sensitivity to bin-count) are not theoretically justified and no robustness analysis to these hyperparameters is shown; (2) the claimed novelty in scaling law deviations is based on limited model sizes (35M reported) and may not generalize to larger model regimes. Note: score reduced in line with the RBCL Anti-Inflation Safeguard (reduction relative to an unadjusted midline) because the contribution is largely empirical and incremental rather than a new methodological insight."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The task (functional effect prediction of mutations) is important for clinical and protein engineering applications; improving benchmark rigor and proposing a metric that emphasizes rare, high-impact mutations could be valuable. Potential weaknesses/unverified assumptions: (1) reported improvements over a multimodal SOTA (PreMode) are described as 'slight' and it is unclear whether gains are practically meaningful for downstream decision-making; (2) transfer limitations (e.g., poor generalization to other DMS/protein families) suggest the approach's utility may be narrow and not broadly impactful without further development. The score is conservative due to limited evidence of robust, large-margin improvement across diverse, clinically relevant settings."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Technical claims are mostly empirical and implementation-focused; training recipes and design choices are plausible but several assertions are insufficiently justified. Potential weaknesses/unverified assumptions: (1) strong claims about non-transferability of scaling laws and LoRA equivalence to full fine-tuning are based on experiments on a single (small) ESM2 size (35M) and partial fine-tuning regimes and lack comprehensive controlled studies across model sizes; (2) some empirical protocols (e.g., freezing strategy, learning-rate splits) are presented but the rationale and sensitivity analyses are limited. Because important methodological claims rest on limited evidence and some experiments were omitted due to compute (explicitly admitted), I cap this criterion at 2/5 per the review rules (missing/unclear evidence and RBCL Fatal-Flaw Logic risk)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports experiments on nine DMS datasets and comparisons to PreMode and several baselines, and presents multiple ablations (layer freezing, components). However, there are notable empirical gaps. Potential weaknesses/unverified assumptions: (1) inconsistent use of seeds (some experiments use 3 seeds, others 1), lack of comprehensive multiple independent runs and statistical tests (no confidence intervals or hypothesis tests reported) weakens claim reliability; (2) some experiments are missing or limited due to compute (e.g., fully unfrozen setups for PTEN were not run adequately), and transfer/generalization tests (GCK->SRC) show very poor generalization but reasons are not fully probed; (3) no calibration or downstream utility analysis is presented to show practical relevance. Per RBCL rules, single-run experiments and missing statistical rigor penalize empirical score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The manuscript includes substantial training details (optimizer, learning rates, frozen layers, batch sizes) and claims a GitHub repository (URL appears in Methods). It also states use of PreMode DMS splits. Potential weaknesses/unverified assumptions: (1) the provided code URL in the text contains spacing/formatting issues and it is unclear whether full scripts, exact data split files, pre-processing code, and trained checkpoints are publicly available; (2) environment details, exact random seeds for all experiments, and seeds for some reported results are inconsistently reported (some experiments mention 3 seeds, others different numbers), and there is no clear instruction to reproduce rBME or plotting scripts. Given remaining ambiguities and lack of explicit release confirmation, I cap reproducibility at 2/5 per the paper's incomplete disclosure. Note: because reproducibility <= 2 triggers the RBCL Fatal-Flaw Logic override, this will force aReject decision (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is broad and cites relevant PLMs, pathogenicity predictors, multimodal approaches (PreMode), and previous DMS benchmarking efforts. The paper positions itself relative to these works and attempts direct 1:1 comparisons to PreMode's datasets. Potential weaknesses/unverified assumptions: (1) while comparisons are discussed, it is not always clear that all relevant strong baselines were run under identical conditions (e.g., identical preprocessing/normalization choices), and the paper notes ambiguities in prior data processing—this both complicates fair comparison and is not fully resolved; (2) some recent related approaches for protein functional prediction and alternatives to rBME are not deeply analyzed. Overall, positioning is solid but comparative rigor could be improved."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The manuscript does not include an explicit ethics or broader-impacts section, nor a discussion of potential misuse, clinical risks, data licensing details, or provenance beyond citing public datasets. Potential weaknesses/unverified assumptions: (1) no ethical assessment of clinical deployment risks (e.g., misclassification of gain-of-function variants) is provided; (2) lack of clarity on licensing of PreMode-derived processed datasets and whether redistribution is permitted. Missing this discussion is a notable omission given potential clinical consequences; per RBCL guidance the absence of an ethics statement merits a low score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important task (functional effect prediction) and contributes a carefully engineered ESM2 fine-tuning pipeline plus a proposed rBME metric that highlights performance on rare, high-impact mutations. The empirical comparisons to PreMode and various ablations are valuable. However, multiple critical weaknesses prevent acceptance at a top-tier venue. The most important issues are (1) limited technical justification and overgeneralized claims about scaling-law non-transferability and LoRA equivalence based on a narrow model-size regime, (2) empirical shortcomings including insufficient seeds/statistical testing and admitted missing experiments for some setups, and (3) reproducibility concerns—while code and some hyperparameters are mentioned, the repository URL formatting, incomplete reporting of seeds and preprocessing, and absence of explicit data-split/processing artifacts leave replication uncertain. Additionally, there is no ethics/broader-impacts discussion. Per the review rules, reproducibility <= 2 and technical_soundness <= 2 trigger the RBCL Fatal-Flaw Logic and force a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). The total numeric score (16) would map to 'Borderline / Major Revision' in the nominal rubric, but under the RBCL Fatal-Flaw Logic and the explicit overrides (reproducibility <= 2 and technical_soundness <= 2), the correct final decision is 'Reject' and the assessment is conservative. Recommendations to authors: (a) fully release code, exact data splits, preprocessing scripts, and trained checkpoints; (b) run more seeds and report confidence intervals/statistical tests and robustness to rBME binning; (c) expand experiments across additional model sizes and more thorough ablations to support broad claims about scaling and LoRA; (d) include an explicit ethics/broader-impacts statement and clarify dataset licensing/provenance. If these issues are addressed and claims are substantiated with reproducible artifacts and stronger statistical evidence, the work could merit reconsideration."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a focused, parameter-efficient mechanism (SEAL-H/SEAL-C) to scale attention heads/channels for long-context retrieval which is an interesting and practically useful idea. However, it largely combines existing elements (circuit-style head analysis, attention gating/scaling, and PEFT paradigms like LoRA) rather than introducing a clearly new theoretical mechanism. A key unverified assumption is that head/channel importance identified via small synthetic datasets generalizes broadly across tasks, models, and scales. The manuscript also does not convincingly rule out that the gains are simply a clever engineering combination rather than a genuinely new methodological insight."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, a low-cost method to recover long-context retrieval performance is practically valuable and could influence deployment strategies for LLMs. The reported improvements on Needle-in-a-Haystack and LongEval suggest potential impact. Weaknesses: experiments focus on small/medium 7B–13B models and a few retrieval tasks; it is unclear whether SEAL scales to much larger models or to diverse real-world retrieval scenarios. The claim that 50 synthetic samples suffice is an unverified assumption that may not hold generally."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical approach (learnable per-head/per-channel scaling, SGD fine-tuning of small parameter sets) is reasonable and implemented cleanly; the direct-effect analyses are informative. Nevertheless, several assumptions are not fully justified: causal interpretation of head scaling (i.e., that certain heads are 'retrieval' heads) is not proven and may be confounded by dominant MLP effects that the authors themselves note. There is limited theoretical analysis or guarantees explaining when/why SEAL should work, and training choices (single epoch, specific lrs) are not argued from first principles. These gaps leave some technical claims tentative."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates multiple models and tasks and includes ablations between SEAL-H, SEAL-C, SEAL-L/D. However, the empirical validation has important weaknesses: tuning uses only 50 synthetic samples, experiments appear to be single-run with no random seeds or variance reporting, no statistical tests, and limited study of sensitivity to dataset size, seed, or tuning hyperparameters. Critical baselines (e.g., comparisons to other attention-gating/pruning or head-wise modulation prior works) are thin. The presence of single-run results and missing statistical rigor justifies penalization."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Key reproducibility artifacts are missing or under-specified: no public code/release, dataset generation prompts and exact synthetic-sample generation scripts are not provided, random seeds are not reported, and evaluation scripts / metric computation details are not released. Some hyperparameters are listed, but full training/evaluation recipes and environment/container details (or a seed for the reported runs) are absent. Per the instructions, this lack of reproducibility evidence caps the score and is treated as a critical flaw. This low reproducibility score triggers RBCL §2 Fatal-Flaw Logic (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites relevant literature on circuit analysis, context-window extension, and PEFT methods and positions SEAL relative to LoRA/DoRA and training-free context-extension methods. However, it appears to omit or insufficiently discuss closely related ideas such as prior attention-gating, head-wise modulation, and other works that explicitly tune small attention parameters or perform targeted head/channel interventions. A more exhaustive comparison (both conceptual and empirical) to those lines would strengthen the positioning. The assumption that the cited set is comprehensive is unverified."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The manuscript does not include an explicit ethics or broader-impact discussion, nor does it discuss dataset provenance or licensing for synthetic/real data used in tuning. There is no assessment of misuse risks (e.g., enabling retrieval of sensitive content from long contexts) or failure modes. Absence of an ethics statement and provenance details caps this criterion and leaves societal implications under-addressed."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents a promising, practical technique (SEAL) to cheaply improve long-context retrieval by scaling attention heads/channels. It is of clear practical interest and shows encouraging improvements across several benchmarks and models. However, there are critical issues preventing acceptance at a top venue in its current form: (1) Reproducibility is insufficient — code, exact data-generation scripts, seeds, and full evaluation recipes are not provided (reproducibility score = 1). (2) Empirical rigor is limited: tuning uses only 50 synthetic examples, experiments appear single-run with no variance or statistical tests, and robustness to choices (data size, seeds, hyperparameters) is not shown. (3) Mechanistic claims are not fully supported: causal role of identified heads is not conclusively demonstrated and may be confounded by MLP effects. Per the RBCL and Evaluation Logic: the reproducibility score ≤ 2 triggers the Fatal-Flaw Logic which mandates an overall decision of 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Additionally, following the Anti-Inflation Safeguard, I reduced scores by 0.5 per criterion when computing the total (sum of reported criterion scores = 17; after -0.5*7 = 13.5 → reported integer total 13). Given the reproducibility shortfall and limited empirical/statistical validation, the correct conservative verdict is Reject. Recommendations to authors: release code and data-generation scripts and exact prompts; report random seeds and run multiple trials with variance/statistical tests; expand ablations on synthetic data size and tuning epochs; provide stronger mechanistic analysis or controlled causal interventions to support claims that specific heads/channels are responsible for retrieval; add an ethics/broader-impacts section discussing potential risks and data provenance. Addressing these would materially increase the paper's acceptability."
+  }
+}

@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper addresses the practical and important problem of TTA latency on edge devices by proposing Sparse TTA (STTA). The core ideas, CnDRM (combining class- and domain-representative sampling) and IoBMN (inference-time normalization adjustment), are a clever and well-motivated combination of existing concepts. However, the approach is more of a novel engineering solution than a fundamental methodological breakthrough. The components themselves—sampling based on confidence, using early-layer features for domain, and adapting normalization stats—are not new in isolation. The primary unverified assumption is that the Wasserstein distance between the feature statistics of an early normalization layer is a sufficiently rich and robust signal for 'domain representativeness' across a wide variety of domain shifts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The potential impact is high. The high latency of existing TTA methods is a significant barrier to their practical deployment on resource-constrained devices. This work directly tackles this bottleneck and demonstrates substantial latency reductions (e.g., up to 87.5% for CoTTA) while maintaining or sometimes even improving accuracy. This makes TTA a more viable option for real-world applications like autonomous driving and real-time monitoring. A potential weakness is the assumption that the performance on standardized corruption benchmarks (CIFAR-C, ImageNet-C) directly translates to the more complex, continuous, and varied domain shifts encountered in real-world deployments."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The overall framework is logical, but several technical details lack rigorous justification. The IoBMN component relies on a soft shrinkage function with a crucial hyperparameter `alpha`, which is set to 4 with the rationale that it handles 'various out-of-distribution scenarios,' but no sensitivity analysis or ablation is provided. This makes the method appear brittle. A key unverified assumption is that the statistics stored in CnDRM from one adaptation step remain a good reference for multiple subsequent inference-only batches, even with the IoBMN correction. The selection of the confidence threshold `tau_conf` is not discussed at all, which is a major omission for a critical parameter in the sampling strategy."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The authors evaluate their method across multiple datasets, backbones (including ViT), and five SOTA TTA baselines, which is commendable. The ablation study (Table 4) is insightful in demonstrating the contribution of each component. However, there are notable weaknesses. Standard deviations are missing for the main ImageNet-C results in Table 1, making it impossible to assess the statistical significance of the reported gains. Furthermore, the reported latency reductions are confusing; an adaptation rate of 0.1 should theoretically yield a ~90% reduction in adaptation overhead, yet the reported latency reduction for Tent is only 44% (Table 3), suggesting SNAP-TTA introduces its own significant, unanalyzed overhead. The unverified assumption is that averaging results over 15 diverse corruption types provides a complete picture, which can mask critical failures on specific shift types."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "This is a fatal flaw. The paper provides no link to source code or supplementary material containing it. A method with several interacting components (CnDRM, IoBMN) and crucial, un-ablated hyperparameters (`alpha`, `tau_conf`) is impossible to verify or build upon without access to the implementation. According to conference review standards and the RBCL §4 (Evidence Severity Scaling), absence of evidence must be treated as evidence of absence. Without code, the results are fundamentally not reproducible. The unverified assumption is that the description in the paper is sufficient to replicate the work, which is highly unlikely given the implementation-sensitive details."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper does a good job of positioning itself within the Test-Time Adaptation literature, clearly identifying the latency gap as its primary motivation and distinguishing its approach from methods like EATA. The introduction and preliminaries effectively set the context. However, the discussion could be broader. For instance, the discussion of sample selection (coresets) is limited to just two citations, while this is a rich field of literature. The unverified assumption is that the most relevant related work is confined to the TTA subfield, potentially overlooking relevant techniques from efficient learning or online learning more broadly."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper completely lacks a dedicated ethics or broader impacts statement. This is a significant omission for a top-tier conference paper, especially for one that explicitly motivates its work with safety-critical applications like autonomous driving and real-time health monitoring. The authors failed to discuss potential risks, failure modes, data provenance, or societal implications. Following the RBCL §4 rule ('Evidence Severity Scaling'), the absence of this section warrants a very low score. The unverified assumption is that the proposed method has no negative societal implications or unique failure modes, which is not a defensible position."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.9,
+    "final_decision": "Reject",
+    "final_justification": "The paper addresses the highly practical problem of reducing latency in Test-Time Adaptation (TTA) for edge devices, a significant barrier to real-world deployment. The proposed SNAP-TTA framework is well-motivated, and the empirical results demonstrate promising latency reductions. However, the paper suffers from two non-compensatory, fatal flaws that mandate rejection. First, and most critically, there is a complete lack of reproducibility (score: 1/5) due to the absence of source code. For a complex method with several key hyperparameters, this makes the results unverifiable. Second, the paper entirely omits an ethics and broader impacts statement (score: 1/5), which is a required standard, especially given the safety-critical applications used as motivation. As per the review guidelines (RBCL §2 Fatal-Flaw Logic), either of these flaws is sufficient for rejection, regardless of strengths in other areas. Additional moderate weaknesses include a lack of rigorous justification for key hyperparameters (e.g., `alpha=4`) and missing standard deviation results in the main ImageNet-C table. While the idea is interesting, the work in its current state does not meet the standards for publication at a top-tier conference."
+  }
+}
+```

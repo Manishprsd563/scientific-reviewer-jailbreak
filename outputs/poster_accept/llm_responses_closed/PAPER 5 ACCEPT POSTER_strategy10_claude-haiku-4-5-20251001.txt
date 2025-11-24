@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of combining self-refinement with agent tuning is somewhat novel, connecting environment feedback to agent generalization. However, the approach is largely a combination of existing concepts: (1) trajectory generation with errors is not new; (2) self-refinement has been explored in prior work (Madaan et al., 2024; Shinn et al., 2024); (3) synthetic data for agent tuning is already explored in AgentGen. The main novelty is explicitly incorporating error-refinement pairs in training data and the TRPG-inspired generation framework. Potential weakness: The paper does not sufficiently establish why their specific refinement strategy is fundamentally different from prior self-refinement approaches—the distinction appears incremental rather than methodologically novel."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The work addresses a real problem: poor generalization of agent-tuned models to held-out tasks. This is practically relevant for deploying open-source LLM agents. However, several factors limit significance: (1) improvements over baselines are often modest (e.g., SciWorld success: 11.1% vs Agent-FLAN 1.1%, but still very low absolute performance); (2) the method requires GPT-4o for data synthesis, limiting reproducibility and applicability; (3) held-out task performance remains weak across most benchmarks; (4) the best-of-N results suggest the improvements may be primarily from sampling diversity rather than genuine learning. Potential weakness: The paper does not demonstrate that the approach scales to real-world agent applications or provides clear guidance on when the method would be preferred over simply using larger closed-source models."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns emerge: (1) The loss function in Eq. 1 only trains on correct actions (indicator 1(A_j)=1), potentially causing the model to ignore error-refinement patterns that could be informative; (2) the verification process is ad-hoc—the rules for deciding when to regenerate trajectories (e.g., 'less than two error-refine turns') appear arbitrary and lack justification; (3) the paper does not formally establish why adding error steps followed by corrections should improve generalization versus simply training on correct trajectories; (4) the mechanism connecting refinement-tuning to generalization is intuitive but not rigorously analyzed. Potential weakness: The loss function design contradicts the stated goal—if the model learns only from correct turns, it may not learn the error-correction pattern itself, raising questions about whether the model truly learns refinement or just memorizes correct sequences differently."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experimental coverage is reasonably broad (5 tasks, multiple baselines), but validation gaps exist: (1) No statistical significance testing, confidence intervals, or multiple runs reported for main results; (2) baselines are re-implemented under LLaMA3, but no confirmation that reproductions match original reported numbers; (3) perturbation analysis is interesting but limited to Alfworld; (4) ablation studies are minimal—no systematic ablation of the loss function, verification rules, or refinement corpus ratio; (5) data synthesis uses GPT-4o, making it unclear whether improvements come from the refinement training or superior data quality from a stronger model; (6) the HotpotQA experiment (Sec. 6) appears disconnected and uses only 300 samples without statistical testing. Potential weakness: The paper lacks ablation studies isolating the contribution of (a) error-refinement pairs, (b) environment diversity, and (c) the modified loss function, making it impossible to determine which components drive improvement."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility failures: (1) No mention of code release or data availability; (2) data is synthesized using GPT-4o with 1-shot/3-shot examples, but prompts are not provided; (3) training hyperparameters are relegated to 'Appendix D' but the appendix is not included in the submission; (4) no random seeds, number of runs, or variance estimates reported; (5) the verification process is described verbally with details in 'Appendix O,' which is not provided; (6) the paper states 'we adjusted example prompts on Llama-3-8B-Instruct and never changed them' but does not provide these prompts; (7) AgentBoard framework modifications (Act-only to ReAct) are mentioned but not detailed; (8) the synthetic data itself is not released (only stated 'we will save all trajectories'); (9) open-source model comparison uses DeepSeek-v2.5 but results are incomplete. Potential weakness: Without code, data, prompts, and complete hyperparameters, independent reproduction is impossible. This is a fatal flaw for a top-tier venue."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Sec. 10) is reasonably comprehensive, covering agent finetuning, data synthesis, and self-refinement. However, positioning weaknesses exist: (1) the distinction from AgentGen (Hu et al., 2024) is unclear—AgentGen also does data synthesis, and the paper does not clearly explain why AgentRefine's approach is superior; (2) the paper claims to be 'the first approach to identify the connection between step-level refinement and agent generalization,' but this distinction from prior self-refinement work is not convincingly established; (3) comparisons acknowledge AgentGym is not open-sourced and results are reported from prior work, creating fairness concerns; (4) the paper does not deeply engage with why prior methods (AgentTuning, Agent-FLAN) mixing general data (ShareGPT) failed to solve generalization. Potential weakness: The positioning conflates 'using error-refinement in training data' with 'learning self-refinement capability'—the paper does not convincingly show that the model actually learns to refine rather than simply memorizes error-correction patterns."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics statement or discussion of broader impacts is provided. Missing critical considerations: (1) GPT-4o is used for data synthesis, raising dependency on commercial, non-transparent models; (2) synthetic data quality is verified by GPT-4o judgement, but this introduces potential biases from the teacher model; (3) data provenance is unclear—personas are sampled from 'diverse personas (Chan et al., 2024)' but no details on consent, copyright, or licensing are provided; (4) no discussion of potential misuse of improved agent capabilities; (5) no statement on whether data will be released responsibly or kept private; (6) the reliance on proprietary models for both synthesis and verification undermines reproducibility and raises questions about accessibility and fairness. Potential weakness: The entire pipeline depends on closed-source models (GPT-4o, then fine-tuning open-source models), which limits the ability of researchers without API access to reproduce or build upon this work, raising equity concerns."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses a relevant problem—poor generalization of agent-tuned models to held-out tasks—and proposes a reasonable hypothesis that error-refinement in training data improves generalization. However, critical flaws prevent acceptance: (1) **Fatal Reproducibility Failure (§2 RBCL):** No code, data, or detailed hyperparameters are provided, with essential information relegated to missing appendices. This violates reproducibility standards for top venues. (2) **Technical Soundness Concerns (§2 RBCL):** The loss function design (Eq. 1) trains only on correct actions, potentially failing to capture the error-correction pattern. The verification rules are ad-hoc, and the causal mechanism linking refinement-tuning to generalization is asserted rather than rigorously justified. (3) **Insufficient Empirical Rigor:** No statistical significance testing, no ablation studies isolating contributions, and dependence on GPT-4o for synthesis makes it unclear whether improvements stem from refinement training or superior data quality. (4) **Limited Novelty:** While the refinement framing is useful, the approach combines existing ideas (trajectory generation, self-refinement, synthetic data) without fundamental methodological innovation. (5) **Unverifiable Design Choices:** Perturbation experiments and best-of-N results suggest improvements may be primarily from sampling diversity rather than learned refinement, but this is not systematically analyzed. Overall, the work makes intuitive contributions but falls short of the rigor, transparency, and novelty expected for NeurIPS/ICML/ICLR. The reproducibility failures alone warrant rejection under RBCL §2 (Fatal-Flaw Logic)."
+  }
+}
+```

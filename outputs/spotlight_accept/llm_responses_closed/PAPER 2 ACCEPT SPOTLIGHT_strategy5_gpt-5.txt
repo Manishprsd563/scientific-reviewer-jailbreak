@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a uniformity-driven CBE framework that jointly optimizes accuracy, convergence, and scalability via three decoupled probability matrices and their multiplicative integration, plus a greedy sampler. While the unification and the specific construction of these matrices are interesting, the components—uniform tuple sampling for bias reduction, uncertainty-driven pairing (akin to ARENA), and prioritizing new models (as in reference-model approaches)—are largely known ideas. The claimed proof that completely uniform sampling minimizes bias may be a useful reframing but seems close in spirit to established sampling-uniformity arguments in ranking/dueling bandits. Potential weakness: the multiplicative integration of objectives is heuristic, and the novelty may be more in engineering than in a fundamentally new algorithmic principle."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If the approach reliably saves 17–50% preference budget while maintaining high agreement with a full-budget estimate, it could be practically beneficial for LLM evaluation pipelines. The paper explores multiple settings (different judges, static/dynamic scenarios, list-wise) which, if reproducible, suggest usefulness. However, the impact is limited by evaluations on a narrow set of CBE baselines (missing strong active-ranking/dueling-bandit methods like RUCB/MergeRUCB, TrueSkill/TrueSkill2, Bayesian Rank Centrality/Plackett–Luce variants), and by reliance on LLM judges and benchmark ground truths derived from the same judging process. Potential weakness: benefits may not translate to other domains or to human-only judging, and savings are not benchmarked against more sophisticated adaptive sampling baselines."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The construction of unbiased win-rate estimators via importance weighting and the variance-based uncertainty reasoning is plausible, but critical details appear in appendices and the main text does not fully justify assumptions (e.g., independence/stationarity across samples, boundedness when some P entries approach zero under greedy selection). The multiplicative fusion P^acc ∘ P^con ∘ P^sca is heuristic; P^con does not depend on sample index k, and after multiplication it may not guarantee the intended per-sample uniformity. The claim that fully uniform sampling minimizes bias rests on an appendix proof; without it, it is unclear how it handles non-transitive preferences and sample/model interactions. Potential weakness: greedy sampling risks degeneracy (starving some tuples and inflating importance weights), which can compromise unbiasedness and variance control."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover AlpacaEval and MT-Bench, several judges (GPT-4o, GPT-3.5, Qwen-Plus, and humans for MT-Bench), dynamic model-addition scenarios, list-wise preferences, and ablations (removing P components, sampling strategies, aggregation methods). This breadth is a strength. However, important baselines from active ranking/dueling bandits and Bayesian preference learning are absent; statistical uncertainty is underreported (no confidence intervals or significance tests), and heavy reliance on LLM judges for both evaluation and ground truth raises validity concerns. The claim of 10,000 random seeds lacks runtime/resource reporting. Potential weakness: defining ground truth via exhaustive comparisons with the same LLM judge may entrench judge-specific biases and overstate correlations."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices with prompts and derivations but does not state that code, evaluation scripts, or full configuration details (exact seeds, environment, implementation of probability matrices and greedy selection, baselines’ hyperparameters) are released. Given the complexity of iterative sampling with large M,N and dynamic scenarios, code is crucial. Potential weakness: without released code and detailed setup, reproducing the reported large-scale simulations (e.g., 10,000 seeds) and dynamic experiments is unlikely. Per RBCL, missing/unclear reproducibility information caps this criterion at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper covers core CBE baselines (RANDOM, ARENA, AlpacaEval) and aggregation methods (Elo, Bradley–Terry). However, it omits substantial related literature on active ranking and dueling bandits (e.g., RUCB/MergeRUCB, Double Thompson Sampling for dueling bandits), Rank Centrality/Plackett–Luce/Mallows, TrueSkill/TrueSkill2, and Bayesian approaches for pairwise comparisons and adaptive tournament design. Potential weakness: missing these lines may lead to overstating novelty and under-benchmarking against stronger adaptive methods."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper uses LLM judges (proprietary models) and human preferences (MT-Bench) but provides no dedicated ethics discussion on annotator consent/compensation, data licensing, privacy, or the potential biases and harms amplified by judge models. No broader impacts statement is visible in the provided text. Potential weakness: risks from automating evaluation with biased judges and cost/CO2 impacts are unaddressed. Per RBCL, missing or unclear ethics discussion caps this score at 2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the paper presents a reasonably well-motivated unification of known objectives (bias suppression, uncertainty balancing, and scalability) and shows broad empirical coverage, it lacks key baselines from active ranking/dueling-bandit literature, relies heavily on LLM judges for both evaluation and ground truth, and uses heuristic matrix integration with limited theoretical guarantees in the main text. Critically, reproducibility/transparency is insufficient (no explicit code or full experimental artifacts), triggering RBCL §2 Fatal-Flaw Logic: reproducibility ≤ 2 mandates a Reject regardless of other strengths. Given these issues and the conservative stance (RBCL Default Assumption and Practical ICLR Calibration), I recommend Reject. Strengthening theoretical guarantees, adding stronger baselines, reporting statistical rigor, and releasing code would substantially improve the case."
+  }
+}

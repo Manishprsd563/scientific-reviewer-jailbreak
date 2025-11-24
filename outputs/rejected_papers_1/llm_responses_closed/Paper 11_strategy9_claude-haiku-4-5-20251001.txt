@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of extending memory transformers to multi-agent settings via pooling and broadcasting shared memory is a reasonable contribution, but represents a relatively straightforward adaptation of existing techniques (RMT, ATM, etc.) rather than a fundamentally new methodological insight. The application to MAPF is novel, but the architectural innovation itself is incremental—combining pooling + cross-attention over agent memories is a natural extension, not a breakthrough. Unverified assumption: whether the shared memory mechanism genuinely learns coordination or simply reduces variance through information sharing."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "SRMT shows improvements on a toy bottleneck task and competitive (not state-of-the-art) results on POGEMA benchmarks. However, the impact is limited: (1) the bottleneck task is overly simplified (2-agent coordination); (2) on POGEMA, SRMT is consistently outperformed by centralized methods (RHCR achieves ~100% on multiple metrics vs. SRMT's lower scores); (3) no evidence that implicit shared memory offers practical advantages over explicit communication methods in real applications. The contribution appears primarily incremental for the MAPF community. Unverified assumption: that decentralized training/execution is actually preferable in practice without empirical justification of real-world applicability."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper lacks formal theoretical analysis or derivations. The architecture (ResNet encoder → SRMT → actor-critic) is standard and plausible, but critical gaps exist: (1) No formal justification for why shared memory should improve coordination beyond intuition; (2) Memory initialization differs between SRMT and baselines (SRMT generates from observation, others use fixed/random initialization), which confounds ablations—the modified RATE (RATE gen) partially recovers performance, suggesting the benefit may be initialization rather than shared memory; (3) No analysis of what information flows through shared memory or how agents utilize it; (4) The path-planning strategy is trivial (shortest path + collision avoidance), limiting the complexity requiring coordination. Unverified assumption: that the observed performance gains are due to shared memory architecture rather than implementation details like memory initialization."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Significant empirical weaknesses: (1) Bottleneck task is overly toy-like; generalization to 1000-cell corridors is impressive but trained on 3-30 cells—success may reflect trivial extrapolation rather than true generalization; (2) POGEMA results are weak: SRMT is outperformed by RHCR on most metrics (Cooperation, Out-of-Distribution, Performance, Pathfinding all reach ~100% for RHCR vs. much lower for SRMT); SRMT is only competitive, not state-of-the-art; (3) No statistical significance testing reported despite error bars; (4) Critical confound: RATE/ATM/RRNN use fixed memory initialization while SRMT uses learned initialization—the RATE gen experiment (Fig 4) shows this explains much of the difference, not the shared memory itself; (5) Missing ablations: what if you add shared memory to RATE with its own initialization? What if you remove shared memory but keep SRMT initialization? (6) No analysis of learned memory representations or visualization of what agents share; (7) Training details differ across variants (steps: 1B vs 400M vs 600M), making comparisons difficult. Unverified assumption: that performance improvements stem from shared memory rather than other architectural or initialization differences."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Paper provides minimal reproducibility resources: (1) No mention of code release (anonymous submission, but no commitment to release); (2) Hyperparameters partially described in Appendix A.1 Table 1 (referenced but not shown in excerpt); (3) No random seeds, initialization procedures, or variance analysis across seeds reported; (4) POGEMA framework is public but custom modifications/configurations not fully detailed; (5) Training uses proprietary or unclear data sources (40 maze environments mentioned but not specified if publicly available); (6) No discussion of computational requirements, training time, or hardware used; (7) Evaluation metrics are defined but inference procedure unclear (single run? averaged over seeds?). The paper states results use '95% confidence intervals' but does not specify number of seeds or trials. Unverified assumption: that experiments were run with sufficient statistical rigor given lack of seed disclosure."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work section is comprehensive in scope but has fairness concerns: (1) Paper positions SRMT as uniquely enabling decentralized-throughout training/execution (unlike methods requiring centralized training), but this claim is not validated empirically—no comparison of communication overhead or practical benefits; (2) Comparisons to MAMBA, QPLEX, Follower, MATS-LP, RHCR are broad but somewhat cherry-picked in presentation (e.g., SRMT excels on Pathfinding but lags on Cooperation); (3) The comparison to memory transformers (RMT, ATM, RATE, RRNN) conflates architectural differences (shared vs. individual memory) with implementation differences (initialization procedure)—RATE gen results suggest initialization may matter more than memory sharing, but this nuance is downplayed; (4) Missing comparisons: no explicit communication-based methods tested under identical training/execution constraints; (5) No comparison to hybrid approaches that combine learned policies with classical planners beyond SRMT-FlwrPlan (which is more of an ablation). Unverified assumption: that the positioning of SRMT's decentralization as an advantage is substantiated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics section, discussion of broader impacts, or acknowledgment of potential risks. The paper makes no mention of: data provenance (where did POGEMA benchmark data originate?), licensing (is POGEMA code open-source?), safety implications of multi-agent coordination failures, or potential misuse in adversarial multi-agent settings. For a robotics-adjacent paper (agents navigating environments), safety and ethical considerations should be addressed. Complete absence of discussion. Unverified assumption: that authors have considered ethical implications but chose not to disclose them."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "SRMT represents a reasonable but incremental contribution—extending memory transformers to multi-agent settings via shared memory pooling. However, the paper suffers from critical weaknesses that outweigh its strengths: (1) Technical Soundness (score 3): The core claim that shared memory improves coordination is confounded by implementation differences (memory initialization); the modified RATE (RATE gen) experiment suggests initialization, not shared memory, drives performance gains, and this alternative explanation is inadequately explored. (2) Empirical Validation (score 2): On POGEMA benchmarks, SRMT is consistently outperformed by centralized methods (RHCR); on bottleneck tasks, improvements over RMT (which lacks shared memory) are modest and potentially attributable to other factors. Critical ablations are missing (e.g., RATE + SRMT initialization). (3) Reproducibility (score 2): No code release committed, minimal hyperparameter disclosure, no random seeds or variance analysis—results cannot be verified. (4) Limited Significance: SRMT does not achieve state-of-the-art on any primary benchmark; improvements over baselines are marginal and not consistently statistically significant. (5) Ethics (score 1): Complete absence of ethics discussion or broader impact statement. By ICLR standards, these gaps—especially the confounded ablations and lack of reproducibility—warrant rejection. The paper would benefit from: (i) rigorous isolation of shared memory effects from initialization effects; (ii) code and hyperparameter release; (iii) clearer positioning of when/why SRMT outperforms alternatives; (iv) ethics discussion. Current form does not meet publication standards."
+  }
+}
+```

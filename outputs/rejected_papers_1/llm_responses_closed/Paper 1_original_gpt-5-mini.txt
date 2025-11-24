@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes a simple hybrid batching strategy (mixing monolingual and cross-lingual batches) which is an intuitive and pragmatic idea but represents an incremental contribution rather than a genuinely new methodological insight. Potential weakness: the approach is primarily a sampling heuristic and does not introduce new objectives, architectures, or theoretical guarantees; it may be a clever combination of existing components rather than a novel technique. Unverified assumption: that equal-weight mixing (α≈0.5) will generalize broadly across datasets and pretraining regimes without negative interactions."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If broadly reproducible, a simple batching strategy that improves multilingual and cross-lingual retrieval could be useful in practice because it is low-cost and applicable to many dense retrieval pipelines. Potential weakness: practical impact is limited if gains are small relative to more sophisticated alignment methods or require machine-translated training corpora (which have cost and quality limitations). Unverified assumption: that improvements on the evaluated benchmarks (XQuAD-R, MLQA-R, MIRACL) will transfer to real-world IR scenarios, domains, and languages not covered by their training/translation pipeline."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The technical approach (contrastive dual-encoder with in-batch negatives and hybrid batch sampling) is straightforward and correctly described at a high level. Potential weakness: there are methodological choices that are insufficiently justified—e.g., checkpoint selection using an English-only validation set (risking bias), limited discussion of negative sampling effects, and lack of theoretical analysis of when/why hybrid mixing should help. Unverified assumption: that in-batch negatives behave similarly across monolingual and cross-lingual batches and that simple probability mixing handles differences in dataset sizes without introducing subtle optimization imbalances. Note: score kept low due to missing multi-seed/stability analysis and the English-only validation selection issue (see RBCL Fatal-Flaw considerations)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper provides extensive tables across two models and three benchmarks, and ablates the α hyperparameter range, which supports empirical claims to some extent. Potential weakness: no multiple random seeds or statistical significance testing are reported, ablation scope is limited (no analysis of other important factors like negative mining strategies, batch-size sensitivity, or translation quality), and some important baselines (e.g., recent alignment- or distillation-based multilingual retrieval approaches) are not included. Unverified assumption: reported gains are robust (not due to single-run variance or selection bias) — the paper does not report run-to-run variance or significance, so experimental rigor is limited; per submission text, missing such details caps this criterion."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript omits release of code, training scripts, random seeds, and the in-house machine translation pipeline; while some hyperparameters (LR, batch size, weight decay) are reported, many reproducibility-critical details are missing (full preprocessing, exact training/validation/test splits, seed values, exact data versions, translation quality and provenance, and evaluation code). Potential weakness: reliance on an in-house MT pipeline and mined Yahoo data without provenance or release prevents verification and reuse. Unverified assumption: that Appendix contains sufficient detail — but no code or public data links are provided in the submission excerpt. Because of these missing elements, the reproducibility score is capped low per the guidelines (missing/unclear information)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and positions itself relative to a range of prior works (e.g., LaBSE, InfoXLM, translate-train, contrastive alignment, distillation approaches) and motivates the simplicity of its approach. Potential weakness: comparisons to stronger or more recent state-of-the-art multilingual retrieval/alignment methods are limited or absent (no comparisons to some recent distillation or specialized multilingual retrieval models), and the empirical baselines are relatively narrow (primarily X-X and X-Y sampling). Unverified assumption: that the presented baselines are representative of practical alternatives; broader or stronger baselines could alter the interpretation of gains."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper includes a brief Limitations section noting potential societal biases but lacks a dedicated ethics / broader impacts section, detailed discussion of data licensing, provenance for mined/translated corpora, privacy considerations, or mitigation strategies for harmful outcomes. Potential weakness: use of in-house MT and mined Yahoo Answers data raises provenance and licensing questions, and no risk assessment or data license statements are provided. Unverified assumption: that translation and mined data are benign and legally shareable — this is not documented."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "Overall, the paper presents a simple, pragmatic hybrid-batch sampling strategy with empirical evidence across multiple benchmarks and two encoder initializations; this makes it potentially useful for practitioners. However, there are critical issues that prevent acceptance in its current form. The most important problems are poor reproducibility (no code, no seeds, in-house MT pipeline and mined data without provenance) and limited methodological justification (English-only validation for checkpoint selection, lack of multi-seed/statistical significance, and limited ablations). According to the RBCL Fatal-Flaw Logic (RBCL §2) and the reproducibility rule, because the reproducibility score is <= 2 and technical soundness is weak in key respects, the overall decision must be 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Strengths (breadth of empirical tables, simplicity and practicality of the idea) do not compensate for these fatal issues: missing code/data/seeds prevents verification and adoption, and the experimental protocol lacks robustness checks (multiple runs, statistical tests). To reconsider acceptance, authors should (1) release code, preprocessing and translation artifacts or use public translations with clear provenance, (2) provide seeds and run-level variance/statistical tests, (3) expand baselines and ablations (negative mining, batch-size, selection criterion for checkpoints beyond English-only validation), and (4) include a clear ethics/data-licensing statement. Given the reproducibility and robustness concerns, the paper cannot be accepted in its current form."
+  }
+}

@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes UNICBE, which combines three decoupled sampling probability matrices (P^acc, P^con, P^sca) to simultaneously optimize accuracy, convergence, and scalability in comparing-based evaluation. While the integration of these three objectives is novel, each individual component—uniform sampling for bias reduction, uncertainty balancing, and model allocation—builds incrementally on existing ideas from RANDOM, ARENA, and AlpacaEval. The core insight that 'uniformity' can unify these objectives is useful but represents a relatively straightforward synthesis rather than a fundamentally new methodological insight. The paper lacks truly novel algorithmic or theoretical contributions beyond element-wise probability matrix multiplication."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The problem addressed—efficient evaluation of LLMs using scarce preference signals—is genuinely important as LLM evaluation is a practical bottleneck. UNICBE demonstrates 17% budget savings on AlpacaEval with Pearson correlation >0.995 and 50% savings in dynamic scenarios with new models. These improvements are practically meaningful for the LLM evaluation community. However, the significance is somewhat limited by: (1) improvements are primarily marginal gains over random sampling rather than breakthrough results, (2) gains are most pronounced in dynamic settings which may not reflect all real-world evaluation scenarios, (3) the method's applicability is demonstrated only on two benchmarks (AlpacaEval and MT-Bench), both of which are relatively small-scale, raising questions about generalization to larger model evaluation efforts."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical analysis in Section 3 contains several issues. (1) Equation 1 and 2 introduce bias notation η but do not rigorously prove that uniform sampling minimizes this bias; the proof is relegated to Appendix A (not provided for review). (2) The convergence analysis (Section 3.3) uses a variance-based uncertainty measure but does not formally prove that uniformly decreasing uncertainty leads to faster convergence to true model scores. (3) Equation 10 (P^acc) uses an exponential penalty based on count sums, but there is no principled justification for this specific functional form or proof that it achieves 'complete uniform sampling.' (4) The integration formula (Equation 13) uses element-wise product of three matrices without theoretical justification for why this particular aggregation optimizes the combined objective. (5) The paper assumes sampling bias behaves additively (Equation 3) without accounting for potential non-linear interactions. The experimental validation of theoretical claims is indirect (via β metrics in Table 2) rather than direct empirical confirmation."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "While experiments are reasonably comprehensive in scope, several limitations reduce confidence: (1) AlpacaEval experiments use only 15 randomly selected LLMs out of 20 available; unclear why this subset was chosen and whether results generalize across different model selections. (2) MT-Bench uses only 6 LLMs, acknowledged by authors as showing 'relatively larger fluctuations.' (3) Experiments report averages over 10,000 random seeds but do not provide confidence intervals or statistical significance tests, making it difficult to assess whether reported differences are statistically meaningful. (4) The 'ground truth' for evaluation is defined as estimates when T=T-hat (all comparisons), but with budget constraints in practice, this ground truth is approximate. (5) Ablation studies (Figure 5) only test removal of individual components; they do not test alternative aggregation schemes (e.g., weighted product, sum) for combining the three matrices. (6) The β metrics (Table 2) measuring objective achievement use cosine similarity to 'expected uniform vectors' but the construction of these expected vectors is not clearly explained in the main text."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility information is missing or unclear: (1) No mention of code release or availability; the paper does not state whether code will be made publicly available. (2) Hyperparameter α is set to 2 based on preliminary experiments in range [1.5, 3] (Appendix F.1 referenced but not provided in main text), and the sensitivity analysis is incomplete. (3) Random seed handling is mentioned ('report average results across 10,000 random seeds') but unclear whether these are random seeds for model/sample selection, judge response sampling, or both. (4) Judge prompts for GPT-4o and GPT-3.5-turbo are referenced as in Appendix D but not provided in the submission. (5) The 'ground truth' labels for AlpacaEval are not clearly specified—are all M(M-1)/2 pairs actually evaluated on all N samples to establish ground truth? (6) Specific implementation details of the Bradley-Terry preference aggregation are missing; only references to Appendix B.2 are given. (7) For MT-Bench experiments using human judges, no details are provided about annotator quality control, number of annotators, inter-annotator agreement, or annotation protocol."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 2) adequately covers the three main baseline methods (RANDOM, ARENA, AlpacaEval) that the paper compares against. However, several concerns limit fair positioning: (1) The paper criticizes existing methods for having 'singular optimization objectives' but does not acknowledge that prior work may have intentionally prioritized certain objectives given computational constraints. (2) Only three baselines are compared; other recent work on efficient evaluation (e.g., active learning approaches, Bayesian optimization for budget allocation) is not discussed or compared. (3) The comparison in Table 1 uses qualitative symbols (+/- /++) without quantitative grounding; the exact criteria for assigning these symbols are vague. (4) The paper positions UNICBE as the first to simultaneously optimize all three objectives, but does not explain why ARENA's convergence-focused approach or AlpacaEval's scalability-focused approach are fundamentally incompatible with the other objectives. (5) Limited discussion of theoretical connections to existing work in sampling bias (Vabalas et al., 2019; Kossen et al., 2021) cited but not deeply integrated into the narrative."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper contains minimal ethical discussion. (1) No discussion of potential harms if model evaluation results are inaccurate or biased—given that evaluation influences which LLMs are deployed, errors could have downstream societal consequences. (2) No acknowledgment of data provenance for AlpacaEval and MT-Bench; AlpacaEval is noted as 'high-quality human annotated' but no discussion of annotator compensation, consent, or ethical oversight. (3) The experiments use GPT-4o, GPT-3.5-turbo, and Qwen-Plus as judges (proprietary models) without discussing licensing, data privacy, or whether using commercial judges raises ethical concerns for reproducibility. (4) No discussion of potential biases in model selection (15 randomly chosen LLMs)—are certain model families or origins underrepresented? (5) No discussion of how UNICBE results could be misused (e.g., gaming evaluation by exploiting known budget allocation strategy). (6) The paper does not address whether the assumptions of uniform sampling are appropriate across all evaluation contexts or if certain scenarios warrant non-uniform allocation for fairness reasons."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.72,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "UNICBE addresses a practically relevant problem (efficient LLM evaluation) and proposes a reasonable solution combining three uniformity-driven objectives. The experimental results demonstrate consistent improvements over baselines, with 17% budget savings on AlpacaEval and 50% savings in dynamic scenarios. However, the paper exhibits several critical weaknesses that prevent acceptance: (1) **Technical Soundness (Score 3)**: Key theoretical claims lack rigorous proof; derivations for optimal sampling strategy and matrix integration formula are incomplete or unverified. The functional form of P^acc (Eq. 10) appears ad-hoc without principled justification. (2) **Reproducibility (Score 2)**: Critical information is missing—no code availability stated, key experimental details relegated to appendices not provided for review, hyperparameter sensitivity incompletely analyzed, judge prompts not included, ground truth construction ambiguous. This triggers a fatal-flaw override per RBCL §2, capping the decision at Borderline/Reject range. (3) **Novelty (Score 3)**: The contribution is primarily a combination of existing ideas (uniform sampling, uncertainty balancing, model prioritization) rather than a fundamentally new insight. Element-wise matrix multiplication as an aggregation scheme is straightforward. (4) **Empirical Validation (Score 3)**: While experiments are broad in scope, they lack statistical rigor (no confidence intervals or significance tests), use small-scale benchmarks (15 LLMs on AlpacaEval, 6 on MT-Bench), and provide indirect validation of theoretical claims. The improvements, though consistent, are incremental rather than transformative. (5) **Ethics (Score 2)**: Minimal discussion of societal implications, data provenance, annotator welfare, or potential misuse of evaluation results. Per RBCL error asymmetry, the risk of false positive acceptance outweighs false negative rejection. The paper would benefit from: (1) Complete proofs of theoretical claims in the main text, (2) Full reproducibility package including code and all appendices, (3) Statistical significance testing of experimental differences, (4) Larger-scale experiments with more diverse model sets, (5) Ethical analysis section. With these revisions, the core contribution could merit acceptance."
+  }
+}
+```

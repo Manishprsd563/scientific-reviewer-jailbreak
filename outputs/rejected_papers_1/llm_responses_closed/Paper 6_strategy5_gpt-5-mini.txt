@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Bi-Models Training (BMT) and Multi-Models Training (MMT) which are structurally interesting and combine isolation and sub-model aggregation in a federated setting. However, the high-level ideas resemble combinations of prior isolation/clustering and ensemble/submodel approaches in unlearning and federated learning rather than a clearly new methodological insight (risk of being a clever combination rather than a distinct new principle). There is also no formal theoretical novelty (no proof that the proposed procedures yield an identical retrained model), so novelty is moderate. I applied the RBCL Anti-Inflation caution (reduction in upward optimism) when grading novelty."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem (exact federated unlearning with good post-unlearning performance) is practically important for federated deployments and regulatory requirements (GDPR), and the proposed methods could materially reduce downtime after unlearning. Nevertheless, the paper does not quantify the compute/communication/storage trade-offs (cost of maintaining many local/sub-FL models) in a way that demonstrates practicality at real production scales; such overheads and deployment constraints are an unverified assumption that could limit impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Key claims lack rigorous justification: the paper asserts 'exact federated unlearning' but provides no formal proof that the final restarted model is equivalent to a retrained-from-scratch model (the standard definition of exact unlearning), nor rigorous analysis of when/why aggregation of local or sub-FL models yields equivalence. The method also assumes local models are perfectly isolated and that aggregating them yields an unbiased initialization — this is an unverified assumption. Because theoretical guarantees are missing and critical assumptions are not justified, I cap this criterion at 2/5 per the rubric (\"Missing or unclear information automatically caps the score at 2/5\"). This low technical score triggers RBCL Fatal-Flaw Logic: technical_soundness <= 2 mandates a Reject decision (see final justification)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The empirical evaluation covers multiple vision datasets and some NLP tasks, includes ablation studies (heterogeneity, branching factor, tree construction), and compares to several baselines. These are strengths. However, important experimental details are missing or unclear: no mention of multiple random seeds or variance/confidence intervals, limited discussion of hyperparameter sensitivity beyond a few settings, and computational cost (GPU-hours, memory/storage overhead for many submodels, cost of large-model experiments) is not reported. Also, some baselines could be stronger or more fully described (e.g., more recent exact-unlearning baselines). The absence of statistical tests and single-run reporting is a notable weakness per the scoring rules."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper lists datasets, model architectures, and some hyperparameters, but does not provide link to code, exact training scripts, random seeds, exact data splits, or a full hyperparameter table and compute logs. The large-model (Llama-3.2-3B) experiments lack implementation details and cost/seed information. According to the rubric, missing or unclear reproducibility information caps this criterion at 2/5. Because reproducibility <= 2, RBCL Fatal-Flaw Logic applies and forces the overall decision to be 'Reject' (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related-work section covers federated learning, machine unlearning, and federated unlearning and cites relevant prior art (FedEraser, Exact-Fun, FedCIO, etc.). The authors position their methods relative to clustering and submodel aggregation approaches. However, the positioning lacks critical depth in places (e.g., more explicit comparison with methods that achieve certified/approximate removal, and more discussion of trade-offs with prior exact-unlearning approaches). Some claims of novelty relative to specific recent works are not fully argued, so I assign a moderate score."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper mentions GDPR and right-to-be-forgotten as motivation, but there is no explicit ethics or broader-impacts section addressing potential harms, privacy risks of storing multiple local/sub-FL models, data provenance and licensing of HuggingFace datasets, or risks from misapplied unlearning (e.g., adversarial clients exploiting unlearning). The absence of an explicit ethical analysis or data/license provenance details justifies capping this criterion at 2/5 per the rubric."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The manuscript addresses an important and practically relevant problem and proposes operationally intuitive methods (BMT and MMT) with broad empirical coverage. Strengths include multi-dataset experiments, ablations, and consideration of non-IID settings. However, there are critical deficiencies that prevent acceptance: (1) Lack of rigorous theoretical guarantees: the claim of \"exact federated unlearning\" is not proven or formally defined in a way that ties the procedure to the canonical definition (equivalence to retraining without the client). This is a major technical weakness (technical_soundness = 2) and an unverified assumption. (2) Reproducibility gaps: no public code or full experimental scripts, missing seeds, missing exact data splits and compute/cost reporting, and limited hyperparameter disclosure (reproducibility = 2). (3) Experimental omissions: absence of multiple-run statistics/confidence intervals and limited discussion of computational/storage overheads for maintaining many submodels. Per the RBCL rules, technical_soundness <= 2 and reproducibility <= 2 are fatal: they mandate a Reject decision (RBCL §2 Fatal-Flaw Logic). I therefore recommend Reject. To become acceptable, the authors should (at minimum): provide formal definitions and proofs or rigorous arguments for the exactness claim (or revise the claim to precise, provable guarantees), release code and exact experimental setups (seeds, splits, scripts), add multiple-run statistics and ablation on compute/storage costs, and include an explicit ethics/broader-impacts discussion addressing data provenance and potential misuse. Note: decision downgraded due to RBCL §2 Fatal-Flaw Logic (technical soundness <= 2 and reproducibility <= 2)."
+  }
+}

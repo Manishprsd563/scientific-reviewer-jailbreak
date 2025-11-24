@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic token tree with greedy expansion that maintains compatibility with standard verification via sampling, which differentiates it from selection-based dynamic trees (e.g., EAGLE-2, ReDrafter). This is a modest, method-level contribution over fixed-tree approaches (Sequoia, SpecInfer). However, dynamic expansion of speculative trees is not entirely new, and much of the gain comes from heuristic estimation (approximating acceptance by draft probability) and thresholding rather than a fundamentally new theoretical insight. Potential weakness: the core hypothesis and the estimator SD[x] ≈ p_d[x] are assumed rather than rigorously justified; if correlation breaks, the method may underperform."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust and general, accelerating speculative decoding with higher acceptance could materially reduce latency and cost. The reported speedups (up to ~9x vs autoregressive under CPU-offloaded 70B) indicate potential practical impact. However, the improvements appear sensitive to the draft/target cost ratio and specific implementation choices (e.g., CPU offloading, CUDA graphs). Missing comparisons to strong self-speculative baselines (e.g., Medusa/EAGLE-2) limit assessment of broader impact. Potential weakness: gains may diminish under different hardware/memory regimes or with stronger drafting, and quality/fidelity metrics are not reported."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Key steps rely on approximating acceptance probability by draft probability (SD[x] ≈ p_d[x]), which is not theoretically justified beyond an informal KL argument and preliminary plots. The claimed greedy optimality is contingent on \"mild assumptions\" relegated to an appendix (not available here) and depends on the estimator being well aligned with true acceptance rates. It is also unclear if dynamic sampling decisions preserve exact unbiasedness under all control flows, given the reliance on residual distributions and adaptive budget allocation. Several equations are imprecise/typo-prone, making it hard to verify correctness. Potential weakness: the optimality and unbiasedness guarantees appear unproven or insufficiently detailed, and the estimator may systematically mis-rank candidates."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover several datasets and two target scales (7B/13B) plus a CPU-offloaded 70B scenario, comparing to Sequoia and SpecInfer with acceptance/latency metrics. However, there are no variance estimates or statistical tests, minimal ablations (e.g., effect of threshold choice, tree size, sensitivity to temperature), and no quality/fidelity checks to ensure unbiased output distributions. Important baselines like Medusa/EAGLE-2 (notwithstanding verification differences) are missing, and fairness of implementation differences (CUDA graphs usage, offloading) is not fully clarified. Potential weakness: conclusions may be confounded by hardware/implementation factors; single-run results without error analysis reduce confidence."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "No code or detailed implementation artifacts are provided, yet the approach hinges on a custom C++ token-tree constructor and specific CUDA graph setups. Critical hyperparameters (e.g., threshold selection, draft temperatures, exact heap and residual distribution handling), seeds, and environment configs are not fully specified. This prevents independent verification of claims. Potential weakness: lack of released code and precise protocols; the custom systems components are non-trivial to replicate. Per rubric, missing code/instructions caps this criterion at ≤2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among SpecInfer, Sequoia, Medusa, SpecTr, EAGLE-2, and ReDrafter, and discusses verification-compatibility differences. Nonetheless, the empirical comparison omits strong self-speculative systems and broader inference-acceleration baselines. Some characterizations (e.g., about verification compatibility) are plausible but deserve more rigorous treatment. Potential weakness: incomplete quantitative comparisons limit positioning strength and may overstate advantages."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics or broader impacts discussion is presented. The work uses large text datasets (C4/OWT/CNN-DM) without discussion of licenses, potential biases, or downstream implications of faster generation. Potential weakness: absence of any ethics statement or consideration of data provenance and societal impacts. Per rubric, missing ethics caps this criterion at ≤2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "While the idea of dynamically expanding a speculative token tree via a greedy strategy that remains compatible with standard verification is interesting, the submission lacks rigorous theoretical support for its core estimator (approximating acceptance by draft probability), and the claimed optimality is not convincingly justified. Empirically, results are single-run without statistical analysis, missing ablations and important baselines, and omit fidelity checks. Reproducibility is notably weak due to the absence of released code and detailed system configurations, despite reliance on custom C++ components. Decision downgraded to Reject per RBCL §2 Fatal-Flaw Logic because Technical Soundness ≤ 2 and Reproducibility ≤ 2; per the rubric, this triggers a non-compensatory override and caps the score regardless of other strengths."
+  }
+}

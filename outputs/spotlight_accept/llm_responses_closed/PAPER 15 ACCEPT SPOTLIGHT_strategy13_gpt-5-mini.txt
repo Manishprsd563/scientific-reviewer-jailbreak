@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a plausible integration of state-conditioned VQ-VAE to learn macro-actions, a Transformer prior, and MCTS with progressive widening. While the combination is sensible and engineering-wise nontrivial, the core ideas are incremental relative to prior work (e.g., TAP, Trajectory Transformer, vector-quantized planning papers). There is no clear, novel theoretical insight or fundamentally new algorithmic primitive that would merit a 4–5. Potential weaknesses / unverified assumptions: (1) claim of being a qualitatively new approach is not substantiated — the distinction from TAP and similar sequence-modeling planners is insufficiently clarified; (2) novelty relies on empirical efficacy rather than a new conceptual contribution, which may limit generalization; (3) no theoretical guarantees are provided about when the masked-VQ alignment will avoid return-driven fragmentation."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If L-MAP reliably reduces latency and scales to high-dimensional continuous control (e.g., Adroit), it would be useful for planning-based offline RL and hierarchical planning research. The paper addresses an important practical challenge (planning in stochastic, high-dimensional action spaces). Potential weaknesses / unverified assumptions: (1) claims of broad applicability hinge on experimental results that are insufficiently documented (see empirical/reproducibility); (2) it is unclear how well the method transfers beyond the evaluated domains or how sensitive it is to hyperparameters such as macro-action length L and codebook size; (3) the practical overhead of training the VQ-VAE + Transformer + MCTS stack in real deployments is not quantified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The method appears technically plausible: masked VQ-VAE to de-emphasize return variance, a Transformer prior to sample latent macro-actions, and MCTS with progressive widening are reasonable design choices. Descriptions are coherent and consistent at a high level. Potential weaknesses / unverified assumptions: (1) several important assumptions are not fully justified (e.g., that aligning masked and full embeddings will reliably prevent return-driven codebook fragmentation in all stochastic regimes); (2) no formal analysis or bounds are provided for bias introduced by decoding latent samples into return-to-go estimates used in UCT; (3) details about model capacity, training stability of VQ-VAE in this setting, and failure modes are not presented. Note: I applied RBCL conservatism; this score reflects cautious acceptance of engineering correctness but penalizes missing theoretical/diagnostic analyses."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports extensive experiments across stochastic MuJoCo, deterministic MuJoCo, and Adroit tasks and compares to several baselines (TT, TAP, CQL, IQL). However, the manuscript as provided lacks essential experimental details: no quantitative tables or statistical significance metrics are included in the text provided here, no per-task numbers, no random-seed or multiple-run variance, and no ablation studies on key components (e.g., effect of masking term, codebook size, macro length L, progressive widening parameters). Potential weaknesses / unverified assumptions: (1) absence of reported confidence intervals or multiple seeds — results may be single-run and thus unreliable; (2) missing critical ablations make it unclear which component drives gains (VQ-VAE vs Transformer prior vs MCTS); (3) missing descriptions of dataset splits and offline data collection policy makes performance claims hard to evaluate. Because of these omissions, empirical validation is weak and capped at 2 per scoring rules."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper does not provide links to code, experimental pipelines, hyperparameter lists, or random seeds in the provided text. There is no explicit reproducibility checklist or appendices with full training/compute details. Potential weaknesses / unverified assumptions: (1) without code, seeds, and hyperparameters, the experiments cannot be independently reproduced; (2) model and training details (e.g., VQ-VAE codebook size, Transformer architecture, training steps, dataset preprocessing, compute resources) are missing; (3) the absence of released assets triggers the reproducibility cap per the rubric. Decision impact: Because reproducibility score ≤ 2, RBCL §2 Fatal-Flaw Logic requires an overall decision of 'Reject' (see final_justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The Related Work section is reasonably broad and cites relevant model-based and model-free temporal abstraction works, trajectory/sequence modeling planners (TT, TAP), MuZero-style planners, and robust RL. The authors describe conceptual connections and distinctions. Potential weaknesses / unverified assumptions: (1) although related works are cited, the paper does not clearly delineate exact algorithmic differences from the most similar prior methods (TAP, related VQ planning) in a way that would help verify novelty; (2) missing head-to-head comparisons on standardized benchmarks with identical experimental protocols undermines confidence that comparisons are fair; (3) some recent concurrent or niche works on latent action-space planning may be missing or not discussed in depth."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes funding acknowledgements but contains no explicit ethics or broader-impacts statement, no discussion of potential misuse, data provenance, licensing, or privacy concerns. Potential weaknesses / unverified assumptions: (1) missing discussion of how offline datasets were collected and whether they include sensitive data; (2) no analysis of safety implications when deploying MCTS-based planners in real-world stochastic settings (e.g., robotics or autonomous driving); (3) absence of a mitigation strategy for harmful behavior or failure modes. Per rubric, missing/unclear ethics information caps the score at 2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary and key reasons: L-MAP is an interesting, well-motivated engineering combination that addresses an important problem (planning with temporally extended macro actions in stochastic, high-dimensional continuous action spaces). The methodological design—masked state-conditioned VQ-VAE, Transformer prior as latent transition/prior, and MCTS with progressive widening—is coherent and potentially useful. However, the submission as provided has several critical issues that preclude acceptance at a top-tier conference in its current form. The most critical problems are missing reproducibility artifacts and insufficient experimental detail. Reproducibility is scored 1 because no code, seeds, hyperparameters, or thorough experiment protocols are provided; under the Evaluation Logic and RBCL Fatal-Flaw Logic, reproducibility ≤ 2 mandates an overall decision of 'Reject'. Empirical validation is weak in the provided text: there are claims of outperforming baselines but no detailed quantitative tables, no multiple-seed experiments, no statistical tests, and no ablations distinguishing the contributions of core components (VQ-VAE masking, prior, MCTS design). Technical soundness is plausible but lacks formal analysis and diagnostics about failure modes and bias introduced by decoding latent returns for UCT; thus it is not judged as fully rigorous. Novelty is moderate and appears incremental relative to recent work (TAP, Trajectory Transformer, VQ planning), so the paper does not demonstrate the exceptional conceptual breakthrough required to override the conservative presumption of rejection. Applied RBCL rules and other adjustments applied: (1) RBCL Fatal-Flaw Logic triggered because reproducibility score ≤ 2, forcing final decision to 'Reject' (explicitly: \"Decision downgraded due to RBCL §2 Fatal-Flaw Logic\"); (2) Per the Anti-Inflation Safeguard, I applied conservative scoring and noted that each criterion was considered under a presumption of rejection and adjusted downward in computing the final stance (I reduced optimism in scores and required stronger evidence to raise any criterion); (3) Practical ICLR calibration: total_score=17 lies in [15,20) and in absence of multiple dimensions clearly above 4, this range is treated conservatively as effectively a reject; (4) single critical weakness (missing reproducibility and insufficient experimental detail) is treated as non-compensable by strengths in other areas. To improve the submission: (a) release code, model checkpoints, exact hyperparameters, random seeds, and a reproducibility checklist; (b) include detailed quantitative results (per-task scores with multiple random seeds and confidence intervals), full ablation studies isolating contributions of the masked-VQ term, macro-action length, codebook size, and progressive-widening parameters; (c) provide diagnostics on failure modes (when mapping collapses, when decoding returns are biased) and potentially add theoretical or empirical bounds on bias introduced by non-injective latent mappings; (d) include an explicit Ethics / Broader Impacts statement and clear data provenance/licensing information. Given the current submission, the combination of (i) reproducibility ≤ 2 (a fatal flaw per RBCL), (ii) insufficient empirical evidence and ablations, and (iii) incremental novelty relative to closely related works leads me to recommend 'Reject'."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "PatchSAE applies sparse autoencoders to CLIP ViT with patch-level spatial attribution and uses SAE masking to study adaptation. This yields useful insights but reads largely as an application and extension of existing SAE interpretability work rather than a fundamentally new methodological insight (strength: localized, token-wise concepts; weakness: mainly a combination of known components—SAE + ViT hooks + masking—so novelty is incremental). An unverified assumption is that SAE latents are consistently monosemantic across tasks and layers; evidence for strong methodological novelty (e.g., new theoretical formulation) is limited. RBCL anti-inflation applied (-0.5 to total computation) and the presumption of rejection was kept given remaining doubts (see final justification)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The work addresses an important practical question—how prompt-based adaptation reuses concepts in foundation vision-language models—and provides tools (PatchSAE) that could aid model debugging and interpretability for practitioners. This is of reasonable significance for interpretability and adaptation research. Potential weakness: the practical downstream utility is not demonstrated beyond classification masking experiments (e.g., no user studies or real-world intervention demonstrating editing/repair); unverified assumption: that concept attributions directly map to actionable interventions in deployed systems. RBCL anti-inflation considered in total computation."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The core methodology (linear encoder/decoder SAE with ReLU and L1 sparsity, MSE reconstruction) is standard and appears implemented sensibly (token-wise SAE on ViT residual stream). Experiments (masking, class-level aggregation) are logical and results plausible. Potential weaknesses: very large SAE latent dimension (49,152) raises questions about overparameterization, regularization strength selection, and whether results depend sensitively on these choices; limited theoretical justification for why this particular layer/hook and expansion factor are optimal. Missing details on convergence behavior and failure modes (e.g., degenerate latents) are not fully addressed. RBCL anti-inflation reduction applied to totals."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates across 11 datasets and provides multiple analyses (masking, base-to-novel, transfer to MaPLe), which is a strength. However, critical empirical details appear missing or unclear in the provided manuscript excerpt: no mention of multiple runs or random seeds, no statistical tests or confidence intervals, and limited ablation on sensitivity to SAE hyperparameters (e.g., lambda_l1, encoder/decoder sizes). These omissions penalize empirical rigor (single-run / no-statistics risk). Per scoring rules, missing/unclear experimental-reproducibility information caps this criterion at 2/5. RBCL Fatal-Flaw logic and Evidence Severity Scaling were applied in grading."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Authors provide a code/demo URL in the abstract, which is a positive sign. However, in the manuscript excerpt many crucial reproducibility details are not present (complete hyperparameter lists, optimizer settings, training schedules, random seeds, exact preprocessing, and full instructions to reproduce the reported experiments are referenced to appendices or external materials not included here). According to the review rules, missing or unclear information on these points requires capping this score at 2/5. Because reproducibility score <= 2, RBCL/Fatal-Flaw Logic mandates that the overall decision be 'Reject' or worse and caps the total_score handling (this downgrade is explicitly applied)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites SAE and interpretability literature (Bricken et al., Cunningham et al., Templeton, Daujotas, Rao et al.) and positions PatchSAE relative to prior SAE and prompt-adaptation approaches (CoOp, MaPLe). This indicates reasonable situating of the work. Potential weakness: some adjacent work on concept bottlenecks, vision-specific disentanglement, or alternative interpretability tools (e.g., attribution methods, network dissection variants) could be discussed in more depth to clarify unique contributions and trade-offs; comparison to alternative concept-extraction methods is limited in the provided excerpt. RBCL anti-inflation considerations applied."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes a brief 'Discussion' and mentions broader implications, but I did not find an explicit ethics or broader impacts section detailing risks, data provenance, licensing, potential misuse, or mitigation strategies. Given the absence of a clear ethics statement and provenance/license discussion in the excerpt, per the scoring discipline this criterion is capped at 2/5. A potential unverified assumption is that interpretability always reduces downstream harms; the authors do not evaluate possible misuse (e.g., targeted model editing) or privacy concerns for concept identification. This omission contributes to the conservative score and triggers RBCL Evidence Severity Scaling."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents a useful applied study—PatchSAE—that adapts sparse autoencoders to CLIP ViT to extract patch-level interpretable concepts and to study prompt-based adaptation (MaPLe). Strengths include thorough qualitative analyses, application across 11 datasets, and a sensible experimental strategy (masking, base-to-novel analysis) that provides actionable hypotheses about adaptation (i.e., adaptation primarily re-maps existing concepts to classes). However, several critical weaknesses prevent acceptance at a top-tier venue in its current form: (1) Reproducibility concerns: although a code link is provided, the manuscript excerpt lacks comprehensive reproducibility artifacts (full hyperparameters, seeds, optimization details, instructions to reproduce experiments and statistical analysis). By the review rules, reproducibility is capped at 2/5, which triggers the CRITICAL RBCL/Fatal-Flaw override requiring a 'Reject' decision. (2) Empirical rigor: absence of multiple runs, statistical significance testing, and sensitivity/ablation studies on core hyperparameters (e.g., SAE expansion factor, lambda_l1) weaken the empirical claims; this was capped at 2/5 per scoring discipline. (3) Novelty is incremental: the contribution is an engineering and analysis advance (valuable) but not a fundamentally new method; claims about monosemantic latents and generality are not fully theoretically justified. (4) Ethics/broader impacts: no clear ethics statement or data provenance discussion in the provided text, so this is scored conservatively. Because reproducibility <= 2, the review follows the mandatory Fatal-Flaw Logic and sets the final decision to 'Reject' (RBCL §2 Fatal-Flaw Logic). Additionally, anti-inflation adjustments (RBCL Anti-Inflation Safeguard: -0.5 applied per criterion in aggregate) were applied when computing the final total to avoid mid-range score inflation. Recommendation to authors: Provide a reproducibility package (complete code with exact scripts, environment, random seeds, hyperparameters, and instructions to reproduce all tables/figures), include multiple seeds and statistical tests for key experiments, expand ablations on SAE hyperparameters and choice of hook layer, and add an explicit Ethics / Broader Impacts section detailing data provenance, licenses, potential misuse, and mitigation strategies. With those changes and stronger empirical rigor, the work could be reconsidered as a solid contribution to interpretability of vision-language models."
+  }
+}

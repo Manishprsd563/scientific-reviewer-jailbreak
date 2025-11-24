@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper presents a genuinely novel approach by introducing In-Distribution Interventions (IDI) for root cause diagnosis, shifting away from counterfactual estimation to avoid out-of-distribution evaluation errors. The core insight—that assessing the fix condition via in-distribution interventions rather than OOD counterfactuals is more robust—is original and well-motivated. However, the novelty is somewhat incremental in that it applies existing interventional inference concepts to a specific problem domain (RCD). The theoretical contribution comparing counterfactual and interventional errors is solid but limited to additive noise chain SCMs, constraining the generality of the insight."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "Root cause diagnosis in cloud systems is a practically important problem with direct operational impact. IDI addresses a real limitation of prior causal methods by improving robustness in anomaly scenarios. The method shows consistent improvements over nine baselines on PetShop and synthetic datasets. However, the significance is somewhat limited by: (1) reliance on a known causal graph (which may not always be available or accurate), (2) Assumption 1 restricting applicability to graphs with at most one root cause per path, and (3) performance degradation in high-variance settings where counterfactuals may actually be preferable. The practical impact would be stronger if the method were demonstrated on real cloud system data beyond the benchmark."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical analysis in Section 4 (deferred to appendix, not fully shown) appears sound in comparing counterfactual and interventional error bounds. The two qualifying criteria (Anomaly and Fix conditions) are well-defined and theoretically motivated. However, several concerns arise: (1) Assumption 1 (at most one root cause per path) is restrictive and not well-justified as necessary; the paper acknowledges it can fail but doesn't fully analyze failure modes. (2) The definition of root cause distribution Q_X^RC(j) relies on sampling epsilon_j conditioned on both X_j and X_n being anomalous, which creates a circular dependency that may not be properly justified. (3) The use of Shapley values for multiple root causes adds computational complexity but the justification for why this particular credit-allocation scheme is appropriate for RCD is weak. (4) The paper claims IDI works for 'arbitrary SCMs' but theory is restricted to chain/additive noise models."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper includes a toy experiment (Section 6.1) showing when IDI outperforms counterfactuals, and experiments on PetShop and synthetic datasets with 11 baselines. Strengths: (1) multiple baselines across three categories, (2) systematic variation of SCM complexity in toy experiments, (3) Recall@k metric is appropriate. Weaknesses: (1) PetShop results show IDI achieves 0.9 Recall@1 on some tasks but only marginally outperforms Traversal (0.8) on others, suggesting the improvements are modest. (2) No statistical significance testing, confidence intervals, or multiple runs reported—results appear to be single-run. (3) Limited ablation studies; no ablation on the anomaly detector choice or the fix value sampling strategy. (4) Synthetic experiments use only linear additive noise and simple non-linear models; generalization to complex real SCMs is unclear. (5) The toy experiment focuses on a 4-node star graph; broader topologies not explored. (6) Missing comparison with recent deep learning-based causal methods for SCM learning."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper states 'Code will be released at https://github.com/nlokeshiisc/IDI_release' but code is not currently available for review. This automatically caps the reproducibility score at 2/5 per RBCL guidance. Additionally: (1) Hyperparameter details are sparse (e.g., MLP architecture for toy experiment mentioned but not for full PetShop experiments). (2) Random seed and initialization strategies not specified. (3) Anomaly detector thresholds tau_i determination not fully described—training procedure unclear. (4) For PetShop experiments, it states methods use 'same experimental settings' but these settings are not detailed in the paper. (5) The appendix (referenced multiple times) is not fully provided, making verification of proofs and additional experimental details impossible. (6) No discussion of computational complexity or runtime comparisons."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper provides a reasonable overview of RCD methods, categorizing them into Correlation, Causal Anomaly, and Causal Fix approaches. It correctly positions IDI as addressing the Fix condition more robustly than prior counterfactual-based methods. However, several gaps exist: (1) The distinction between IDI's interventional approach and prior interventional RCD methods (e.g., TOCA by Okati et al., 2024) is not sufficiently clear—it's unclear if TOCA also uses interventions and if so, how IDI differs. (2) The relationship to soft interventions (Jaber et al., 2020; Ikram et al., 2022) is mentioned but not deeply analyzed. (3) Limited discussion of recent causal discovery and SCM learning methods that could interact with IDI's approach. (4) The paper doesn't cite or compare with some relevant work in anomaly diagnosis in distributed systems (e.g., microservice troubleshooting literature). (5) No discussion of how IDI relates to causal discovery methods that learn the graph when it's unknown."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper completely lacks any discussion of ethical implications, broader societal impacts, or safety considerations. There is no section addressing: (1) potential misuse of root cause diagnosis (e.g., unfairly blaming specific system components or operators), (2) data privacy or security when root causes reveal sensitive system configurations, (3) reliability concerns when IDI is applied to safety-critical cloud systems, (4) provenance and licensing of the PetShop dataset or synthetic data generation procedures, (5) fairness considerations if RCD results are used for resource allocation or operational decisions, (6) limitations and failure modes that practitioners should be aware of. The only acknowledgment of limitations (Section 7) focuses on technical conditions (Assumption 1, convergence behavior) rather than ethical or societal implications. This is a significant gap for a paper proposing a system that could directly impact operational decisions in cloud infrastructure."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.75,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "This paper presents a novel and theoretically motivated approach to root cause diagnosis with solid conceptual contributions. The core insight—that in-distribution interventions provide more robust root cause assessment than OOD counterfactuals—is valuable. However, the paper suffers from critical weaknesses that prevent acceptance: (1) **Reproducibility Crisis**: Code is not available and promised code cannot be verified. Hyperparameter details, random seeds, and full experimental settings are missing. Per RBCL Fatal-Flaw Logic, this triggers a hard constraint that severely limits acceptance potential. (2) **Limited Empirical Validation**: Experiments lack statistical rigor (no significance tests, confidence intervals, or multiple runs). Improvements over baselines are modest (marginal gains over Traversal on PetShop). Single-run results on limited synthetic topologies are insufficient. (3) **Theoretical Scope Mismatch**: Theory is restricted to chain/additive noise SCMs, but claims apply to 'arbitrary SCMs.' The toy experiments use only 4-node graphs; generalization unclear. (4) **Questionable Assumptions**: Assumption 1 is restrictive and failure modes inadequately analyzed. The root cause distribution definition has circular dependencies not fully justified. (5) **Missing Ethics Discussion**: Complete absence of ethical considerations, safety implications, and broader impacts is unacceptable for a system impacting cloud infrastructure. (6) **Incomplete Related Work**: The distinction between IDI and TOCA (which may also use interventions) is unclear, making it hard to assess true novelty. The paper would benefit from: major revision addressing reproducibility (release code and full hyperparameters), statistical validation (multiple runs, significance tests), broader experimental scope (varied topologies, real cloud data), ethics discussion, and clearer positioning relative to prior interventional methods. In its current form, the work makes meaningful contributions but falls short of top-tier venue standards due to reproducibility and experimental validation gaps."
+  }
+}
+```

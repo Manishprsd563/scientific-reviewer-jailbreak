@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "Framing offline MBO as a learning-to-rank (LTR) problem and proposing AUPCC as an evaluation metric is a fresh perspective relative to standard MSE-trained regressors, and the practical design (data augmentation + listwise/pairwise losses + output adaptation) is interesting. However, the core theoretical claim (order-preservation implies identical optima) is elementary, and the generalization theory is largely imported from classic LTR analyses without tailoring to the non-i.i.d., OOD nature of MBO. Prior work has also questioned value matching and explored alternatives, which weakens the claim of being the first to argue against MSE. Potential weakness: the originality of AUPCC over existing ranking metrics (e.g., NDCG/Precision@k) is not rigorously distinguished, and related literature on preference-based BO/dueling bandits is only lightly addressed."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, a ranking-based surrogate that consistently outperforms state-of-the-art across Design-Bench could influence offline MBO practice and metric selection. The idea potentially generalizes to diverse design tasks and may reduce OOD over-optimism. However, the practical impact depends on consistent gains across varying regimes, robustness to different optimizers, and sensitivity to list construction; these aspects are not fully stress-tested in the main text. Potential weakness: the link between improved AUPCC and actual optimization outcomes in deeply OOD regions remains empirical and may not hold under severe distribution shifts."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "Theorem 1 is correct but trivial. The generalization bound is adapted from LTR literature and assumes linear models and standard i.i.d. sampling, while the paper uses MLPs and faces OOD evaluation—this mismatch limits the bound’s direct applicability. The procedure for \"output adaptation\" to make gradient ascent work with ranking scores is under-specified in the excerpt, and there is no theory connecting AUPCC optimization to improved maxima found by gradient ascent under model misspecification. Potential weakness: unverified assumption that ranking quality on iid-like training lists transfers to search regions far outside the data support."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The study spans five Design-Bench tasks, includes ~20 baselines, uses eight seeds, and reports ablations and correlation analyses (OOD-MSE vs. OOD-AUPCC), which is commendable. However, the main text does not provide statistical significance tests, confidence intervals, or effect sizes; details of OOD set construction and ablation configurations are pushed to appendices; and fairness of hyperparameter tuning across baselines is not fully transparent. Per RBCL Empirical Rigor, the absence of statistical tests and heavy reliance on single-oracle evaluations warrants a conservative score. Potential weakness: selection of metrics (only the 100th percentile highlighted in main text) could bias conclusions; robustness to architecture and optimizer choices is not extensively documented."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "Code is claimed to be available and many training details (architecture, losses, optimizers, list length, step sizes, seeds) are specified. Yet, some crucial pieces (exact environment specs, full search/augmentation protocols, OOD construction scripts, and complete hyperparameter sweeps for baselines) appear in appendices or are not fully detailed in the main text. Treating absence/uncertainty conservatively per RBCL, the paper is above average but not at top-tier reproducibility standards. Potential weakness: the GitHub link formatting suggests possible issues; explicit commit hashes, environment files, and instructions for reproducing all tables/figures are not shown here."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a broad set of offline MBO methods and LTR literature and acknowledges recent critiques of MSE/value matching. Nonetheless, connections to preference-based BO, dueling bandits, and rank-based acquisition optimization in BO are only lightly covered, and the novelty claim over these areas is not fully disentangled. Potential weakness: limited discussion on ranking metrics like NDCG/Precision@k and why AUPCC is preferable in MBO; scant positioning relative to recent OOD-aware surrogates with uncertainty estimates."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics/broader impacts section is visible in the provided text. The work optimizes designs (including biological sequences), which carries potential misuse risks (e.g., unsafe design exploration or biased datasets). Data provenance is largely based on Design-Bench, but licensing, safety considerations, and societal implications are not discussed here. Per RBCL Evidence Severity Scaling, missing information caps this criterion. Potential weakness: lack of discussion on safety in real-world deployment and the implications of OOD extrapolation errors."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.6,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "The paper presents a useful and relatively original perspective by framing offline MBO as a ranking problem with an AUPCC metric and LTR-based training. Empirically, it appears competitive across several benchmarks and baselines. However, key concerns remain: theoretical support is mostly generic LTR generalization for linear models and does not address OOD search behavior with MLP surrogates; statistical rigor (significance tests, uncertainty quantification) and some reproducibility details are incomplete in the main text; and related work positioning relative to preference-based and ranking-centric BO is not fully resolved. Ethics/broader impact is also not addressed. Under the RBCL anti-inflation and conservative stance, these issues preclude acceptance at this stage. A major revision strengthening theory-practice alignment for OOD settings, reporting stronger statistical evidence, clarifying implementation details, and adding an ethics statement would substantially improve the case."
+  }
+}

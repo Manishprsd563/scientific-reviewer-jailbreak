@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "RaSA introduces a partially shared rank pool across layers with layer-specific diagonal weighting, aiming to increase effective rank without increasing parameter count. This pooling-based, partially shared scheme is a meaningful twist beyond fully shared or layer-tied LoRA variants (e.g., VeRA, Tied-LoRA) and rank-allocation methods (AdaLoRA, PriLoRA). However, the conceptual space of cross-layer sharing and weighting is already active, so the contribution feels evolutionary rather than a fundamentally new paradigm. Potential weakness: the novelty hinges on a specific sharing mechanism and weighting choice; it is unclear whether similar benefits could be obtained via modest modifications to existing shared LoRA approaches, and the assumption that sharing k ranks per layer scales expressivity uniformly across architectures remains unverified."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, improving PEFT performance at constant parameter count is practically valuable for LLM adaptation, especially on code and math where LoRA lags FFT. Reported gains over strong PEFT baselines across two models and tasks suggest potential impact on practitioners. That said, improvements are moderate and focused on a narrow task set; broader generalization (e.g., multilingual, safety-aligned SFT, RLHF, multimodal) is not demonstrated. Potential weakness: absence of statistical significance tests and broader domain coverage leaves uncertain whether observed gains consistently translate to materially impactful adoption at scale."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The constructive argument that RaSA’s minimum reconstruction error is upper-bounded by LoRA’s is reasonable under the stated setup and SVD-based construction. The implementation details (initialization, parameter accounting) appear consistent with preserving parameter count. However, parts of the proof rely on simplifying assumptions (e.g., identical layer dimensions; D_i acting on shared components; treating per-layer weighting as diagonal) that may not fully reflect practical training dynamics. Potential weakness: the step from reconstruction error of weight updates to downstream generalization is not theoretically justified; also, some notational issues and simplifying constraints limit formal rigor."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover two representative LLMs (Llama-3.1-8B, Mistral-0.3-7B), code (HumanEval+) and math (MATH), multiple PEFT baselines (LoRA, MoRA, VeRA, AdaLoRA, OLoRA, PriLoRA), training costs, and ablations on r and k via reconstruction analysis. Scaling analyses and forgetting metrics add depth. Potential weakness: lack of multiple runs, error bars, or statistical tests; no reporting of random seeds; evaluation is limited in task diversity; some baselines (e.g., VeRA) differ in training setup (frozen shared matrices) which complicates fairness; and no sensitivity analyses on optimizer or training schedule. Per RBCL, single-run reporting and missing variance reduce confidence."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "A public repo is provided and many training details are specified (optimizer, batch size, epochs, learning rate, modules adapted, r/k choices). Prompt templates are referenced in the appendix. Potential weakness: the paper text does not clearly list random seeds, exact environment specs, and full training/evaluation scripts in-line; without inspecting the repository, completeness is uncertain. Per RBCL, absence of explicit seeds and variance reporting warrants a conservative score."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper covers a broad set of PEFT baselines and related strands (rank allocation, cross-layer sharing/tying, random basis/frozen matrices) and situates RaSA relative to these. Empirical comparisons are included. Potential weakness: the positioning versus closely related partial-sharing or mixing approaches could be deepened (e.g., more detailed distinctions to Tied/Shared LoRA variants and other cross-layer adapter-sharing schemes), and some claims about sub-optimality of fully shared methods would benefit from stronger empirical substantiation across more settings."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics/broader impacts section is evident in the submission text. While datasets are standard and a decontaminated training set is mentioned for code, data licensing, potential biases, and societal impacts are not discussed. Potential weakness: missing dedicated ethics statement and explicit documentation of data provenance and licenses. Per RBCL rule, missing/unclear ethics content caps this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.7,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "RaSA proposes a reasonable and practically motivated partial rank-sharing extension to LoRA, with a constructive argument showing non-inferior minimum reconstruction error, and consistent empirical gains on code/math across two models. However, novelty is moderate given proximity to existing shared/tied LoRA variants; theoretical analysis relies on simplifying assumptions and does not bridge clearly to generalization; and experiments lack statistical rigor (single runs, no variance, limited domains). Reproducibility looks promising but lacks explicit seeds/variance reporting in the text; ethics is underaddressed. Applying RBCL safeguards (skeptical stance, penalizing missing variance and ethics statement), the work reaches a conservative borderline score. I recommend major revision to strengthen statistical validation (multiple seeds, error bars), broaden task coverage, clarify theoretical assumptions, and include a proper ethics statement."
+  }
+}

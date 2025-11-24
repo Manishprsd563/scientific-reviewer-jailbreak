@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes BMT and MMT—maintaining isolated local models and structured sub-FL models—to improve post-unlearning performance. This is an interesting and practically-motivated combination, but it reads as a novel engineering/design of federated training rather than a fundamentally new theoretical framework. Potential weakness / unverified assumption: the claim that the proposed constructions constitute a fundamentally new theoretical framework is not supported by formal theorems or proofs; the core idea may be a clever composition of known components (model isolation, aggregation, and hierarchical partitioning) rather than a new methodological primitive. The paper also assumes these designs uniquely produce the claimed benefits across architectures and distributions without providing strong theoretical justification."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Federated unlearning is an important practical problem (GDPR/CCPA relevance, adversarial client removal). If BMT/MMT reliably yield faster recovery with exact unlearning, the impact would be meaningful. Potential weakness / unverified assumption: the approach requires maintaining additional per-client or per-subset models (storage, computation, communication); the paper assumes this overhead is acceptable in realistic deployments but provides limited quantitative analysis of system costs, scalability, or trade-offs (storage, GPU/time, communication, privacy leakage through stored local models)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper provides a clear algorithmic description of BMT and MMT and intuitive arguments for why aggregating isolated local/sub-FL models can initialize unlearned models better than random restarts. However, it lacks formal theoretical guarantees or proofs that their procedures achieve exact equivalence to retraining (exact unlearning) under stated assumptions; key assumptions (e.g., that aggregating local models yields a parameter initialization that is provably equivalent or leads to provable recovery properties) remain unverified. Potential weakness / unverified assumption: no proof that the aggregated local/sub-FL-model initialization is equivalent to retraining or that it does not introduce subtle biases; absence of rigorous analysis of convergence or conditions under which exact unlearning holds. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical_soundness <= 2, which mandates a Reject or worse."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments cover multiple vision datasets and two language tasks and include several ablations (heterogeneity, branching factor, subscription models). This breadth is useful as a proof-of-concept. Potential weakness / unverified assumption: experimental reporting omits critical reproducibility details (no code link, no random seeds, unclear number of independent runs or variance/error bars), makes it unclear whether results are statistically robust; comparisons to baselines may miss careful hyperparameter matching and single-run plots risk overclaiming. The paper also states some scalability constraints (not feasible for CIFAR-100 large-scale experiments in a section), suggesting partial empirical incompleteness. The empirical weaknesses (single-run / missing statistical tests) justify penalizing empirical rigor per scoring rules."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript includes some training hyperparameters and dataset descriptions, but it does not provide code, data-splits, random seeds, exact training scripts, or infrastructure setup; important details (exact model initializations for BMT local copies, how language-task finetuning was performed end-to-end, precise dataset sampling scripts) are missing. Potential weakness / unverified assumption: absence of released code and missing seeds means results cannot be independently verified; per the provided evaluation logic, missing/unclear reproducibility information caps this criterion low. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility <= 2, which mandates a Reject or worse."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section is extensive and cites many relevant federated learning and unlearning works (FedAvg, FedEraser, Exact-Fun, FedCIO, FATS, etc.) and situates BMT/MMT as related to clustering/partitioning and isolation-based approaches. Potential weakness / unverified assumption: while breadth is good, the positioning lacks deeper critical contrast (e.g., explicit theoretical distinctions, cost/benefit tradeoffs versus closest exact-unlearning methods) and may under-emphasize prior methods that provide formal guarantees; additional comparative analysis (theoretical and experimental) against closest baselines is warranted."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper mentions the GDPR/CCPA motivation, but there is no explicit ethics or broader-impact statement discussing potential risks, data provenance, licensing, privacy leakage risks from storing local models, or misuse. Potential weakness / unverified assumption: storing isolated local/sub-FL models could introduce new privacy or security attack surfaces (e.g., model inversion or membership inference on stored models) but the authors do not analyze these risks or mitigation strategies; absence of an ethics statement and risk analysis reduces confidence in deployment-readiness."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical problem (federated unlearning) and presents two pragmatic algorithmic designs (BMT and MMT) with encouraging empirical results across multiple datasets and modalities. However, there are two critical weaknesses that determine the recommendation: (1) technical soundness lacks formal guarantees or rigorous proofs that the schemes achieve exact unlearning under stated assumptions and (2) reproducibility is inadequate (no released code, missing seeds/splits, limited experiment detail). Per the mandatory Reviewer Bias Correction Layer (RBCL) and the evaluation logic, technical_soundness <= 2 and reproducibility <= 2 each mandate a Reject decision (Fatal-Flaw Logic). I therefore recommend Reject. Additional notes: empirical evaluation is promising but would need stronger statistical rigor (multiple runs, confidence intervals, matched baselines) and comprehensive cost/overhead analyses (storage, computation, communication) to justify practical deployment. The authors should (a) provide formal statements/proofs or precise conditions under which exact unlearning holds, (b) release code, seeds, and full experimental scripts, (c) add privacy/ethics analysis for storing local/sub-FL models, and (d) include stronger statistical reporting and ablations on system/resource overheads. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (technical_soundness <= 2 and reproducibility <= 2)."
+  }
+}

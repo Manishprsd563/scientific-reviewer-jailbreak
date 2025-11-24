@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper combines existing techniques (VQ-VAE, MCTS, temporal abstraction, macro-actions) in a relatively straightforward manner. While the masking mechanism for return-to-go in the VQ-VAE is a minor contribution, the core components—vector quantization for discretization, Transformers as transition models, and MCTS with progressive widening—are well-established. The primary novelty lies in the engineering integration rather than fundamental new insights. The claim that taking expectations over latent transitions mitigates non-injective mapping uncertainty (Appendix C reference) is not thoroughly justified in the main text. Overall, this represents an incremental combination of known methods applied to offline RL, falling short of the 'genuinely new methodological insight' threshold required for scores of 4+."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper addresses a relevant problem—planning in high-dimensional continuous action spaces under stochasticity. However, several limitations reduce impact: (1) experiments are confined to offline RL, limiting applicability to real-world interactive settings; (2) the results show L-MAP performing 'on-par' with model-free baselines rather than consistently outperforming them across all benchmarks (the claim of 'significantly outperforms' is not uniformly supported); (3) the practical benefit of lower decision latency is demonstrated only in Figure 1b without comprehensive latency analysis across all tasks; (4) the method introduces multiple hyperparameters (λ, α, ε, B, M, N, k) whose sensitivity and selection procedure are not thoroughly analyzed, raising practical deployment concerns. The work would be more impactful if it demonstrated clear superiority across benchmarks or provided theoretical guarantees."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns undermine soundness: (1) The modified VQ-VAE loss function (Equation in Section 3.1) is introduced without theoretical justification or ablation studies demonstrating its necessity. Why is the masking + alignment strategy better than alternatives? (2) The claim that taking expectations over latent transitions mitigates non-injective mapping uncertainty (Section 3.2) relies on a deferred argument ('detailed analysis in Appendix C'), but the core claim lacks rigorous justification in the main text. How does averaging fundamentally solve the many-to-one mapping problem? (3) The parallel expansion phase (Section 3.2) samples N subsequent codes per action, but the choice of N and its impact on performance are not analyzed. (4) The progressive widening integration is presented as a solution to search inefficiency, but no convergence analysis or theoretical guarantees are provided. (5) The reconstruction loss assumes the decoder can accurately recover (R, s, m) from latent codes, but reconstruction quality is not empirically validated. This is a critical assumption in planning."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experimental validation is insufficient: (1) No ablation studies are provided. The paper introduces a masking mechanism, parallel expansion, progressive widening, and the latent transition model, but does not isolate the contribution of each component. Which design choice drives performance? (2) Results are presented as averages without error bars, confidence intervals, or statistical significance tests. Are improvements statistically significant? (3) The paper claims to outperform model-based baselines (TT, TAP) but provides no details on whether these baselines were re-implemented or taken from prior work, and whether hyperparameters were tuned equally. (4) Stochastic environment results rely on MuJoCo with added noise (Rigter et al., 2023), a relatively artificial setting. Real stochasticity testing is limited. (5) Latency comparisons (Figure 1b) use only a single environment and do not report actual wall-clock time or computational costs of pre-constructing the search space, which is a non-trivial operation. (6) Adroit hand manipulation results are mentioned but not detailed; no per-task breakdowns are provided. (7) The paper lacks analysis of failure modes or sensitivity to hyperparameters (λ, α, ε, B, M, N). (8) Missing ablation on macro-action length L and its effects."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised: (1) No mention of code release or availability. The paper does not state whether code will be made public, is proprietary, or is under review. (2) Hyperparameters are introduced (λ, α, ε, B, M, N, c, β) without clear specification of their values. How were they selected? Were they tuned per task? (3) Random seeds are not mentioned. Were multiple random seeds used? What is the variance across runs? (4) Training details are missing: batch sizes, learning rates, optimization algorithms (Adam? SGD?), number of training epochs, early stopping criteria. (5) The VQ-VAE architecture (encoder/decoder depth, width, attention heads for the Transformer) is not specified. (6) The prior Transformer's architecture is not detailed. (7) The MCTS hyperparameter c (exploration constant) value is not provided. (8) Data preprocessing steps are not described. (9) The paper mentions evaluation on 'offline RL setting' with trajectories from a behavior policy, but the behavior policy is not characterized (random? near-optimal?). (10) No discussion of computational requirements (GPU memory, training time) or whether results are reproducible on different hardware. This severely limits reproducibility."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is reasonably comprehensive in breadth but lacks depth in positioning. Strengths: (1) The paper surveys temporal abstraction in both model-free and model-based RL, providing context. (2) Connections to MuZero and Stochastic MuZero are discussed, explaining why those methods don't apply directly to high-dimensional continuous action spaces. (3) Connections to robust RL and theoretical work on continuous control are briefly mentioned. Weaknesses: (1) Comparisons to TAP (Jiang et al., 2023), which is conceptually closest to L-MAP, are superficial. The paper does not clearly articulate what makes L-MAP different beyond using macro-actions. Both use VQ-VAE and Transformers for planning; what is the key innovation? (2) The paper does not compare to other temporal abstraction methods like OPAL (Ajay et al., 2021) or more recent hierarchical RL approaches. (3) The positioning relative to model-free methods (CQL, IQL) is unclear; these methods solve a different problem (conservatism in offline RL) rather than addressing high-dimensional action spaces. (4) The paper claims L-MAP 'significantly outperforms' model-based methods, but in Section 5 acknowledges these methods 'face challenges in stochastic environments'—a fair comparison would require these baselines to be adapted for stochasticity, which may not have been done."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Ethics and broader impacts are completely absent. The paper makes no mention of: (1) Potential risks or failure modes of the method in safety-critical applications (the introduction mentions autonomous driving, but no safety analysis follows). (2) Data provenance or potential biases in offline RL datasets. (3) Limitations of offline learning—the method cannot adapt online, which may be problematic in dynamic environments. (4) Computational costs and energy consumption of training large VQ-VAE and Transformer models. (5) License information for datasets and code. (6) Broader societal implications of automated decision-making in autonomous systems. (7) Fairness or interpretability concerns—how transparent is the learned latent space? Can humans understand or audit decisions? The paper fails to meet basic standards for ethical reflection in ML research, particularly given the safety-relevant applications mentioned in the introduction. This oversight is significant for a venue like NeurIPS/ICLR that emphasizes responsible AI."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "L-MAP addresses a relevant problem and proposes a reasonable engineering solution combining VQ-VAE, Transformers, and MCTS for planning in high-dimensional continuous action spaces. However, the paper falls short of publication standards for top-tier venues due to multiple critical deficiencies: (1) **Fatal-Flaw: Reproducibility** (score 1/5)—No code availability stated, hyperparameters not specified, training details missing, random seeds not mentioned, architectural details absent. This alone triggers the reproducibility override per RBCL §2, capping the decision at 'Reject' or worse. (2) **Fatal-Flaw: Empirical Validation** (score 2/5)—No ablation studies isolating component contributions, no error bars or statistical significance testing, unclear baseline comparison fairness, latency analysis incomplete, missing sensitivity analysis to hyperparameters. The claims of 'significant outperformance' are not adequately supported. (3) **Technical Soundness** (score 2/5)—The key innovation (masking mechanism in VQ-VAE) lacks theoretical justification and empirical validation. The argument that expectations over latent transitions solve non-injective mapping issues is deferred to an appendix and remains unsubstantiated in the main text. Parallel expansion design choices are not justified. (4) **Novelty** (score 3/5)—The contribution is primarily an engineering integration of existing techniques without fundamental new insights. While the application to offline RL is useful, it is incremental. (5) **Ethics** (score 1/5)—Complete absence of ethics/broader impact discussion despite safety-relevant applications mentioned in the introduction. Per RBCL §2 Fatal-Flaw Logic, the combination of reproducibility ≤ 2 and empirical validation ≤ 2 mandates rejection. Additionally, the paper would require major revisions addressing ablations, hyperparameter analysis, statistical testing, code release, and complete technical details. The current form is unsuitable for publication at a top venue."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a layerwise norm-based rescaling with bias compensation to preserve proportionality, and an EMA blending toward initialization to limit unbounded weight growth. The explicit use of proportionality with bias scaling is a neat packaging, and applying rescaling at every step is a practical twist. However, the core idea leverages well-known positive homogeneity/scale-invariance properties and prior weight rescaling/initialization-distance regularizers (e.g., Niehaus et al., 2024; Alabdulmohsin et al., 2021; L2-init) and path/balancedness insights (Neyshabur et al.). The novelty is moderate rather than a fundamentally new paradigm. Potential weakness: the applicability relies on homogeneous activations and assumptions about handling normalization layers; the extension beyond these settings is not convincingly established."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If broadly valid, preventing weight blow-up while preserving function proportionality could aid warm-start and continual learning and may modestly improve generalization. The method is simple and potentially widely adoptable. However, demonstrated impact is confined to small/medium-scale image classification (MLP/CNN/VGG-16) with modest gains; no results on modern architectures (transformers, ViTs), tasks (NLP, self-supervision), or large-scale training. In several cases L2 performs comparably or better, tempering claims of practical dominance. Potential weakness: the assumption that controlling weight norms via EMA-blended rescaling will generalize to large-scale or diverse modalities remains unverified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proportionality theorem for homogeneous activations and affine layers is plausible and aligns with known scale properties; the bias-scaling rule yielding a global proportionality constant is reasonable. The boundedness argument for EMA-blended scaling is referenced to an appendix, but not shown in the main text. Handling normalization layers is discussed informally; a rigorous justification that the proposed rescaling preserves proportionality under BN/LN (with running statistics, training vs. inference modes) is not fully developed. Interactions with common optimizers (AdamW/decoupled weight decay), gradient noise, and stability of cumulative bias scaling are not analyzed. Potential weakness: the EMA variant breaks exact proportionality, and the implications for optimization dynamics and convergence are not theoretically established."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments span several datasets (MNIST, CIFAR-10/100, TinyImageNet) and models (MLP/CNN/VGG-16), with warm-start and continual learning setups plus a standard generalization table. However, ablations are limited (e.g., sensitivity to λ/EMA parameters, frequency of rescaling, effect on bias norms/gradient magnitudes). Strong baselines are missing: no spectral norm regularization, Path-SGD/path-norm, SAM, sharpness-aware/normalized training, or modern continual-learning baselines (EWC, SI, replay). Statistical rigor is unclear beyond occasional mean±std; no significance testing, no multiple seeds consistently reported, and computational overhead is not measured. Potential weakness: claims of superiority over re-initialization and regularization are not substantiated against comprehensive baselines and lack robustness analyses."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references detailed settings in the appendix and provides high-level algorithmic descriptions. However, there is no explicit mention of released code, scripts, or full training details (random seeds, exact hyperparameter sweeps, environment, hardware, and implementation specifics). Under the rubric, missing or unclear reproducibility artifacts cap this criterion at 2/5. Potential weakness: without code and complete setup details, the reported improvements are difficult to verify."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites works on weight decay, spectral norm regularization, initialization-distance penalties, re-initialization, and prior weight rescaling approaches. The positioning around plasticity and unbounded weight growth is clear. Nonetheless, key related strands (e.g., path-norm/Path-SGD, scale-invariant optimization, Fisher-Rao/NGD perspectives, balancedness under reparameterizations) are only partially covered, and empirical comparisons omit several pertinent baselines. Potential weakness: the distinction from and relation to closely related rescaling and scale-invariant training methods are not deeply analyzed."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work uses standard public datasets and focuses on algorithmic contributions. However, there is no explicit ethics/broader impacts statement, discussion of data licenses or provenance, or potential risks of misuse. Per the rubric, missing or unclear ethics statements cap this criterion at 2/5. Potential weakness: absence of an ethics section and dataset licensing details."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While SWR is a simple and potentially useful rescaling scheme with a plausible proportionality argument, the novelty is moderate, theory is not fully rigorous for normalization layers and EMA effects, and empirical validation lacks comprehensive baselines and ablations. Critically, reproducibility artifacts (code, seeds, full configs) are missing or unclear, triggering RBCL §2 Fatal-Flaw Logic: with Reproducibility ≤ 2, the decision must be Reject, and the total score is capped. Given the presumption of rejection and ICLR calibration, the current evidence does not overturn skepticism. Strengthening reproducibility, expanding baselines (e.g., spectral norm, Path-SGD, SAM; EWC/SI/replay in CL), providing robust ablations and statistical tests, and clarifying theoretical guarantees under BN/LN and EMA would materially improve the case."
+  }
+}

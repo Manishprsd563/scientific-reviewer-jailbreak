@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes two methods, BMT and MMT, to address the post-unlearning performance degradation in exact federated unlearning. While the core idea of preserving pre-unlearning knowledge or structured sub-models is not entirely new in the broader machine unlearning literature (e.g., partitioning data for unlearning is seen in Bourtoule et al. (2021)), their specific application and detailed protocols within the federated learning context, especially MMT's hierarchical structure and optimization for unlearning probabilities, offer a moderate level of novelty. A potential weakness is that the fundamental building blocks (e.g., model aggregation, local training) are standard FL components, and the core idea of maintaining auxiliary models to mitigate retraining costs for unlearning has been explored in different forms."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem addressed – improving post-unlearning performance in exact federated unlearning – is significant, especially given regulatory demands like GDPR and practical needs for fast model recovery in deployment. The proposed methods aim to make exact unlearning more feasible for real-world applications by reducing the performance drop. However, the practical overhead of training and maintaining multiple models (BMT) or a hierarchical structure of sub-models (MMT) throughout the FL process is a significant consideration that is not fully quantitatively analyzed (e.g., memory footprint, communication costs over the entire training lifecycle, not just unlearning). This overhead could limit its applicability in resource-constrained federated environments, which is a common scenario in FL."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper introduces two methods, BMT and MMT, with procedures described for initialization, training, unlearning, and new client joining. While the descriptions are generally clear, the technical depth regarding *why* these methods guarantee exact unlearning beyond 'restarting the FL training process with the newly initialized global model' is somewhat superficial. The paper claims 'exact federated unlearning' but then relies on a re-initialization and subsequent FL training. The argument for exactness hinges on discarding the 'current global model' and re-initializing from components that were not directly influenced by the unlearned client (BMT) or specific sub-models (MMT). However, the exactness is not formally proven or discussed in detail. The paper lacks a rigorous theoretical analysis or proof of concept for the exact unlearning claim of the re-initialized and re-trained model. For instance, whether the re-initialized global model from local models (BMT) or aggregated sub-FL models (MMT), followed by retraining, truly converges to the *exact same* model as training from scratch without the unlearned client data from the beginning is not formally guaranteed. This crucial aspect remains an unverified assumption."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experimental setup includes multiple datasets (vision and language), various client NNs models, and compares against several baselines. The results show that BMT and MMT generally outperform other methods in terms of faster recovery and better post-unlearning performance. The ablation studies on data heterogeneity, branching factor, and unlearning probabilities are insightful. However, the experimental section lacks a crucial performance metric: the actual computational cost (e.g., training time, communication rounds, or memory overhead) of BMT and MMT, especially during the continual training phase where additional models are maintained. The paper states, 'The price for this improved post-unlearning performance is the cost of pre-training the local models in advance.' but does not quantify this cost effectively across various scenarios (e.g. communication or computation costs during FL training, the memory for each client to keep an isolated model from the global model). This quantitative gap makes it difficult to fully assess the practical trade-offs. The statement for CIFAR-100 'Therefore, it is infeasible for large-scale experiments like CIFAR-100' without further explanation is also a weakness."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper provides details on datasets, models, training parameters (optimizers, learning rates, batch sizes), and hardware used. However, there is no mention of releasing code or specific implementation details beyond the high-level algorithmic descriptions. Hyperparameters for all comparison methods are not exhaustively detailed, and critically, the random seeds used for experiments are not specified, making direct reproduction challenging. The absence of publicly available code greatly hinders reproducibility. Given the RBCL, a score <=2 here translates into a 'Reject' decision."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "The related work section covers Federated Learning, Machine Unlearning, and Federated Unlearning, effectively contextualizing the problem. It discusses several prior exact unlearning methods and highlights their limitations (e.g., computational cost of RfS, sub-optimality of base models in Bourtoule et al.). The comparison methods used in experiments are relevant. The positioning of FedCIO, Exact-Fun, and FATS is reasonable, explaining how the proposed method 'touches on both ideas and uses aggregation of a few sub-FL models to obtain a good initialization for much more efficient retraining.' A minor weakness is that some recent advancements or theoretical guarantees around approximate unlearning or alternative exact unlearning strategies could be further discussed to provide an even broader landscape."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper mentions that FU techniques are desirable to facilitate the 'right to be forgotten' formalized in GDPR and CCPA, and to counteract adversarial clients. This indicates an awareness of ethical implications and positive broader impacts related to data privacy and model robustness. However, there is no dedicated ethics statement or deeper discussion on potential negative societal impacts, risks (e.g., misuse of unlearning, security vulnerabilities in the proposed methods, biases), or data provenance beyond citing public datasets. Without a more explicit and comprehensive discussion, the ethical considerations seem to be only superficially addressed. A formal ethics statement or section outlining potential risks is absent."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "The paper addresses a significant challenge in federated learning: achieving exact unlearning with improved post-unlearning performance. The proposed methods, BMT and MMT, show promising empirical results in accelerating model recovery post-unlearning across various datasets and models. However, the paper suffers from critical weaknesses. The technical soundness of the 'exact unlearning' claim lacks rigorous theoretical backing, remaining an unverified assumption. More importantly, the reproducibility score is low (2/5) due to the absence of code release and unspecified random seeds, which is a fatal flaw for a top-tier conference. The computational and memory overheads of maintaining multiple models (BMT) or hierarchical structures (MMT) are also not adequately quantified, limiting the assessment of practical applicability. Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL §4 Error Asymmetry Principle. The score for reproducibility being <= 2 mandates a 'Reject' decision, regardless of other scores."
+  }
+}
+```

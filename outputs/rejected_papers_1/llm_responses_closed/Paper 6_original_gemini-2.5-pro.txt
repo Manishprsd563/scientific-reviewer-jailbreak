@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes two methods, BMT and MMT, for exact federated unlearning. The core idea of maintaining isolated models (BMT) or sub-federation models (MMT) to construct a better initial model after unlearning is a clever engineering solution to the performance drop seen in retraining from scratch. The MMT concept, particularly its optimization using structures inspired by Huffman coding for non-uniform unlearning probabilities, presents a moderate degree of novelty. However, the overall approach is an adaptation and combination of existing concepts like sharded training for unlearning (e.g., SISA) and clustered/hierarchical federated learning (e.g., FedCIO). A potential weakness is that the novelty is more in the specific application and engineering than in a fundamentally new unlearning paradigm. The paper assumes the significant computational and storage overhead of these parallel training schemes is a worthwhile trade-off, which may not hold true in all contexts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses a highly significant and practical problem in federated learning: performing exact unlearning (a legal and practical necessity) without suffering the severe performance degradation of retraining from scratch. A solution that achieves this would be very useful for deploying FL systems in sensitive domains like finance and healthcare, where client churn is expected and service continuity is critical. The methods promise a direct path to deploying high-performing, unlearned models quickly. The primary unverified assumption is that the substantial overhead of BMT (doubling client-side computation) and MMT (managing multiple parallel FL instances) is acceptable in practice. This could limit its applicability to cross-silo settings with a small number of well-resourced clients, rather than large-scale cross-device FL."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The claim of 'exact unlearning' for the BMT method is correct by design; discarding the global model and re-aggregating local models that have never seen the unlearned client's data ensures no information leakage. However, the paper suffers from a critical flaw: one of its two main contributions, Multi-Models Training (MMT), is not properly described. The paper references 'Section 3.2' for the MMT method, but this section does not exist in the provided text. The mechanism for creating disjoint client subsets, the tree structure, and the aggregation strategy for MMT have to be inferred from brief mentions, which is insufficient for a rigorous technical evaluation. This omission of a core part of the methodology constitutes a major technical flaw. Thus, the soundness of MMT cannot be verified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper presents a broad range of experiments on vision and language tasks, including strong baselines and relevant ablation studies. However, the empirical validation lacks fundamental scientific rigor. The results in all figures are presented as single-run curves with no error bars or mention of averaging over multiple random seeds. This makes it impossible to judge the statistical significance and robustness of the reported performance gains, which could be an artifact of a lucky initialization. Furthermore, several details raise concerns about meticulousness, such as a reference to a non-existent 'Llama-3.2-3B' model and a nonsensical footnote (3) in the results discussion. An unverified assumption is that the single-run results presented are representative of the methods' average performance, which is a weak basis for strong claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is critically low. The authors have not provided or promised to provide source code. This is a significant weakness on its own, but it is compounded by a fatal flaw in the paper's text: the detailed description of the MMT algorithm is missing entirely (the promised Section 3.2 does not exist). Without the algorithm's specification or the code, it is impossible for the community to verify the claims or build upon this work. While some hyperparameters are listed, the lack of code and the incomplete method description render the experiments fundamentally irreproducible. The unverified assumption is that the reader can guess the implementation of a core contribution, which is unacceptable for a scientific publication."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The authors provide a reasonable overview of federated learning, machine unlearning, and federated unlearning. The paper correctly situates its contributions relative to naive retraining and other recent exact FU methods like FedCIO and Exact-Fun, highlighting the key difference in its approach (building a better initialization vs. speeding up retraining). The selection of baselines for comparison is appropriate. A potential weakness is that the connection to foundational centralized unlearning work like SISA, which uses a similar 'sharding' philosophy, could have been analyzed more deeply to better contextualize the novelty of applying this paradigm to the federated setting."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper motivates its work by citing its positive societal impact in enabling the 'right to be forgotten' as stipulated by regulations like GDPR. However, it completely lacks a dedicated Broader Impacts or Ethics Statement section, which is a standard requirement for top-tier conferences. This is a significant omission. The paper fails to discuss potential negative consequences, such as the increased computational and energy costs (and corresponding environmental impact) of training multiple parallel models. The assumption that the ethical motivation excuses the need for a formal, comprehensive discussion of broader impacts is a weakness."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 1.0,
+    "final_decision": "Reject",
+    "final_justification": "This paper addresses the important problem of efficient, exact federated unlearning. The core ideas are intuitive and the experimental results, at face value, appear promising. However, the submission is critically undermined by multiple fatal flaws that mandate rejection. The decision is set to 'Reject' due to the RBCL §2 Fatal-Flaw Logic override. \n\n1.  **Incomplete Methodology (Technical Soundness = 2/5):** The paper fails to describe one of its two central contributions, the MMT algorithm. The referenced 'Section 3.2' is missing, rendering the method unverifiable.\n2.  **Lack of Reproducibility (Reproducibility = 1/5):** No code is provided, and combined with the incomplete methodology, this makes the work impossible to reproduce or build upon. This is a critical failure for a top-tier conference paper.\n3.  **Insufficient Empirical Rigor (Empirical Validation = 2/5):** Experiments are presented as single runs with no statistical validation (e.g., error bars from multiple seeds), which calls the reliability of the results into question.\n\nWhile the problem is significant, these fundamental issues of incompleteness and lack of scientific rigor prevent the paper from being acceptable in its current state. The strengths in other areas cannot compensate for these non-compensatory flaws."
+  }
+}
+```

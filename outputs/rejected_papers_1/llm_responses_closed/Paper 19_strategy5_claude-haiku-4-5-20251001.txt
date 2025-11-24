@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper presents a genuinely novel approach to speculative decoding by introducing dynamic token tree construction based on draft probability, a clear departure from fixed tree structures (SpecInfer, Medusa, Sequoia). The core insight connecting draft distribution to acceptance rate via KL-divergence constraint is intuitive and empirically validated. However, the novelty is primarily in the engineering/optimization of the tree construction algorithm rather than a fundamentally new theoretical insight. The greedy expansion strategy, while effective, is relatively straightforward once the hypothesis is established. Additionally, Eagle-2 (Li et al., 2024) also proposes dynamic tree construction, though with different methodology. The claim of optimality under 'mild assumptions' (Appendix D) is not fully substantiated in the main text."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The method addresses a practically important problem—accelerating LLM inference is highly relevant to deployment. The reported improvements (9.1× throughput, 9.4× latency reduction on Llama2-70B) are substantial and would be valuable to practitioners. However, significance is somewhat limited by: (1) the method's dependence on draft model quality and availability, (2) improvements are primarily effective at low temperatures (0°C), and (3) the gains over Sequoia, while consistent, are often modest (e.g., 1.5-2× in many settings). The practical impact on real-world deployments where draft models may not be readily available or well-tuned is unclear."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The core theoretical argument in Section 4 connecting KL-divergence to acceptance rate is sound but relies on strong implicit assumptions. The KL constraint D_KL(D||T) ≤ c is introduced without justification for why this specific bound holds in practice. The leap from this constraint to 'Hypothesis 1' (tokens with higher draft probability have higher acceptance rate) is intuitive but the argument is somewhat informal—the derivation does not rigorously prove this relationship, only suggests it should hold. Critical weakness: The paper claims optimality of the greedy algorithm (mentioned in Section 5.1 and Appendix D), but no rigorous proof is provided in the main text. The approximation SD[t_i] ≈ p_d[t_i] (Section 5.1) is not formally justified—why should acceptance rate equal draft probability? This assumption underpins the entire method but lacks theoretical support. Algorithm 1's correctness depends on these unverified assumptions."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover multiple datasets (C4, OpenWebText, CNN DailyMail, GSM8K, MT-Bench) and temperatures, which is commendable. However, critical gaps exist: (1) No ablation studies—what is the contribution of the greedy strategy vs. the threshold-based variant? How sensitive is performance to threshold selection? (2) Limited baselines—only compares against Sequoia and SpecInfer; Eagle-2 is discussed but not empirically compared despite being a concurrent work with similar dynamic tree ideas. (3) No statistical significance testing or confidence intervals reported; all results appear to be single runs. (4) The profiling in Figure 4 lacks detail on how the C++ implementation was optimized, making claims about negligible overhead hard to verify. (5) Missing ablation on Hypothesis 1—what if we use a different probability estimation method? (6) The threshold selection in Section 5.4 is mentioned as 'typically around 1/n' but no principled method or sensitivity analysis is provided. (7) No comparison of actual vs. estimated acceptance rates during tree construction."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility issues: (1) No code is provided or mentioned to be available—this is a severe limitation for a method-heavy paper with complex implementation details. (2) Hyperparameter choices are underspecified: What is the exact threshold selection procedure? How is the heap initialized? What are the random seeds for sampling? (3) The C++ implementation details are not disclosed, making the claimed 'negligible overhead' unverifiable. (4) CUDA graph capture details (129 sequence lengths from 128-258) are mentioned but not fully explained. (5) The CPU-offloading approach for Llama2-70B experiments is vague about optimization tricks used. (6) Missing details on draft model training/selection—how were JF68m and Llama2-7B selected as drafts? (7) Figure 2's experimental setup (which dataset, how many samples) is not clearly stated. (8) No mention of code release, reproducibility checklist, or supplementary materials. This is a major weakness that caps reproducibility score significantly below acceptable standards for top-tier venues."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Section 3 provides reasonable coverage of recent speculative decoding methods (SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, ReDrafter, Dynamic Depth Decoding). The positioning is generally fair, acknowledging that Eagle-2 also proposes dynamic trees but claiming DYSPEC's sampling-based approach is fundamentally different. However: (1) The distinction between DYSPEC's sampling and Eagle-2's top-k selection is claimed as important but not empirically validated through direct comparison. (2) The paper dismisses Eagle-2 and ReDrafter's inability to use standard verification, but does not empirically demonstrate that this is indeed a limitation in practice. (3) The comparison to Dynamic Depth Decoding is superficial—the paper mentions potential integration but does not explore this. (4) Missing discussion of other acceleration techniques (quantization, pruning, distillation) that could be complementary or competitive. (5) The paper positions itself as solving the 'generalization to diverse query distributions' problem, but limited evidence is provided that other methods truly fail on this dimension—most show reasonably consistent performance across the tested datasets in Tables 1-3."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper contains no ethics statement, no discussion of broader impacts, and no consideration of potential risks or societal implications. While the work is not inherently unethical, best practices for responsible AI research require: (1) Discussion of how faster LLM inference might enable harmful applications at scale. (2) Data provenance and licensing statements for datasets used (C4, OpenWebText, CNN DailyMail, GSM8K, MT-Bench)—are these properly licensed? (3) Acknowledgment of environmental impact (GPU energy consumption during experiments). (4) Transparency about model weights and data availability. The paper uses Llama2 models and public datasets but does not explicitly state licensing compliance. This omission, combined with lack of code release, raises concerns about responsible research practices. Missing ethics discussion is a red flag for modern ML conferences."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 21,
+    "confidence": 0.72,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "DYSPEC presents a novel and practical approach to improving speculative decoding through dynamic token tree construction guided by draft probability. The core insight is intuitive, and empirical results demonstrate consistent improvements over strong baselines across multiple datasets. However, the paper suffers from critical weaknesses that prevent acceptance at a top-tier venue: (1) **Fatal Flaw—Reproducibility (Score 2)**: No code is provided, C++ implementation details are opaque, and hyperparameter selection (especially threshold determination) is not reproducibly specified. This violates modern standards for method papers and prevents independent verification. (2) **Technical Soundness (Score 3)**: The theoretical justification for the core hypothesis and the approximation SD[t_i] ≈ p_d[t_i] lack rigor. The claimed optimality proof is relegated to Appendix D and not substantiated in the main text. (3) **Missing Ablations and Comparisons**: No ablation studies validate design choices. Eagle-2, a concurrent work with similar ideas, is not empirically compared. No statistical significance testing. (4) **Ethics/Broader Impacts (Score 2)**: Complete absence of ethics discussion is inconsistent with conference expectations. Per RBCL §2 Fatal-Flaw Logic and the reproducibility override rule, the final decision is downgraded to **Reject** due to insufficient transparency and missing code. The paper would be suitable for acceptance after: (i) releasing code and detailed hyperparameter specifications, (ii) adding ablation studies on threshold selection and hypothesis validity, (iii) empirically comparing with Eagle-2, (iv) including statistical significance tests, and (v) adding an ethics statement. With these revisions, the work could merit acceptance."
+  }
+}
+```

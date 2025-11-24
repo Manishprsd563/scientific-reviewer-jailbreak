@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "IDI proposes using in-distribution interventions for RCD instead of counterfactuals, which is a meaningful conceptual contribution. However, the core insight—that counterfactuals fail due to abduction errors on OOD data—is somewhat incremental relative to prior work (Okati et al., 2024). The method combines existing techniques (SCM learning, Shapley values, interventions) without introducing fundamentally new algorithmic components. The theoretical comparison between interventional and counterfactual errors is useful but limited to additive noise models. Weakness: The approach is primarily an engineering solution that avoids OOD evaluation rather than a novel causal inference technique; it lacks broader methodological innovation."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "RCD is a practically important problem in cloud systems, and IDI's focus on robustness to OOD anomalies is relevant. However, significance is limited by several factors: (1) Assumption 1 (at most one root cause per simple path) is restrictive and violation handling is not well addressed; (2) Performance gains over baselines (Table 1) are modest—IDI achieves 0.90 Recall@1 on low latency, matching Traversal at 0.80 on temporal issues; (3) Real-world applicability depends on access to causal graphs, which the paper claims are 'easily available' but provides no evidence; (4) The method is only tested on one realistic dataset (PetShop) with linear additive SCMs. Weakness: Limited demonstrated impact on real systems; gains over simpler causal baselines are incremental rather than transformative."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper has multiple technical concerns: (1) Theorem in Section 4 is deferred to appendix with no summary; theoretical analysis is claimed but not fully visible in the main paper, making verification difficult; (2) Definition 1 defines the root cause distribution Q using conditioning on φ_j(x_j)=1 and φ_n(x_n)=1, but the paper does not rigorously justify that sampling from this distribution with estimated parameters approximates the oracle case; (3) The claim that interventional error is bounded by std(ε_j) lacks formal proof in the provided text; (4) Assumption 1 is unjustified—why is this assumption necessary beyond the example in Fig. 3? The paper does not provide a principled way to detect or handle violations; (5) The fix value sampling from P_X^trn(X_j | Pa_{x_j}) may not reflect causal fixes in interventional settings. Weakness: Core theoretical results are incomplete or missing from the main paper; key assumptions lack rigorous justification."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experimental validation is insufficient: (1) Toy experiment (Section 6.1) is on a tiny 4-node synthetic graph with 25-1000 training samples; generalization to realistic systems is unclear; (2) PetShop dataset uses only linear additive SCMs, contradicting claims about arbitrary SCM generality; (3) No statistical significance testing or confidence intervals reported for Table 1; (4) No ablation studies isolating the impact of different IDI components (anomaly detector choice, fix value sampling strategy, Shapley value computation); (5) Limited baseline coverage—notably absent are recent deep learning methods for causal inference; (6) The paper claims 'experiments on synthetic datasets' but provides results only on toy and PetShop; synthetic datasets are mentioned but not thoroughly evaluated; (7) No analysis of failure modes or error distributions; (8) Recall@k metric is standard but does not capture false positive rates. Weakness: Experimental scope is narrow, lacking comprehensive ablations and statistical rigor needed to support the strong claims about superiority over nine baselines."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility issues: (1) Code is not provided—only a promise: 'Code will be released at https://github.com/nlokeshiisc/IDI_release'; this link cannot be verified and is not currently available; (2) Hyperparameters for SCM learning (network architecture, learning rates, stopping criteria) are not specified in the main paper or clearly in the appendix; (3) No description of how anomaly thresholds τ_i are set—are they cross-validated? Fixed? This is crucial for anomaly detection; (4) For the toy experiment, details on MLP architecture, optimization procedure, and random seeds are sparse; (5) PetShop experiments inherit settings from prior work but the paper does not clearly restate all parameters; (6) No discussion of computational complexity or runtime comparisons; (7) The fix value sampling procedure is under-specified: 'sampling from conditional distribution P_X^trn(X_j | Pa_{x_j})' but the sampling strategy (e.g., Monte Carlo, rejection sampling) is not explained. Weakness: Reproducibility is severely compromised by missing code and incomplete parameter specifications, violating top-tier venue standards."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work is well-organized into correlation, causal anomaly, and causal fix categories, providing good structure. However, positioning has gaps: (1) The paper does not adequately discuss why prior counterfactual methods (Budhathoki et al., 2022b; SAGE) failed—are the issues specific to RCD or more general? (2) Limited discussion of when counterfactuals are preferable; the paper acknowledges this in limitations but does not explore it empirically; (3) Missing comparison with recent causal discovery and learning methods that might improve SCM quality; (4) The paper cites Okati et al., 2024 extensively but does not clearly articulate what IDI adds beyond their work; (5) No discussion of alternative solutions to OOD robustness (e.g., domain adaptation, uncertainty quantification); (6) Ethics and fairness implications of RCD are not discussed relative to prior work. Weakness: While prior work is cited, the positioning relative to existing causal inference methods could be sharper, and alternative solutions to OOD robustness are not explored."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics or broader impact discussion is provided in the paper. Critical concerns are unaddressed: (1) RCD in cloud systems could be used to unfairly blame specific components or personnel; potential for misuse is not discussed; (2) No discussion of bias in training data—if historical data reflects skewed operational patterns, learned SCMs may inherit these biases; (3) Causal graphs may encode false causal assumptions; incorrect graphs could lead to misdiagnosis with operational consequences; (4) Data provenance: PetShop is described as a benchmark, but no details on how the causal ground truth was established or validated; (5) Fairness: If root cause diagnosis determines resource allocation or incident response, IDI's limitations could have disparate impacts; (6) No discussion of failure modes that could harm production systems; (7) License information for code and datasets is absent. Weakness: Complete absence of ethics discussion is a critical oversight for a paper on automated diagnosis systems that could impact real operations and stakeholders."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.78,
+    "final_decision": "Weak Reject",
+    "final_justification": "IDI addresses a relevant problem (RCD robustness) and proposes a reasonable solution (in-distribution interventions), but the paper suffers from multiple critical flaws that warrant rejection. (1) **Reproducibility Fatal Flaw (RBCL §2):** Code is not provided (only a promise), hyperparameters are incompletely specified, and key implementation details are missing. This alone caps the score at ≤20. (2) **Technical Soundness Issues:** Core theoretical results are relegated to appendix; Definition 1 lacks rigorous justification; Assumption 1 is poorly motivated; the claim that interventional error is bounded by std(ε_j) lacks formal proof in accessible form. (3) **Weak Empirical Validation:** Single realistic dataset (PetShop) with linear SCMs contradicts generality claims; no statistical significance testing; no ablations; toy experiments are on trivial 4-node graphs. Table 1 shows only modest improvements (0.90 vs. 0.80 Recall@1 on some settings). (4) **Ethics Omission:** Complete absence of ethical discussion for a diagnostic system with operational consequences is a significant oversight. (5) **Limited Novelty:** While the in-distribution intervention idea is sensible, it is primarily an engineering workaround rather than a fundamental methodological contribution; combining SCM learning with Shapley values is incremental. The paper makes contributions to RCD methodology, but the combination of incomplete reproducibility resources, unverified theory, narrow experimental scope, and ethical blindness places it below the acceptance threshold for a top-tier venue. The work would benefit from (i) releasing code and complete hyperparameters, (ii) providing formal proofs and clearer theoretical exposition, (iii) evaluating on more diverse SCM types and datasets, (iv) adding statistical significance tests and ablations, and (v) discussing ethical implications and failure modes."
+  }
+}
+```

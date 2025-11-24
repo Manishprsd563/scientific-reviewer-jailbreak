@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes partial rank sharing across layers with a shared rank pool and layer-specific weighting, which is a distinct twist compared to fully shared approaches like VeRA and tied-LoRA. The theoretical framing via reconstruction error and the explicit construction are non-trivial extensions of LoRA. However, the idea is conceptually close to prior cross-layer sharing schemes, and the claimed effective-rank boost relies on assumptions about independence within the shared pool that are not rigorously validated. Potential weakness: the increase in effective rank (r − k + Lk) may be overstated if column dependencies arise in B_S/A_S, and the novelty relative to related sharing strategies may be incremental."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "Improving LoRA-style PEFT for code and math—two challenging, high-impact domains—can be widely useful. The reported gains across multiple ranks and two model families (Llama/Mistral) are consistent and practically relevant without adding parameter overhead. The approach is likely to be adopted by practitioners given ease of integration. Potential weakness: demonstrated impact is limited to SFT on two domains; generality to instruction-tuned models, RLHF settings, multilingual tasks, or safety-critical applications is untested, and training-time overhead (extra diagonal D_i and shared coupling) may introduce implementation complexity not fully benchmarked."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The MRE bound (e_rasa(k) ≤ e_lora) is reasonable and constructed via SVD components, and the parameter-count equivalence argument is coherent. However, mathematical exposition contains multiple notation/typo issues and skips steps that would clarify conditions under which rank actually increases to r − k + Lk (e.g., independence and conditioning of shared components). The optimization landscape and convergence properties are not analyzed, and cross-layer coupling effects are not theoretically characterized. Potential weakness: the same-dimension assumption across layers is strong, and the claim of rank increase may not translate to effective expressivity if B_S/A_S are poorly conditioned or collapse during training."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover two tasks (code/maths), two model families (Llama-3.1-8B, Mistral-0.3-7B), multiple ranks, training cost, and include several LoRA variants (LoRA, MoRA, VeRA; plus OLoRA, AdaLoRA, PriLoRA and FFT on math). The coordinate-descent reconstruction experiments and k-sweep (on reconstruction error) add insight. However, results appear to be single runs without confidence intervals; there are no multi-seed statistics; and some important baselines (e.g., QLoRA, other modern PEFT variants) are missing for code. The choice of k is not ablated on downstream performance, and reporting “BEST” test performance (in addition to LAST) can inflate perceived gains. Potential weakness: lack of statistical tests and limited ablation (e.g., effect of D_i removal, sharing only B or A, per-layer k) limits robustness of empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper links code and describes major hyperparameters (optimizer, batch size, epochs, LR, evaluation harness settings, sampling temperature, and prompt templates in the appendix). This is above minimal transparency. Nevertheless, random seeds, full environment details, and explicit data preprocessing/decontamination protocols are not clearly specified in the provided text, and large-model (70B/Mixtral) details are brief. Potential weakness: absence of multi-seed scripts/logs and exact reproducibility instructions (e.g., deterministic settings, hardware configs) could hinder precise replication; thus, per RBCL we avoid assuming missing details and keep the score conservative."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among LoRA variants and cross-layer sharing approaches (VeRA, Tied-LoRA), rank allocation methods (AdaLoRA, PriLoRA), and broader PEFT literature. The positioning versus fully shared matrices and parameter reduction works is generally fair. Potential weakness: some recent strong baselines and variants (e.g., QLoRA and other contemporary PEFT/adapter methods for code/math) are not discussed in depth, and distinctions from closely related partial-sharing designs could be elaborated with formal comparisons or taxonomy."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics/broader impacts discussion is present in the provided content. Given code generation and mathematical reasoning domains, potential risks (e.g., code misuse, license constraints, data provenance) merit discussion. Per RBCL Evidence Severity Scaling, absence of an ethics statement caps the score and warrants a conservative rating. Potential weakness: lack of discussion on dataset licenses, safety evaluation, and potential misuse scenarios."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.68,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "RaSA presents a plausible and practically useful extension of LoRA via partial rank sharing with a shared pool and per-layer weighting. Theoretical support (MRE bound) and consistent empirical improvements on code and math across two model families indicate promise and potential impact. However, per RBCL anti-inflation safeguards and conservative stance: (i) technical exposition has notation issues and unproven assumptions about effective rank and conditioning; (ii) empirical evidence lacks multi-seed statistics and broader ablations (including downstream k-ablation, D_i ablation, and additional competitive baselines like QLoRA for code); and (iii) reproducibility and ethics statements are incomplete in the provided text. While the work is close to acceptance, the current evidence base falls short of top-tier rigor. Decision is downgraded to Borderline/Major Revision under RBCL Weighting Severity over Quantity and Evidence Severity Scaling."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a large, continually updatable benchmark that evaluates LLMs on executing real-world code by extracting typed functions from popular Python repositories, inlining dependencies, and generating diverse inputs, including error-triggering cases. This goes beyond synthetic setups like Learning to Execute and complements CRUX-Eval by emphasizing real-world code and exception prediction at scale. However, the core idea—evaluating execution on code snippets—is not fundamentally new; the primary contribution is scale and pipeline engineering. A key unverified assumption is that LLM-generated inputs plus frequent regeneration suffice to mitigate training contamination; no quantitative contamination analysis is presented."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "A scalable benchmark targeting program execution on real repositories could be impactful for assessing mechanistic capabilities, model regression tracking, and potentially cybersecurity-related error prediction. The reported model ranking alignment with existing code benchmarks suggests practical relevance. Yet, impact is limited without clear public release details, robust validation of scoring reliability, and controls for context-window effects across models. A potential weakness is that reliance on pass@1 with an LLM-judged exception comparison may undermine trust in reported scores, reducing downstream adoption."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The pipeline design (AST-based selection, dependency inlining, determinism filtering, input generation, and execution) is plausible, but several methodological issues threaten validity: (1) exception evaluation uses a language model to compare type/message, introducing subjective, non-deterministic judgments and potential bias; (2) handling of very long code contexts (up to 311k tokens) is unclear—how truncation, window limits, or selection is applied per model is not specified, risking unfair comparisons; (3) purity and determinism checks for real-world code are hard, with no formal guarantees or systematic post-hoc validation; (4) no analysis of how inlining or environment normalization might alter semantics. These constitute unverified assumptions that materially affect correctness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Results are provided for several strong models with descriptive analyses (e.g., correlations with code metrics). However: (1) no statistical uncertainty (confidence intervals, multiple runs), (2) no ablations on prompt format, parser tolerance, input-generation strategies, or exception-judging method; (3) reliance on pass@1 only despite a pass@k framing; (4) no explicit control for model context windows or clear policy for truncating or filtering overly long tasks; (5) the LLM-judged exception metric is not calibrated or validated. These gaps limit the strength of empirical support. A potential weakness is hidden selection effects in what tasks are actually evaluable per model."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper describes the pipeline at a high level and references appendices, but provides no explicit links to code, dataset, prompts, seeds, or environment setup. Critical components (e.g., exact LLM prompts for input generation and exception comparison, dependency-inlining logic, determinism filters, and task selection criteria) are not fully specified for replication. By the rubric, missing or unclear artifacts cap this score at 2. A key unverified assumption is that the described pipeline can be reproduced from the narrative alone without implementation details."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates EXE among code benchmarks (HumanEval, MBPP), execution-focused lines (Learning to Execute, CRUX-Eval), broader benchmark evolution, and real-world datasets. Positioning is generally fair, emphasizing real-world code and scale. Still, coverage could be deeper regarding recent execution and agentic benchmarks (e.g., SWE-bench variants), program-of-thought/verification methods, and evaluation-by-LLM concerns. A potential weakness is limited discussion of prior critiques on LLM-judged metrics and contamination quantification."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper notes filtering for permissive licenses and mentions cybersecurity implications and potential dual-use, but lacks a dedicated ethics section with risk mitigation, distribution policy (e.g., handling of potentially sensitive code snippets), or license compliance details for redistribution. No discussion of how LLM-generated inputs may encode biases or how evaluation might enable vulnerability discovery at scale. Missing or unclear ethics considerations cap this score at 2 per rubric."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "While EXE is a potentially useful and scalable benchmark conceptually, the submission has critical methodological and transparency gaps. Most notably, technical soundness is undermined by the use of an LLM to judge exception equality, unclear handling of extremely long contexts relative to model limits, and insufficient validation of determinism and semantic preservation after inlining. Reproducibility is also weak: no code, data, prompts, or detailed instructions are provided. Per RBCL §2 Fatal-Flaw Logic and Decision & Overrides, technical_soundness <= 2 and reproducibility <= 2 mandate a Reject regardless of other strengths; the total score is also within the range where ICLR calibration defaults to rejection absent multiple dimensions clearly above 4. A future version with released artifacts, rigorous metric validation (eliminating LLM-as-judge or thoroughly calibrating it), context-window controls, statistical rigor, and expanded ablations could be competitive."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes maintaining per-client local models (BMT) and a tree of sub-FL models (MMT) to re-initialize after unlearning. These ideas resemble prior partitioned training and clustered/one-shot aggregation approaches (e.g., SISA-style partitioning and FedCIO-like clustering) and amount to system-level rearrangements rather than a fundamentally new methodological insight. The Huffman/Shannon-Fano–inspired tree construction is a minor twist that is not theoretically developed. Potential weakness: the claim that such schemes yield exact unlearning rests on an unverified assumption that aggregating isolated models is equivalent (or suffices) to removing all influence of the unlearned client, which is neither proven nor carefully formalized."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "Faster post-unlearning recovery would be practically useful; however, the approach imposes heavy storage/compute overhead (maintaining per-client local models or multiple sub-FL models), which may be prohibitive at scale (especially with large models). Moreover, the central claim of exact unlearning is not validated, undermining impact. Potential weakness: the method assumes that clients (and infrastructure) can store and transmit many full model copies at unlearning time; scalability and systems constraints are not analyzed or benchmarked."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper makes a strong claim of exact federated unlearning \"by design\" but provides no formal definition aligned with standard exact-unlearning guarantees and no proof that the resulting model equals (or is distributionally identical to) training from scratch without the client. Aggregating isolated local models is not shown to reproduce the counterfactual training trajectory or endpoint under the same algorithm and randomness. For MMT, notions like \"double influence\" are informal and unquantified. Potential weakness: the key assumption that the proposed re-initialization fully eliminates the removed client's influence and is equivalent to retraining is unverified; this constitutes a critical gap in correctness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover several datasets and include some ablations, but they do not test the central claim of exactness (e.g., by comparing parameter-level or prediction-level equivalence to retraining without the client, with matched randomness). Results appear as figures without statistical significance, variance across runs, or confidence intervals. Computational overhead, memory, and communication costs are not reported, and system scalability is unassessed. Potential weakness: reliance on single-run trends and lack of rigorous equivalence checks or statistical tests undermines the empirical support for the exact unlearning claim."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Some hyperparameters and model choices are listed, but there is no mention of released code, scripts, seeds, or detailed environment setup. Dataset partitioning procedures, exact client sampling, and unlearning schedules are described only at a high level. Large-model experiments (e.g., Llama-3.2-3B) lack sufficient implementation detail to reproduce. Potential weakness: absent code and missing seeds/instructions cap reproducibility (per rubric), making independent verification difficult."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites several FU and MU works, including FedCIO and exact unlearning papers, but does not engage with personalized FL literature and earlier partition-based schemes (beyond SISA) that are conceptually close. The positioning of \"exactness\" is not reconciled with standard definitions in machine unlearning. Potential weakness: missing discussion of personalized FL (e.g., Ditto/Per-FedAvg) and broader theory of exact/certified unlearning, leading to an incomplete context for the claims."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "There is no dedicated ethics or broader impacts statement. The method requires sharing full local model parameters at unlearning, which may introduce privacy and leakage risks that are not discussed. The provenance and licenses for datasets/models (e.g., LLMs) are not addressed. Potential weakness: missing ethics statement (per rubric) and lack of analysis on privacy, consent, or risks associated with exchanging client-side models cap this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the proposed BMT/MMT frameworks may improve post-unlearning accuracy, the paper does not substantiate its central claim of exact federated unlearning. There is no formal definition or proof that the proposed re-initialization produces models equivalent to retraining without the removed client, and empirical evaluation does not test exactness beyond accuracy curves. Reproducibility is limited (no code/seeds), and ethical considerations are missing. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical soundness ≤ 2 and reproducibility ≤ 2 trigger an automatic Reject, with severity prioritized over other strengths."
+  }
+}

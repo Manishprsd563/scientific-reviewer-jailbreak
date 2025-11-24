@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "Introducing Soft Weight Rescaling (SWR) that rescales per-layer weights using an EMA between initial and current norms, while adjusting biases to preserve proportionality, is a reasonably fresh twist on weight rescaling and distance-to-init regularization. The explicit proportionality construction and per-step rescaling are a distinct combination compared to prior L2/L2-to-init penalties and recent rescaling methods. Potential weakness: the idea is closely related to existing weight rescaling schemes (e.g., Niehaus 2024) and distance-to-initialization regularizers, so the contribution may be incremental unless the theoretical and empirical advantages over these are more decisively demonstrated; it also relies on homogeneity assumptions that may limit generality."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If broadly valid, SWR could be useful for mitigating plasticity loss in warm-start and continual settings and may modestly improve standard generalization. The reported gains on TinyImageNet/VGG-16 are noteworthy. Potential weakness: impact is demonstrated only on small-to-midscale image benchmarks and classic architectures; there is no evidence on modern large-scale models (e.g., Transformers, ViTs) or tasks (NLP, vision-language), nor on interactions with current training protocols (AdamW, cosine decay, large-batch, data augmentation), which limits generality."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proportionality argument for homogeneous activations with bias rescaling is plausible and consistent with known scale-invariance properties. Extending proportionality to architectures with normalization is discussed, but relies on simplified treatment of normalization layers where training-time statistics and affine parameters may complicate invariances. Potential weakness: the boundedness proof is deferred to the appendix and not verifiable here; assumptions (strict homogeneity, positive scaling, handling of BN/LayerNorm running statistics, skip connections) are not fully justified; interactions with optimizers and weight decay (effective learning-rate changes due to repeated rescaling) are not theoretically analyzed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments span multiple datasets and architectures and compare to L2, L2-Init, and two re-initialization methods, with some reporting of means and standard deviations. Potential weakness: important baselines for continual learning (e.g., EWC, SI, LwF, replay-based methods) are missing; ablations on key hyperparameters (lambda, EMA factor), rescaling frequency, and sensitivity to optimizers/weight decay are absent; statistical significance tests are not reported; computational overhead and training-time effects are not quantified; number of runs per setting is unclear for several figures; no large-scale or transformer evaluation."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices with an algorithm and hyperparameters, which is helpful. Potential weakness: there is no explicit code release or detailed reproduction package mentioned; random seeds, exact data splits for chunking, environment details, and training scripts are not provided in the text; without public code and precise instructions, results are not readily verifiable. Per rubric, missing code/unclear details cap this at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates SWR among weight decay, distance-to-init penalties, reinitialization methods, and recent rescaling techniques, and discusses issues with normalization. Potential weakness: limited discussion of path-norm/max-norm regularization, SAM/ASAM, scale-invariant training with BN, and deeper connections to prior invariance/scaling literature; positioning versus the most closely related recent rescaling work (e.g., Niehaus 2024) could be more thorough, including differences in theory, schedules, and empirical behavior."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics or broader impact statement is provided. Potential weakness: the paper does not discuss dataset licensing/provenance or broader implications (e.g., effects on stability under distribution shift, fairness in continual-learning settings). Per rubric, absence of an ethics statement warrants a low score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While SWR presents a plausible and moderately novel approach to controlling weight growth via proportional rescaling and shows improvements on several vision benchmarks, the empirical evaluation lacks key baselines (notably for continual learning), ablations, and large-scale validations. Critically, reproducibility is weak—no code or comprehensive reproduction package is provided—triggering the RBCL §2 Fatal-Flaw Logic and the specified override (reproducibility ≤ 2 implies Reject and caps the effective score). Given the presumption of rejection and the emphasis on severity over quantity of evidence, I recommend Reject pending a more thorough empirical study, stronger theoretical validation for normalization-equipped networks, and a full reproducibility release."
+  }
+}

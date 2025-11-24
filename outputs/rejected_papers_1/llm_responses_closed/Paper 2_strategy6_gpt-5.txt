@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a large-scale, continually updatable benchmark for code execution over real-world repositories, which is a meaningful extension beyond prior synthetic or simplified setups (e.g., CRUX-Eval, Learning to Execute). The pipeline for inlining dependencies and filtering for determinism/types adds practical originality. However, the core evaluation task—predicting final program outputs/exceptions from code and inputs—remains conceptually close to existing execution/tracing benchmarks, so the methodological novelty is moderate rather than fundamental. Potential weakness: the assumption that predicting final outputs sufficiently probes execution-like reasoning may not hold when many tasks are directly predictable without step-by-step simulation; the presence of such “directly predictable” cases is acknowledged but not systematically controlled."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "A scalable, diverse benchmark using real-world code could be impactful for tracking LLMs’ code reasoning and execution capabilities and may complement code generation benchmarks. The potential for continual updates also addresses saturation concerns. However, impact depends on reliable, reproducible evaluation protocols and public release with clear governance. Potential weakness: the claim that continual input generation mitigates contamination is unverified—models may still memorize widely used library code—and no contamination assessment is provided; practical utility might be limited if evaluation comparability varies due to non-deterministic components (e.g., LLM-based exception matching)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Core design choices raise correctness concerns: (1) Exception equivalence is judged via a language model comparison, which introduces non-determinism and circularity in the evaluator; this undermines verifiability and may bias results. (2) Tasks reportedly include context lengths up to ~311k tokens, but the paper does not specify how models with smaller context windows are handled (truncation, chunking, retrieval), potentially confounding fairness and correctness. (3) Inlining dependencies and AST-based filtering may alter runtime context (e.g., globals, import side effects), but the methodology does not provide rigorous validation of semantic equivalence beyond heuristic filters. (4) Numerical comparison details (e.g., floating-point tolerance) are unspecified and could affect correctness. Potential weakness: the low reported cost for generating and evaluating >30k tasks via LLMs is not reconciled with token counts, suggesting assumptions about costs or batching that are unverified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports pass@1 across several SOTA models and explores correlations with code metrics, which is informative. However, empirical rigor is limited: no multiple runs or statistical significance tests are reported; no ablations on key pipeline choices (e.g., exception matching via LLM vs. deterministic normalization) are provided; prompting, temperatures, sampling strategies, and decoding settings are not fully specified; handling of long-context tasks is unclear; and contamination checks are absent. Potential weakness: claims about smooth difficulty scaling may be confounded by dataset biases (e.g., stylistic patterns) without stronger controls or stratified analyses; error-prediction results are only lightly explored."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper does not clearly state that the dataset, code, prompts, seeds, and full evaluation scripts are publicly released. Several critical details are missing, including exact model API versions/settings, decoding parameters, deterministic evaluation for exceptions, and environment constraints/sandboxing. The use of an LLM in the evaluator further reduces reproducibility. Potential weakness: without a public release of the pipeline and a deterministic evaluation protocol (especially for exceptions), third parties cannot reliably replicate the reported scores. Per policy, missing or unclear reproducibility information caps this criterion at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among code generation benchmarks (HumanEval, MBPP), execution/tracing lines of work (Learning to Execute, CRUX-Eval), and dynamic benchmarks. Positioning is generally adequate and acknowledges differences in realism and scale. Potential weakness: limited discussion of contamination and benchmark leakage literature, and missing comparisons to deterministic exception matching or program semantics checkers; also lacks positioning relative to tool-augmented evaluation protocols that could serve as stronger baselines (e.g., execution with restricted interpreters or static analysis tools)."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper states that repositories are filtered for permissive licenses and suggests cybersecurity-relevant use cases, which shows some awareness. However, it lacks a dedicated ethics/safety section detailing sandboxing, resource limits, or assurance against executing harmful code during dataset creation; it also does not address PII or sensitive content that may exist in real-world repos, nor the risks of enabling vulnerability discovery without appropriate safeguards. Potential weakness: no discussion of compliance with license attribution requirements at scale or of responsible release policies. Per policy, the absence of a substantive ethics statement caps this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While EXE is a promising, scalable benchmark concept with real-world code and potentially high relevance, the current submission has critical deficiencies. The evaluation protocol relies on a language model to judge exception equivalence, introducing non-determinism and circularity that undermine correctness and replicability. Key experimental details (prompts, decoding settings, seeds, long-context handling) are insufficiently specified, public release is unclear, and no contamination assessment is provided. Empirical analyses lack statistical rigor and ablations on crucial pipeline choices. In line with RBCL §2 Fatal-Flaw Logic, technical soundness ≤ 2 and reproducibility ≤ 2 mandate a Reject, and we apply this override. The decision is further supported by conservative calibration guidelines: with total_score in [15,20) and multiple unresolved issues, we default to a stricter decision."
+  }
+}

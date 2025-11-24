@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes extending recurrent memory transformers to a shared global memory for multi-agent coordination (SRMT). This is a reasonable and practically useful architectural idea, but it reads as an informed combination of existing components (memory transformers, transformers for communication, shared/global workspace inspiration) rather than a fundamentally new methodological insight — therefore not eligible for the highest novelty grades. Potential weakness / unverified assumption: the paper assumes that pooling agent memories and global broadcasting is the key novelty without fully isolating other design choices (e.g., memory token sizes, attention schedules); it is unclear whether the performance gains arise from the shared-memory mechanism itself or from implementation/training specifics (an unverified attribution)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If reproducible and robust, SRMT could be useful for decentralized MARL and multi-agent pathfinding applications where implicit coordination is desired; experiments on POGEMA and bottleneck tasks suggest practical relevance. Potential weakness / unverified assumption: claims about broad real-world impact (e.g., scaling to many agents, deployment in robotics) are unverified — experiments are limited to simulated grid benchmarks and it is unclear how well the approach translates to physical systems or different observation/action modalities."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proposed architecture is described plausibly and aligns with current transformer/memory literature; no obvious theoretical errors in the high-level design are apparent. Potential weakness / unverified assumption: there is limited theoretical analysis of convergence/stability or impacts of a global shared memory on non-stationarity and credit assignment in decentralized learning; assumptions about stability of jointly-updated shared memory are not analyzed or justified formally. Also, important implementation/training details that affect correctness (e.g., optimizer settings, training curricula) are not fully presented in the main text (referred to appendices), making it hard to verify correctness end-to-end."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The empirical evaluation covers multiple relevant benchmarks (toy bottleneck, diverse POGEMA maps, lifelong MAPF) and includes many baselines and several ablations (RMT, Attention, RNN), which strengthens the empirical case. Reported error bars (95% CI) and generalization tests (longer corridors) are positive signs. Potential weakness / unverified assumption: some critical experimental details are missing or unclear (e.g., number of random seeds, exact hyperparameter sweeps, training stability across seeds), making it difficult to assess robustness; the computational budget (e.g., 1B steps) is very large, raising concerns about practicality and reproducibility; statistical testing beyond CIs is not detailed and some important baselines (certain planning/centralized baselines or more recent communication methods) may be under-explored in some settings."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references an Appendix for hyperparameters and reports some experimental settings, but does not provide an explicit code/data release link, nor does it clearly list random seeds, full hyperparameter grids, or exact training recipes in the main text. According to the scoring rules, missing or unclear information (notably absence of a public code release and concrete reproducibility artifacts) caps this criterion. Potential weakness / unverified assumption: reproducing the results likely requires substantial compute (1B steps reported) and the lack of an available codebase and explicit seeds makes independent verification difficult; this shortcoming triggers an automatic cap per the provided rubric and also necessitates cautious decisioning (Decision downgraded due to RBCL §2 Fatal-Flaw Logic)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "The manuscript contains an extensive related-work section covering shared memory, MARL communication, memory transformers, and various MAPF approaches; it situates SRMT relative to ATM, RATE, RRNN, and classical planners and compares against many baselines in experiments. Potential weakness / unverified assumption: although coverage is broad, the exposition occasionally asserts distinctions (e.g., fully decentralized training) without fully clarifying tradeoffs/comparisons to certain strong planning-based hybrids; some recent or specialized communication architectures might be missing from the empirical comparisons, leaving a slight risk of incomplete positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper studies simulated grid environments and does not raise obvious high-risk societal harms, but it lacks an explicit ethics / broader impacts section, discussion of potential misuse, licensing of code/data, or data provenance statements. Per the rubric, missing an ethics statement or discussion caps this criterion. Potential weakness / unverified assumption: absence of discussion about safety considerations for real-world deployment (e.g., robotics collisions, accountability in decentralized systems) and lack of licensing/provenance information for used benchmarks impede assessment of broader impacts."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes a practically useful architecture (Shared Recurrent Memory Transformer) that extends memory-transformer ideas to a shared global memory for decentralized multi-agent pathfinding. Empirically, the manuscript reports broad experiments on POGEMA benchmarks, ablations, and generalization tests that suggest the idea can work in simulation. Strengths include sensible architecture design, multiple benchmark results and ablations, and attention to generalization in corridor length and lifelong MAPF.\n\nCritical weaknesses driving the decision: (1) Reproducibility concerns — the manuscript does not provide a public code release link, explicit random seeds, or full reproducibility artifacts in the main text; the heavy compute regime (e.g., 1B environment steps) further raises practical barriers to verification. Under the provided evaluation rules this missing transparency caps the reproducibility score at 2 and triggers the override that mandates a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). (2) Limited theoretical analysis — there is no formal treatment of learning dynamics or stability when agents read/write a shared recurrent memory; absence of such analysis weakens confidence in correctness and general applicability. (3) Empirical concerns — while many experiments are presented, some important experimental details (complete hyperparameter lists, number of independent seeds, training variance/stability) are unclear, and the practicality of very large training budgets is not addressed.\n\nGiven the fatal reproducibility shortcoming and the RBCL fatal-flaw rule (technical reproducibility <=2 => Reject), the paper should be rejected in its current form. To be considered for acceptance in a future submission the authors should (a) release the code, exact training scripts, seeds, and all hyperparameters necessary to reproduce the experiments; (b) provide replication results across multiple independent seeds with statistical tests demonstrating robustness; (c) include ablations that more directly isolate the contribution of the shared-memory mechanism (e.g., varying memory size, sparsity, communication bandwidth) and an analysis of training dynamics / stability; and (d) add an explicit ethics / broader impacts statement discussing deployment risks and licensing/data provenance. Note: the numerical total_score is capped at 20 per the reproducibility override described in the review rules."
+  }
+}

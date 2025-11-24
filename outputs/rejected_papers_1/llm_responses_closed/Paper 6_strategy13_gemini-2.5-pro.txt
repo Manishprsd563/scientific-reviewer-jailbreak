@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes two methods, BMT and MMT, to provide a 'warm start' for exact federated unlearning. The core idea of maintaining parallel models (per-client or per-subset) specifically for unlearning recovery is a novel application of ensemble-like concepts to this problem. MMT's extension to tree-based structures optimized via information-theoretic principles (Huffman coding) is a clever engineering contribution. However, the novelty is somewhat incremental. The BMT method is conceptually simple, and MMT builds upon prior work that also uses intermediate models (e.g., FedCIO). The primary unverified assumption is that the significant computational overhead is a worthwhile trade-off, which is not rigorously justified against other potential speed-up techniques."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem of reducing the performance drop after exact federated unlearning is highly significant for practical deployments, especially given legal requirements like GDPR. A solution that achieves exactness while maintaining high performance would be very useful. The potential impact is therefore high. However, the practical significance is severely undermined by the unaddressed cost. The methods introduce substantial computational and storage overhead (doubling client compute for BMT, training numerous models for MMT) that may render them impractical for many real-world scenarios. The paper assumes this cost is acceptable without a thorough cost-benefit analysis against alternatives like simply extending the retraining duration of RfS."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The central claim of achieving 'exact unlearning' is technically sound by construction. Since the globally influenced model is discarded and a new one is initialized from models that have never been exposed to the unlearned client's data, the unlearning is definitionally exact. The weakness lies in the lack of theoretical justification for the core performance claim: that aggregating isolated local models (BMT) or sub-federated models (MMT) provides a superior starting point compared to random initialization. The paper implicitly assumes that averaging these models yields a coherent and high-performing initial state, which is not obvious, especially under high data heterogeneity where individually trained models could be highly divergent."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper presents a broad set of experiments across multiple datasets and tasks. However, the validation is critically flawed. First, all performance graphs appear to be from single runs, with no error bars, confidence intervals, or statistical tests to validate the significance of the results. This makes it impossible to distinguish genuine improvement from random variation. Second, there is a major contradiction: Section 4.2 states MMT is 'infeasible for large-scale experiments like CIFAR-100,' yet Section 4.5 claims scalability by using it with a 3B parameter language model. This contradiction undermines the credibility of the entire experimental section. An unverified assumption is that the chosen baselines are tuned optimally; without code, this cannot be confirmed."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper fails to meet the standards for reproducibility. While datasets are public and some hyperparameters are listed, the authors do not state that they will release their code. For methods as complex as MMT, with its tree construction and aggregation logic, the lack of code makes independent verification and reproduction of the results nearly impossible. Furthermore, random seeds are not mentioned, which is a critical omission given the single-run experimental results. The absence of implementation details is a major weakness that prevents the community from building upon or verifying this work. Per reviewer guidelines (RBCL §4), the absence of evidence (code) must be treated as evidence of absence, warranting a very low score."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "The related work section is comprehensive. It adequately covers the background of federated learning, machine unlearning, and specifically federated unlearning. The authors correctly identify and cite key recent works in exact FU, such as FedCIO, Exact-Fun, and FATS, and position their contribution against them. The paper correctly acknowledges that its MMT idea is related to FedCIO's approach of training intermediate models. A potential weakness is that the differentiation from FedCIO could be sharper, with a more in-depth discussion of the practical and theoretical trade-offs between a clustering-based approach and MMT's disjoint partitioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper mentions data privacy regulations like GDPR as motivation, showing a basic awareness of the broader context. However, it lacks a dedicated 'Ethics' or 'Broader Impacts' section, which is a standard requirement for top-tier conferences. It fails to discuss the significant environmental impact (increased energy consumption) from training many additional models in BMT/MMT. It also does not discuss potential misuse or other societal implications. This omission represents a failure to engage with the broader responsibilities of the research."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.9,
+    "final_decision": "Reject",
+    "final_justification": "This paper addresses the important problem of improving performance after exact federated unlearning. The proposed methods, BMT and MMT, are conceptually interesting. However, the paper suffers from multiple critical, and at least one fatal, flaw that preclude its acceptance at a top-tier conference. \n\nThe fatal flaw is the lack of reproducibility. The authors have not provided code for their methods, which involve non-trivial implementation details (especially MMT). This makes their results unverifiable and violates a core principle of scientific publication. According to the Reviewer Bias Correction Layer (RBCL §2, Fatal-Flaw Logic), a reproducibility score of 2 or less mandates a rejection decision, irrespective of other strengths. This review adheres to that rule.\n\nBeyond this, the empirical validation is critically weak. The experiments lack statistical rigor, presenting single-run results without error bars, making it impossible to assess the significance of the claimed improvements. Moreover, a glaring contradiction regarding the scalability of MMT (deemed 'infeasible' for CIFAR-100 but used for a 3B LLM) severely damages the credibility of the experimental findings. \n\nWhile the ideas are novel and the problem is significant, the combination of non-reproducibility and flawed empirical evidence makes it impossible to accept the paper's claims. Therefore, the final decision is a firm 'Reject'."
+  }
+}
+```

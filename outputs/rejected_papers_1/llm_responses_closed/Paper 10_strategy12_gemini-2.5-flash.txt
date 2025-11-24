@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of actively scaling down weights to maintain plasticity, specifically through the proposed 'Soft Weight Rescaling' based on an exponential moving average of norm ratio, presents a moderately novel approach. While previous works have explored weight regularization and re-initialization (as acknowledged by the authors), the proportional scaling mechanism, especially considering bias units, and its theoretical justification for maintaining proportionality are somewhat distinct. However, the concept of weight rescaling itself is not entirely new, and the effectiveness of EMA in this specific context could be seen as an incremental adaptation rather than a fundamentally new algorithmic paradigm. One potential weakness is that the paper does not thoroughly explore the potential impact of different choices for the lambda parameter in the EMA, which could significantly influence the novelty and behavior of SWR."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper addresses a significant problem in deep learning: plasticity loss due to unbounded weight growth, which impacts warm-start learning, continual learning, and generalization. If SWR consistently and robustly recovers plasticity without knowledge loss, as claimed, it could have a meaningful impact on the design of more stable and adaptable neural networks. The empirical results on VGG-16, showing improvements over existing methods, suggest potential utility, especially in scenarios where catastrophic forgetting is a concern. However, the magnitude of the reported improvements, while present, is not consistently groundbreaking across all tasks and models. A potential weakness is that the long-term impact on extremely large models or more complex continual learning scenarios (e.g., with diverse task sequences) remains to be fully verified, and the computational overhead, while claimed minimal, needs more precise quantification for practical deployment."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The theoretical proof for proportionality in homogeneous networks (Theorem 1) seems technically correct, and the argument that SWR bounds weight magnitude is presented in Appendix B. However, the leap from the proportionality of homogeneous functions to practically applying this to networks with normalization layers is not fully rigorously justified beyond a statement about scale-invariance. The assumption that normalization layers make the network behave as if it were homogeneous for the purpose of maintaining proportionality might be a simplification without a detailed proof. Specifically, the statement 'this property implies that we only need to focus on the learnable parameters of the final normalization layer to maintain the proportionality' needs more robust theoretical backing, particularly how the internal scaling factors (c_i) propagate through normalized layers without disrupting the proportionality relationship for the entire network. Without this, the applicability of Theorem 1 to models with BN/LN might be an unverified assumption."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments cover warm-starting, continual learning (full and limited access), and single-task generalization, using a range of models (MLP, CNN, CNN-BN, VGG-16) and datasets (MNIST, CIFAR-10, CIFAR-100, TinyImageNet). This breadth is commendable. However, several critical details are missing. The primary weakness is the lack of ablation studies on the core components of SWR, such as the parameter λ (exponential moving average factor) or the frequency of applying SWR. Without this, it's hard to understand the sensitivity of the method to its hyperparameters and its internal working mechanisms. Furthermore, while the paper mentions the use of 'various models and datasets,' the baselines could be more comprehensive. For instance, in continual learning, additional state-of-the-art methods specifically designed for catastrophic forgetting could be included for a more robust comparison. The 'minimal computational overhead' claim is not explicitly quantified or compared, which is a significant omission for a method proposed for practical benefits. The provided figures and tables show mean and standard deviation, which is good, but deeper analysis of the dynamics (e.g., weight norm trajectories with and without SWR over training epochs) would strengthen the claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper states that 'Detailed experimental settings, including hyperparameters for each method, are in Appendix D.' However, without access to Appendix D (which was not provided to me), the claim cannot be verified. Furthermore, there is no explicit mention of publicly available code, specific random seeds used, or a detailed breakdown of the computational environment, which are crucial for ensuring reproducibility. The absence of specific hyperparameters and code significantly limits the reproducibility of the reported results. This makes re-implementing and verifying the proposed method's effectiveness extremely difficult, if not impossible, for independent researchers."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section adequately covers prior research on unbounded weight growth, various weight regularization methods (L2, L2 Init, spectral norm regularization), and re-initialization methods. It also positions SWR against these, highlighting its perceived advantages in preserving information while preventing growth. However, a potential weakness is that it could delve deeper into the nuances of how existing methods specifically fail or succeed in addressing the 'proportionality' aspect that SWR emphasizes, beyond just stating their limitations like 'additional gradient computations' or 'conflicts with main learning objective.' More recent or specialized techniques in continual learning regularization could also be discussed for a richer context and a stronger comparison in that specific experimental domain. For instance, exploring the relationship to methods that explicitly control Lipschitz constants of networks could provide additional context, given the paper's emphasis on weight magnitudes and network sensitivity."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 0,
+      "justification": "The paper does not include any discussion regarding ethics, broader impacts, safety, licenses, data provenance, or any potential societal implications of the proposed method. This is a significant omission, as all research papers, especially those potentially impacting learning stability and generalization, should consider these aspects. The lack of an ethics statement suggests that these crucial considerations were not addressed during the research process."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "The paper introduces Soft Weight Rescaling (SWR) for mitigating plasticity loss and unbounded weight growth. While the core idea of proportional scaling with an EMA component shows some novelty and addresses an important problem, several critical weaknesses prevent acceptance. The technical soundness of applying proportionality theory to networks with normalization layers is not fully rigorous, relying on unverified assumptions. The empirical validation, although broad in scope, critically lacks ablation studies on SWR's hyperparameters and precise quantification of computational overhead. Most significantly, the reproducibility score is capped at 1 due to the absence of publicly available code and a lack of fully detailed experimental settings in the provided text, making independent verification impossible. Furthermore, there is no ethics statement whatsoever, which is a mandatory component for top-tier conference submissions. The confidence score is 0.8 because, despite some interesting aspects, the severe lack of reproducibility information and the absence of an ethics statement are non-negotiable flaws. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (Reproducibility / Transparency score <= 2 and no ethics statement)."
+  }
+}
+```

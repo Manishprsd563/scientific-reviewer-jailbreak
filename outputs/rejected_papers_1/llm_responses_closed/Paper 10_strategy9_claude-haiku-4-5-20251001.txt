@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "SWR presents a straightforward technique—scaling weights by the ratio of initial to current norm, with EMA smoothing. While the proportionality framework (Theorem 1) is conceptually useful, it is a relatively direct application of known rescaling ideas. The method combines existing concepts (weight rescaling, layer-wise regularization, proportionality preservation) without introducing a fundamentally novel mechanism. The core contribution—using norm ratios for scaling—is an incremental refinement over prior work (Niehaus et al., 2024; Alabdulmohsin et al., 2021). Potential weakness: The paper does not clearly articulate what conceptual or algorithmic insight is genuinely new beyond parameterizing existing rescaling with a different weighting scheme."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "SWR addresses plasticity loss and weight regularization, which are relevant but already well-studied problems. The improvements shown are often marginal (e.g., CIFAR-10 CNN: 0.7158 vs. 0.7119 for L2; CIFAR-100 CNN: 0.3914 vs. 0.3882) and within noise margins given standard deviations. The most notable gain is on VGG-16 TinyImageNet (4.3%), but this result stands alone without clear understanding of why SWR excels specifically on this architecture. The paper does not establish broad impact; warm-start and continual learning are niche scenarios. Potential weakness: The practical significance remains unclear—no evidence that practitioners will adopt SWR over simpler alternatives like weight decay, and marginal improvements may not justify additional complexity."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "Theorem 1 is technically correct but not novel—it formalizes a straightforward property of homogeneous activation functions and is stated without proof in the main text. The proof is relegated to Appendix A, making full verification difficult here. The claim that SWR 'bounds weight magnitude' (Section 3.3, Appendix B) is vague; the method uses EMA smoothing (λ parameter), which softens the constraint, and no explicit bound is provided. Equation (2) for the scaling factor is ad-hoc: the choice of $c_l = \frac{\lambda \times \|W_l^{\mathrm{init}}\| + (1-\lambda) \times \|W_l\|}{\|W_l\|}$ lacks principled justification. Why this specific convex combination? No analysis of how λ affects weight growth or convergence. Potential weakness: The theoretical framework lacks rigor; the method is presented as heuristic rather than principled, and critical details (bounds, convergence analysis) are missing or unverified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments suffer from multiple issues: (1) Limited baselines—only L2, L2 Init, Head Reset, and S&P are compared; no comparison with spectral normalization, layer normalization variants, or recent methods (e.g., LayerWise, Niehaus et al. 2024). (2) Small-scale experiments mostly use CIFAR-10/100 and MNIST; only one large-scale result (VGG-16 TinyImageNet). (3) No ablation studies on the critical λ hyperparameter—how sensitive is SWR to λ? What is the optimal value? (4) Single runs reported for many experiments; standard deviations suggest high variance (e.g., TinyImageNet VGG-16: ±0.0142). (5) Continual learning results (Figs. 3–4) lack statistical significance testing. (6) Figure 1 is illustrative but not quantitative; no clear experimental protocol. (7) No analysis of computational cost despite claiming 'minimal overhead.' Potential weakness: The experimental validation is insufficient to support strong claims; missing ablations on λ, weak baselines, and limited scale undermine confidence in generalization of results."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility information is missing: (1) No code or implementation details provided; Algorithm 1 is referenced but not shown in main text. (2) Hyperparameters for all baselines are deferred to Appendix D, which is not included in the provided paper. (3) No mention of random seeds, initialization schemes, or hardware used. (4) The λ parameter value is not specified anywhere in the main text; unclear how it was selected. (5) Learning rate and optimizer details are incomplete (learning rate 0.001 mentioned for Section 4.3 but not for other experiments). (6) No code repository or supplementary materials mentioned. (7) Figure 1 caption mentions 'averaged over 5 runs,' but no details on seed management or variance. Potential weakness: The paper is not reproducible; essential implementation details, hyperparameter values (especially λ), and code are absent, preventing independent verification or replication of results."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work section (Section 2) is reasonably comprehensive in scope but lacks depth and critical comparison. (1) The paper acknowledges Niehaus et al. (2024) proposed weight rescaling but provides no direct comparison—this is a critical omission given the method's similarity to SWR. (2) The critique of L2 regularization is somewhat dated (citing Ishii & Sato, 2018; Liu et al., 2021) without addressing modern variants or recent defenses. (3) The paper claims SWR avoids 'optimization difficulties' of penalty-based methods but provides no evidence; this assertion is unsupported. (4) Re-initialization methods (S&P, Head Reset) are positioned as problematic due to knowledge loss, but the paper does not empirically quantify this loss or compare it fairly. (5) No discussion of how SWR relates to normalization techniques (batch norm, layer norm) beyond a brief mention in Section 3.3. (6) The comparison with weight decay's interaction with normalization (Lyle et al., 2024b) is mentioned but not deeply explored. Potential weakness: The paper fails to directly compare with or clearly differentiate from the most relevant prior work (Niehaus et al., 2024), and claims about advantages over other methods are often asserted rather than empirically validated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no discussion of ethical considerations, broader impacts, safety concerns, or societal implications. (1) No statement on dataset provenance (MNIST, CIFAR-10/100, TinyImageNet are standard but no mention of licensing or ethical considerations). (2) No discussion of potential misuse of improved neural network plasticity (e.g., in adversarial settings, model poisoning, or unauthorized fine-tuning). (3) No mention of computational costs or environmental impact. (4) No discussion of fairness, bias, or inclusion. (5) No code release or reproducibility statement regarding open science. (6) No acknowledgment of limitations or failure cases. Potential weakness: Complete absence of ethics and broader impact discussion is a significant oversight; the paper reads as a pure technical contribution without consideration of context, responsibility, or societal implications."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.72,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper proposes Soft Weight Rescaling (SWR), a method to prevent unbounded weight growth and recover neural network plasticity. While the core idea is intuitive and the proportionality framework (Theorem 1) provides a useful perspective, the work suffers from critical weaknesses that warrant rejection. (1) **Novelty (Score 3):** The method is an incremental refinement of existing weight rescaling techniques. The proportionality concept, while useful, is a straightforward formalization of known properties. No genuinely novel insight emerges. (2) **Technical Soundness (Score 3):** The theoretical analysis is incomplete. The scaling factor in Eq. (2) lacks principled justification, and claims about 'bounding' weight magnitude are vague when the method uses soft (EMA) constraints. No convergence analysis or explicit bounds are provided. (3) **Reproducibility (Score 1 — FATAL FLAW):** This is a critical deficiency. No code, no clear hyperparameter specifications (especially the λ parameter), no random seeds, no algorithmic details in the main text. The paper is not reproducible as presented. This alone triggers the fatal-flaw override per RBCL §2. (4) **Empirical Validation (Score 2):** Experiments are limited in scale and scope. Most results are on CIFAR-10/100; the large-scale result (VGG-16 TinyImageNet) is an outlier without clear explanation. No ablation on λ, weak baseline comparisons, and missing comparison with recent work (Niehaus et al., 2024). Marginal improvements often fall within noise margins. (5) **Related Work (Score 2):** The paper fails to directly compare with or clearly differentiate from the most relevant prior work (Niehaus et al., 2024), despite acknowledging it. Claims about advantages over other methods are often asserted without empirical validation. (6) **Ethics (Score 1):** No discussion whatsoever of ethical considerations, broader impacts, or societal implications. (7) **Significance (Score 3):** Improvements are marginal on standard benchmarks, and the paper addresses niche scenarios (warm-start, continual learning) without establishing broad practical impact. **Overrides Applied:** Per RBCL §2 (Fatal-Flaw Logic), the reproducibility score of 1 mandates a 'Reject' decision, regardless of total score. The paper cannot be verified or reproduced without code and critical implementation details. Additionally, the missing comparison with Niehaus et al. (2024) and the incomplete theoretical analysis (technical soundness ≤ 2 range) further support rejection. **Recommendation:** The paper should be rejected. To be acceptable, the authors must (1) provide code and complete hyperparameter specifications, (2) conduct thorough ablations on λ, (3) include direct comparisons with Niehaus et al. (2024), (4) provide rigorous theoretical analysis with explicit bounds, and (5) expand experiments to larger scales and more diverse baselines."
+  }
+}
+```

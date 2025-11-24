@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core contribution is a straightforward hybrid batch sampling that mixes monolingual and cross-lingual batches with a tunable probability (alpha). This is conceptually close to established data mixing/curriculum strategies and prior work that already contrasts monolingual vs. cross-lingual batching; combining them is incremental rather than a genuinely new methodological insight. Potential weakness: The paper assumes that simply mixing batch types will consistently induce language-agnostic representations across tasks, but offers no new theoretical insight or principled analysis to support this assumption."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, a single fine-tuning strategy that balances mono-/cross-/multilingual IR and reduces language bias is practically useful. The reported improvements across languages and reduced rank-distance bias could matter to multilingual IR practitioners. However, improvements are generally modest, and the setup targets QA-derived retrieval rather than broader IR scenarios. Missing comparisons to stronger contemporary multilingual retrievers (e.g., mContriever, GTR, ColBERT-X, E5-multilingual) limit the perceived impact. Potential weakness: The reliance on machine-translated QA data may not translate to real-world IR domains and could inflate perceived generalization."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The dual-encoder with InfoNCE and in-batch negatives is standard, and the methodology is coherent. Yet, there is no theoretical justification for why a fixed mixture ratio should mitigate language bias or simultaneously optimize all settings. Early stopping on an English-only validation set could skew model selection against cross-lingual performance. Potential weakness: In-batch negative mining across languages risks false negatives (semantically equivalent passages across languages), which is not analyzed; the quality and noise of the in-house translations are unquantified and may affect correctness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports results on XQuAD-R, MLQA-R, and mentions MIRACL in the appendix, using two backbones (XLM-R, LaBSE), and evaluates mono-/cross-/multilingual settings with a bias metric. However, there are important gaps: no statistical significance tests, no multi-seed runs or variance, limited ablations beyond the alpha mixture (and even that grid search is summarized without detailed sensitivity plots), and missing comparisons to state-of-the-art multilingual dense retrievers beyond the batch-sampling baselines. Potential weakness: Single-run reporting and lack of statistical rigor make it hard to assess robustness; the absence of stronger baselines limits the strength of the claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Some training details are provided (optimizer, LR, batch size, hardware, early stopping data), but there is no code or released training data, and the in-house machine translation pipeline is unspecified and unreleased. Random seeds, exact preprocessing scripts, and full dataset construction details are missing. As per the rubric, missing code and unclear data provenance cap this at 2/5. Potential weakness: Results depend on a private translation pipeline and synthesized parallel QA pairs that are not available, hindering exact reproduction."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites several relevant works (e.g., LaBSE, InfoXLM, alignment approaches, data translation strategies) and contrasts monolingual vs. cross-lingual batching. However, it omits discussion and comparison with several recent strong multilingual retrieval systems and broader data mixing curricula literature. Potential weakness: Without benchmarking against strong contemporaries (e.g., mContriever, GTR, ColBERT-X, multilingual E5), the positioning remains incomplete, and the practical advantages of the proposed method are not fully contextualized."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "A brief limitations section mentions fairness and potential bias but lacks a dedicated ethics statement detailing data licensing, provenance of the translation pipeline, potential harms, or mitigation strategies. No discussion of the legal/ethical status of translated datasets (e.g., Yahoo Answers mining) is provided. Per the rubric, unclear ethics and data provenance cap the score. Potential weakness: Unverified data licensing and opaque translation pipeline raise ethical and reproducibility concerns."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the idea of mixing monolingual and cross-lingual batches yields modest, consistent gains and reduced language bias across benchmarks, the contribution is incremental, empirical rigor is limited (no multi-seed or statistical tests; missing strong baselines and thorough ablations), and reproducibility is hampered by the absence of code and reliance on an unreleased in-house translation pipeline. Per RBCL §2 Fatal-Flaw Logic, Reproducibility ≤ 2 compels a Reject regardless of other strengths; additionally, with a total score of 17 and no dimensions clearly ≥4, the Practical ICLR Calibration further supports rejection. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility ≤ 2) and strict empirical standards."
+  }
+}

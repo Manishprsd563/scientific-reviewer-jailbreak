@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a novel greedy algorithm (DYSPEC) for dynamically constructing speculative decoding trees. The core idea of using the draft model's probability distribution as a proxy for acceptance rate to guide a heap-based expansion is a clever and non-trivial contribution. It advances beyond fixed-tree methods and offers a distinct, sampling-based approach compared to other dynamic methods like Eagle-2. However, the foundational insight (Hypothesis 1) is intuitive and has been implicitly leveraged by prior work, so the novelty lies in the specific algorithmic instantiation rather than a fundamental paradigm shift. A potential weakness is the unverified assumption that the draft probability `p_d[t_i]` is a sufficient proxy for the true acceptance probability `min(1, p_t/p_d)`. This approximation could fail significantly if the draft model is poorly calibrated, weakening the optimality claims of the greedy strategy."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The work addresses the critical problem of LLM inference latency, which is of immense practical and academic importance. The reported results, particularly the up to 9.4x latency reduction on a Llama2-70B model, are highly significant and would represent a substantial advance for LLM deployment if validated. The method's focus on improving acceptance rates, the key bottleneck in speculative decoding, is well-placed and directly impactful. The primary unverified assumption is that these impressive speedups, reported under specific low-temperature and CPU-offloading conditions, will generalize robustly to a wider range of hardware configurations, models, and more stochastic high-temperature sampling scenarios without being negated by the method's own overhead."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The technical soundness is questionable. The paper's argument connecting KL divergence to the correlation between draft probability and acceptance rate is hand-wavy. The most significant flaw is the assertion of optimality for the proposed greedy algorithm, with the proof relegated to a missing appendix (Appendix D). Without this proof, the central theoretical claim is unverifiable. The optimality likely rests on the crude approximation of acceptance rate by draft probability, which is a strong and potentially incorrect assumption. Furthermore, the paper introduces a more practical 'threshold-based' method (Sec 5.4) without a clear algorithm or analysis, creating ambiguity about which method was used in experiments and what its theoretical properties are. This lack of rigor on core claims is a major technical weakness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "While the paper evaluates on a good range of datasets, models, and strong baselines (Sequoia, Specinfer), the experimental validation lacks fundamental rigor. All results are reported as single mean values without error bars, standard deviations, or statistical significance tests, making it impossible to ascertain if the reported gains over baselines are real or due to random variance. A crucial ablation study is missing: the paper describes a 'greedy expand' method (Algorithm 1) and a more practical 'threshold' method (Sec 5.4), but does not compare them or clarify which was benchmarked. The metrics in the tables are also ambiguously described in the text, creating confusion. An unverified assumption is that the reimplementations of the baselines are fair and optimized, which cannot be confirmed without code."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper is not reproducible. No code, data links, or supplementary materials are provided. This is a critical failure, especially since a custom C++ implementation for the core logic is mentioned, which would be impossible to replicate from the text alone. Key appendices (A.2 for the practical algorithm, D for the optimality proof) are cited but not included. Critical hyperparameters, such as the threshold `C` for the practical algorithm and other sampling parameters beyond temperature, are not specified. The absence of code and these crucial details makes verification of the claims impossible. This score is capped at 1 due to the complete lack of code, as per standard reviewing practice."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "The related work section is a strength of the paper. It provides a comprehensive overview of recent tree-based speculative decoding methods, including SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, and ReDrafter. The authors do a good job of positioning their contribution, particularly by distinguishing their sampling-based dynamic construction from the top-k selection methods of Eagle-2/ReDrafter and the dynamic programming approach of Sequoia. This contextualizes their work effectively. A minor weakness is that the characterizations of competing methods are brief and could be seen as oversimplified; for instance, the claim that certain methods 'cannot apply standard verification' would benefit from a more detailed argument."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper completely lacks any discussion of ethics, broader impacts, or safety. For a top-tier conference, this is a major omission. The authors do not address the provenance or licenses of the datasets used (e.g., C4, OpenWebText), nor do they consider the potential dual-use nature of accelerating LLM inference (e.g., for generating misinformation at scale) or the environmental impact of their method. The unverified assumption is that this work has no negative societal implications, which is not a tenable position for research in this field. The absence of this section warrants a very low score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.9,
+    "final_decision": "Reject",
+    "final_justification": "The final decision is 'Reject'. While the paper addresses a significant problem and presents impressive headline results, it suffers from several critical, non-compensatory flaws. The decision is directly triggered by the RBCL §2 Fatal-Flaw Logic.  Specifically: (1) Reproducibility is non-existent (score=1) due to the complete absence of code, hyperparameters, and cited appendices containing proofs and core algorithms. (2) Technical Soundness is poor (score=2), with central claims of 'optimality' being entirely unsubstantiated. (3) Empirical Validation lacks rigor (score=2), presenting results without error bars or statistical tests, and omitting crucial ablation studies. The strengths in significance and related work cannot overcome these fundamental weaknesses in verifiability and scientific rigor. Acceptance would endorse a standard of reporting that is detrimental to the field."
+  }
+}
+```

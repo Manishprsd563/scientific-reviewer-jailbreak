@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper identifies a concrete, well-documented phenomenon ('priming' of unrelated contexts after in-weight insertion) and introduces a new dataset (Outlandish) plus two interventions (stepping-stone augmentation and ignore-topk pruning). These contributions go beyond trivial parameter tuning and include a novel, surprising pruning observation. Potential weaknesses / unverified assumptions: the underlying mechanism for priming and for why ignore-topk works is not explained (empirical-only), and it is unclear how broadly the phenomenon and mitigation scale to production-size models and varied real-world data. Per RBCL Anti-Inflation Safeguard, I reduced the nominal score by 0.5 when aggregating — reflected here."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the ability to predict when single-sample updates will cause undesirable generalization and two practical mitigations are highly relevant to continual learning, model editing, and safety. The cross-model and cross-stage experiments reported suggest practical impact. Potential weaknesses / unverified assumptions: applicability to massively scaled production models and to realistic, noisy continual-update pipelines is not demonstrated; real-world deployment constraints (compute, data pipelines, privacy) may limit practicality. I applied RBCL anti-inflation conservatism in scoring."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Empirical protocols appear reasonable and the core metrics (memorization, priming) are clearly defined. However, there is limited theoretical analysis or mechanistic explanation; key claims rely on correlational evidence and empirical thresholds (e.g., keyword prob ~1e-3) without causal identification beyond the augmentation ablation. Potential weaknesses / unverified assumptions: assumptions that token-probability alone causally explains priming are not fully proven (confounders possible), and the role of optimizer/hyperparameter choices is not thoroughly controlled. Because some methodological details are incomplete and the mechanism remains unexplained, I assign a conservative score (and note RBCL §2 Fatal-Flaw Logic: low reproducibility below will force a Reject)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The empirical campaign is extensive in scope (1320 samples, multiple models, sizes, stages) and includes interventions and ablations (stepping-stone, ignore-topk, spacing, in-context vs in-weight). This breadth supports the main claims. Potential weaknesses / unverified assumptions: the paper does not report sufficient statistical rigor (e.g., repeated seeds, variance measures, confidence intervals, hypothesis tests) or explicit details on number of runs per condition; many results may be single-run/median-only, which risks over-interpreting noisy effects. Missing experimental-control details (learning rates, random seeds, checkpointing) reduce confidence."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper links to a project page, but the manuscript lacks concrete, machine-actionable reproducibility artifacts in the text: explicit code repository, complete hyperparameter lists, training scripts, seed lists, exact dataset files, and precise environment specs are not documented in the manuscript or Appendix. Potential weaknesses / unverified assumptions: it is unclear whether the Outlandish dataset, the training/insertion scripts, and the ignore-topk implementation (and its integration points) are publicly available; dependence on proprietary model checkpoints (Gemini/PALM-2) further complicates reproducibility. Per scoring rules, missing/unclear reproducibility information caps this criterion; this low score triggers the RBCL fatal-flaw condition requiring a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript situates itself well with prior literature on model editing, memorization, catastrophic forgetting, and related interpretability work and draws useful connections to neuroscience. Potential weaknesses / unverified assumptions: some potentially relevant recent work on update sparsity and mitigation (e.g., in differential privacy, continual-learning curricula) could be discussed in greater depth, and more direct head-to-head comparisons to the strongest baselines (e.g., other targeted editing techniques) are limited or missing."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper mentions safety, hallucination, and potential benefits, which is appropriate. Potential weaknesses / unverified assumptions: there is no explicit ethics statement covering dataset provenance, licenses for generated or derived data, privacy considerations (e.g., generation with proprietary models), potential misuse of dataset or ignore-topk technique (e.g., concealing poisoning), or a risks-mitigation plan. Missing provenance and license information and absent formal ethical review reduce the score and have reproducibility implications."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.82,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents an interesting, potentially impactful empirical finding (that pre-learning token probability predicts the degree of post-learning priming) together with a new dataset (Outlandish) and two practical mitigation strategies (stepping-stone augmentation and ignore-topk pruning). The empirical breadth (multiple architectures, sizes, and training stages) and the interventions strengthen the contribution. However, several critical issues prevent acceptance in its current form: (1) Reproducibility is insufficiently supported — the manuscript does not provide necessary code, exact hyperparameters, seeds, or formal dataset release details; dependence on proprietary/model-specific resources exacerbates this concern. Per the review rules, reproducibility score <= 2 triggers an override that mandates Reject (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). (2) Technical/mechanistic understanding is limited: key phenomena (why priming occurs, why ignore-topk works) remain unexplained, leaving results largely correlational. (3) Experimental reporting lacks statistical rigor (no clear reporting of variability, repeated runs, or hypothesis tests), which weakens confidence in effect sizes and generality. Given the RBCL Fatal-Flaw Logic (reproducibility <= 2) and the Practical ICLR Calibration (total in [15,20) defaults to Reject absent exceptional breakthroughs), the correct decision is Reject. Recommendation to authors: release full code, scripts, exact datasets and seeds; add detailed hyperparameters and environment; provide repeated-run statistics and ablation tables with confidence intervals; attempt mechanistic analysis or stronger causal tests (e.g., controlled interventions that manipulate keyword probability while holding other factors fixed, synthetic-data causal checks); and expand ethical/data-provenance discussion and licensing. Addressing these would materially change the assessment and could lead to reconsideration."
+  }
+}

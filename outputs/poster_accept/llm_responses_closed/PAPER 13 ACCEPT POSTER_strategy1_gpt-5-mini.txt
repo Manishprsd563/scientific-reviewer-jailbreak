@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper adapts orbit-based symmetry-breaking and principled feature-augmentation to the ILP + GNN setting, providing a focused theoretical framing (Assumption 1, Proposition 1) and a concrete Orbit / Orbit+ scheme. This represents a useful, moderate novelty relative to existing symmetry-breaking literature (SBS, orbit methods) rather than a fundamentally new class of methods. Potential weakness: the contribution may be incremental because it combines known orbit/symmetry ideas with feature augmentation rather than introducing a fundamentally new algorithmic paradigm. Unverified assumption: the theoretical claims hinge on Assumption 1 (specific permutation equivariance/invariance behavior) whose applicability to all GNN variants used in practice is not fully justified."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, improving GNN performance on symmetric ILPs matters to ML-assisted combinatorial optimization and could improve solver-guided heuristics in practice. The method is lightweight (feature augmentation) and could be easily integrated into existing pipelines. Potential weakness: scope is limited to ILPs with formulation symmetry; it is unclear how broadly applicable the approach is to ILPs without clear formulation symmetries or to other combinatorial problems. Unverified assumption: claimed gains translate to downstream solver speedups or real-world gains — the paper shows prediction improvement but does not convincingly demonstrate end-to-end impact on solver performance or downstream decision quality across diverse practical workloads."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical argument that permutation equivariance/invariance leads to indistinguishability of symmetric variables is standard and appears correctly applied; Proposition 1 and Corollary 1 are plausible. The three augmentation principles are sensible. Potential weakness: the analysis depends on Assumption 1 (exact equivariance/invariance) which may not strictly hold for all GNN instantiations (e.g., architectures with learned positional encodings or asymmetric readouts), and this dependence is not fully discussed. Another unverified assumption: the use of SymILO to adjust labels is treated as a benign preprocessing step, but its interaction with training dynamics and potential label leakage or bias is not rigorously analyzed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments cover three ILP benchmarks (BPP, BIP, SMSP) including large instances and compare Orbit / Orbit+ to several baseline augmentation schemes using a relevant Top-m% error metric. This provides useful evidence of effectiveness. Potential weaknesses: (1) missing statistical rigor — no reporting of multiple independent training runs with different random seeds, no confidence intervals or significance tests; (2) test-time randomness (only a single augmentation sample at test) and label noise from time-limited SCIP solutions (3600s) could affect conclusions; (3) insufficient ablations and limited comparison to other contemporary symmetry-breaking approaches (e.g., recent SBS probabilistic/canonicalization variants) and to downstream solver performance metrics. According to the review rules, single-run / missing-statistics penalize empirical validation."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The manuscript provides a public code repository link and lists many training hyperparameters (optimizer, lr, batch size, epochs, sampling counts) and uses a known symmetry tool (Bliss), which is positive. Potential weaknesses / missing items: the paper does not state random seeds, full environment details (hardware, exact library versions), dataset split seeds or exact instructions to reproduce the reported runs (e.g., how SymILO is configured and run, how many independent runs were performed), nor code license and dataset provenance details. Per the review rules, missing/unclear reproducibility information caps this criterion at 2/5. Decision downgraded due to RBCL §2 Fatal-Flaw Logic because reproducibility <= 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites relevant literature on GNNs for ILPs and on symmetry-breaking in ML (SBS, orbit methods, etc.) and positions its contributions with respect to these lines. Potential weakness: while the survey is adequate, empirical and conceptual comparisons to the most recent or closely related symmetry-breaking frameworks (e.g., probabilistic/canonicalization SBS extensions, or practical orbit-based approaches applied in other domains) are limited; missing discussion of trade-offs (e.g., computational cost of orbit detection at scale) in practice."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work deals with benchmark ILPs and does not raise obvious direct societal harms; the authors provide a code link and use public benchmarks. Potential weaknesses: the manuscript does not include an explicit ethics / broader impacts statement, does not mention code/data licenses, and omits discussion of environmental/training costs for very large instances (SMSP) or potential misuse. Per the review rules, missing an ethics/broader-impacts discussion caps this criterion at 2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper identifies an important practical issue — GNNs' inability to distinguish symmetric variables in ILP bipartite representations — and proposes principled orbit-based feature augmentation with theoretical justification and empirical validation. Strengths include a clear problem statement, reasonable theoretical framing (Proposition 1 / Corollary 1), sensible augmentation principles, and experiments on multiple benchmarks including large instances. Critical weaknesses: reproducibility and empirical rigor. Reproducibility is capped at 2/5 due to missing random seeds, incomplete environment/run instructions, unclear SymILO configuration and lack of independent-run reporting; per the review rules this is a fatal concern. Empirical validation lacks multiple independent runs, statistical tests or confidence intervals and omits stronger baselines and ablations that would increase confidence in the generality of the results. Technical assumptions (exact equivariance/invariance, reliance on SymILO for label transformations) are not fully justified across practical GNN variants. Decision rationale and RBCL compliance: under the mandatory Reviewer Bias Correction Layer rules, reproducibility <= 2 triggers the Fatal-Flaw Logic override requiring the overall decision to be 'Reject' (RBCL §2). I also applied the RBCL Anti-Inflation Safeguard (reducing 0.5 per criterion before totaling) when computing the final total; the resulting conservative total_score is 14. To reach acceptability the authors should (at minimum): (1) release a complete, documented reproduction package including exact seeds, environment, and SymILO configuration; (2) provide multiple independent runs with variance estimates and statistical significance tests; (3) include ablations on orbit-detection robustness and comparison to more recent symmetry-breaking baselines and downstream solver impact metrics; (4) clarify theoretical assumptions and limitations (e.g., which GNN variants satisfy Assumption 1) and add an explicit ethics / broader impacts statement. Given the reproducibility and empirical concerns, I recommend Reject in the current form."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core idea (sparse adaptation via selective sampling + using representative memory to adjust normalization stats) is an intuitive and practically useful combination of known components rather than a clearly new methodological paradigm. At least one potential weakness: the approach is largely heuristic (e.g., using first-layer mean/variance and Wasserstein on means/variances as a domain centroid) without formal justification or theoretical guarantees. I applied RBCL Anti-Inflation (-0.5) downgrade from an initial judgment that was nearer to 3; this downgrade is noted here per RBCL (Anti-Inflation Safeguard)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "The problem targeted (latency-sensitive on-device TTA) is important and practical; demonstrating latency gains on a Raspberry Pi is a strength. At least one potential weakness: significance may be limited if benefits rely on careful hyperparameter tuning, specific implementation choices, or dataset/stream characteristics not representative of diverse real deployments (e.g., continuous non-stationary streams). RBCL Anti-Inflation (-0.5) downgrade applied to reflect conservative assessment."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Derivations and formulas appear internally consistent for the proposed heuristics (IoBMN soft-shrinkage, memory variance estimates), but the work lacks formal analysis, proofs, or bounds (e.g., on when representative samples suffice or on convergence/stability under sparse updates). At least one potential weakness: key modelling assumptions (that first-layer mean/variance encode domain centroid adequately; that soft-shrinkage parameters generalize across corruptions) are unverified and may fail in complex domain shifts. I applied RBCL Anti-Inflation (-0.5) from an initial ~3 assessment and retained a conservative score."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Strengths: experiments on CIFAR10/100-C and ImageNet-C, multiple SOTA TTA baselines, ablations, and latency measured on Raspberry Pi are positives. At least one potential weakness: experimental reporting has issues (tables with inconsistent/garbled entries and unusually large latency values for some baselines), only three seeds reported (small), no statistical significance tests, and crucial implementation details (exact hyperparameters, augmentation/optimization differences vs. baseline implementations) are either only in appendices or not clearly reproducible. The combination of these issues and RBCL emphasis on conservatism leads to a downgraded empirical score (RBCL Anti-Inflation -0.5 applied)."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper references appendices for implementation and hyperparameters and reports using 3 seeds and a Raspberry Pi testbed, but I find no explicit public code or clear, complete reproduction instructions and no link to code/data release in the main text. At least one potential weakness: absence of a public implementation, insufficient low-level details (exact hyperparameters, software stack, scripts to reproduce device latency measurements) makes reproduction hard. Per the rubric, missing/unclear information caps the score; RBCL Anti-Inflation further reduced this to 1. This reproducibility shortfall triggers the mandatory RBCL override (Reproducibility ≤ 2), requiring a Reject decision (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The manuscript cites relevant TTA and data-efficient sampling literature and includes an Appendix for related work, showing awareness of prior methods. At least one potential weakness: positioning could be clearer on distinctions vs. recent latency- or sample-efficient adaptation approaches (e.g., explicit comparisons to other on-device/low-latency TTA protocols, and more direct discussion of trade-offs with memory-efficient TTA). RBCL Anti-Inflation (-0.5) was applied, resulting in a conservative score."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "There is no explicit ethics or broader-impact statement, no discussion of data licensing/provenance beyond standard dataset citations, and no treatment of failure modes (e.g., safety implications if on-device adaptation misclassifies in safety-critical contexts) or fairness/energy trade-offs. At least one potential weakness: lack of explicit discussion of risks, privacy implications (on-device memory/storage of test samples), or mitigation strategies. Per rubric, missing ethics discussion caps the score; RBCL Anti-Inflation (-0.5) applied."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 12,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "While the paper addresses an important practical problem (latency-sensitive on-device TTA) and presents a promising engineering approach (selective class/domain representative sampling + inference-time memory-aware normalization) with empirical evaluations across multiple benchmarks and a real-device latency measurement, there are critical shortcomings that prevent acceptance in its current form. The most decisive issue is poor reproducibility: no public code or complete reproduction recipe is provided and essential low-level details of implementations and device-measurement protocols are missing; per RBCL and the rubric, Reproducibility ≤ 2 is a fatal flaw that mandates rejection (\"Reproducibility <= 2 override\" / RBCL §2 Fatal-Flaw Logic). Additional concerns include heuristic technical assumptions without theoretical guarantees (e.g., treating first-layer mean/var as a reliable domain centroid, selection thresholds and hyperparameters not justified theoretically), inconsistent or unclear experimental reporting (garbled/misaligned table entries and suspicious latency numbers for some baselines), limited statistical rigor (only 3 seeds reported, no significance testing), and absence of an ethics/broader-impacts statement. Given these critical problems, strengths in empirical breadth and practical relevance cannot compensate. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility failure) and RBCL Anti-Inflation Safeguard was applied to individual criteria. I recommend rejection with encouragement to the authors to (1) release code and full reproduction scripts, (2) clean and clarify experimental tables and measurement protocols, (3) add statistical tests and expand seeds/robustness checks, (4) justify key assumptions or provide theoretical analysis where possible, and (5) include an explicit ethics/broader-impacts statement; addressing these would make the contribution much stronger for resubmission."
+  }
+}

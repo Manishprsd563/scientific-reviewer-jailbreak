@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a structure-aware masking approach (heads and filters) for parameter‑efficient unlearning, which appears to be a meaningful direction beyond naive parameter pruning and aligns the unlearning objective with Transformer structure. However, the idea is partly a combination of known components (masking/pruning, second-order unlearning, diagonal FIM approximations) rather than a clearly radical methodological breakthrough; the degree of conceptual novelty is therefore moderate. A key unverified assumption is that masks learned on small/fine-tuned models will generalize to large pre-trained models (the paper states plans to study 13B models but provides no evidence). I applied conservative RBCL adjustments (anti-inflation and presumption of rejection) which lowered the effective novelty score (see: \"Decision downgraded due to RBCL § Anti-Inflation Safeguard\")."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If the approach reliably identifies small structural subsets for effective unlearning, it would be practically useful for MLaaS and compliance (right-to-be-forgotten), reducing computational cost of unlearning large Transformers. However, significance is limited by the current empirical scope: experiments are on fine-tuned, relatively small models and not on very large pre-trained backbones claimed as target applications. A major unverified assumption is scalability: claims about memory/time gains and tightened error bounds for large models are not demonstrated. Given missing pieces in validation, I conservatively rated impact as moderate."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The manuscript asserts theoretical derivations for optimal masks and error bounds, and relies on diagonal FIM approximations and influence-function style second‑order updates. However, the provided excerpts do not include full derivations, formal theorem statements, or proofs; several claims (e.g., error bounds scaling directly with sparsity, neglecting off-diagonal interactions) are asserted without sufficient justification or rigorous empirical/theoretical validation. Critical assumptions (diagonal FIM adequacy for Transformers, negligible off-diagonals, warm-start greedy selection optimality) are not experimentally or theoretically validated in-depth. Per RBCL Fatal‑Flaw Logic, this criterion is capped/ downgraded due to missing/verifiable derivations and questionable assumptions: \"Decision downgraded due to RBCL §2 Fatal-Flaw Logic\" — note that technical_soundness ≤ 2 requires a Reject decision (see final justification)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates on multiple tasks (GLUE, SQuAD) and compares to several baselines (RT, FT, GD, SA, SO), which is a positive sign. However, the experimental reporting has significant gaps: no standard deviations or multiple random seeds are reported (appears to be single-run results), no statistical significance tests, limited ablation on mask design choices (why 90% sparsity is chosen), lack of clarity on how masks are learned across layers/heads, and missing details about the exact membership inference / MIA setup. Claims about handling many successive unlearning requests and improved error accumulation are supported by a few tables/figures but lack thorough robustness checks (different forgetting set sizes, varying distributions). I penalize for single-run/insufficient ablation and missing statistical rigor. One unverified assumption is that the MIA metric and the unlearning accuracy reported are sufficient proxies for provable forgetting; this is not thoroughly validated."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is weak in the provided manuscript excerpt: code and artifacts are not released, main-text hyperparameters are only referenced as being in Appendix A.1 (not provided here), random seeds and trial counts are not reported, and specific implementation details (mask optimization schedule, greedy warm-start particulars, FIM computation hyperparameters) are missing. These absences prevent independent verification. Per the RBCL rules on missing/unclear information, I downgrade this criterion significantly and note that reproducibility ≤ 2 triggers an overall Reject (\"Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL § Evidence Severity Scaling\")."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites a range of prior works in unlearning, parameter-efficient fine-tuning, and Transformer optimization. It positions SPE-Unlearn relative to parameter‑efficient and second‑order unlearning approaches. However, some positioning statements are overstated (e.g., claiming prior methods are structure‑oblivious without fully discussing recent structured pruning/mask-based work) and the paper lacks comparison to certain recent specialized unlearning or masking strategies that may be relevant. A potential weakness is incomplete discussion of limitations of diagonal-FIM assumptions in the context of Transformer attention parameter interactions; this is asserted but not fully tied into related-work discussion."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper lacks an explicit ethics or broader‑impacts section in the provided excerpt. Important issues are not sufficiently discussed: provenance and licensing of the training data, potential misuse (e.g., partial unlearning leaving residual memorization exploitable by attackers), risks of incorrectly claiming data has been forgotten, and the limitations of MIA as a privacy metric. The manuscript should include explicit discussion of these risks and mitigation strategies. Per RBCL Evidence Severity Scaling, absence of an ethics statement leads to a severe downgrade."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.60,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents an interesting and potentially useful direction—structure-aware masks for parameter-efficient unlearning in Transformers—but suffers from several critical weaknesses that prevent acceptance in its current form. Theoretical claims are not fully substantiated or rigorously presented, key assumptions (diagonal FIM adequacy, error‑scaling with sparsity, mask optimality) are not convincingly justified, and reproducibility is poor (no code, insufficient hyperparameter/seed reporting, and limited experimental detail). Experimental evaluation, while spanning multiple models/tasks, lacks repeated runs, statistical tests, and deeper ablations needed to support strong claims about robustness and scalability. Per the RBCL (presumption of rejection, Fatal‑Flaw Logic, and Evidence Severity Scaling), the combination of technical_soundness ≤ 2 and reproducibility ≤ 2 constitutes a fatal flaw: these cannot be compensated by perceived novelty or empirical promise. Consequently the overall decision is Reject. Required notes per evaluation logic: (1) Technical soundness was capped/downgraded per RBCL §2 (\"Decision downgraded due to RBCL §2 Fatal-Flaw Logic\"); (2) Reproducibility was downgraded per RBCL Evidence Severity Scaling due to missing code/hyperparameters/seed information (\"Decision downgraded due to RBCL § Evidence Severity Scaling\"); (3) Because technical_soundness ≤ 2 and reproducibility ≤ 2, the review enforces a Reject decision per the specified overrides. Suggested path to strengthen the submission: provide full formal derivations with lemmas/theorems and clear assumptions; release code and scripts, specify seeds and repeated‑trial statistics; expand empirical validation with multi-seed runs, statistical tests, more ablations (different sparsities, mask-learning variants), and experiments on larger pre-trained models or provide convincing justification/benchmarks for scalability; and include an explicit ethics/broader-impacts section addressing data provenance and risks of partial unlearning."
+  }
+}

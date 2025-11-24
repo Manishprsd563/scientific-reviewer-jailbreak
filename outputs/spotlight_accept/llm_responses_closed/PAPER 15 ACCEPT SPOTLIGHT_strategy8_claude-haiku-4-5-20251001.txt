@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper combines existing techniques (VQ-VAE for action discretization, MCTS for planning, Transformer as transition model) in a reasonable but not particularly novel way. The key contribution is the masked return-to-go approach in the VQ-VAE loss to prevent return variability from fragmenting the latent space. While this is a sensible engineering insight, it is relatively incremental. The overall approach largely extends prior work (TAP, Trajectory Transformer) to macro-actions with MCTS planning. The paper does not present a fundamentally new algorithmic or theoretical insight that would warrant a score of 4 or 5. The technical novelty is limited to engineering and design choices rather than conceptually new methodology."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "While the paper addresses an important problem (planning in high-dimensional continuous action spaces with stochasticity), the practical impact is unclear. The method is evaluated only in offline RL settings on standard benchmarks (MuJoCo, Adroit). Performance is comparable to or slightly better than baselines, but no compelling evidence demonstrates that L-MAP substantially advances the field or offers transformative insights. The paper claims applicability to autonomous driving and robotic manipulation but provides no real-world experiments. The latency improvements shown in Fig. 1b are modest. The work is incremental for the model-based offline RL community. A potential weakness is that the method requires pre-training multiple neural networks (encoder, decoder, Transformer), which may limit practical adoption compared to simpler alternatives."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns undermine confidence in the soundness of the approach. (1) The masked return-to-go modification to the VQ-VAE loss (Equation 3) introduces an additional regularization term without theoretical justification or ablation studies demonstrating its necessity. The claim that this prevents latent space fragmentation is not rigorously validated. (2) The paper argues that taking expectations over latent transitions mitigates uncertainty from non-injective mappings, but this reasoning is hand-wavy. Non-injective mappings do not disappear through expectation; they introduce inherent information loss that MCTS cannot remedy. (3) The pre-construction of the latent search space by sampling M and N latent codes is not theoretically motivated. Why sample N subsequent codes per macro-action? What guarantee exists that this pre-built space is sufficient? (4) Appendix C references 'detailed analysis of uncertainty sources' but is not provided in the submitted paper, making verification impossible. (5) The progressive widening parameters (α, ε) are introduced without justification or sensitivity analysis. These unverified assumptions and missing derivations cap the score at 2."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Empirical validation is insufficient. Critical issues: (1) No ablation studies are presented. It is unclear which components (masked return-to-go, progressive widening, parallel expansion) actually drive performance. Without ablations, claims about the effectiveness of design choices are unverifiable. (2) The paper claims to outperform TAP and TT in stochastic environments but provides no statistical significance testing, confidence intervals, or multiple runs per seed. Standard practice requires at least 5 random seeds with reported means and standard deviations. (3) The Adroit hand manipulation results are mentioned briefly but lack detailed analysis or comparisons. (4) Latency comparisons (Fig. 1b) are based on a single task with a single hyperparameter configuration; generalization is unclear. (5) No experiments validate that the method scales to truly high-dimensional action spaces (e.g., d > 30). The paper lacks depth in empirical rigor, making it difficult to assess whether observed improvements are statistically significant or due to hyperparameter tuning. This is a major weakness."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised. Critical information is missing: (1) No code is provided, and the paper does not commit to releasing it. (2) Hyperparameter settings are largely absent. The paper mentions parameters like M, N, B, k, λ, α, ε but does not specify their values for experiments. How were these chosen? Were they tuned on the test set? (3) Random seeds and the number of runs are not specified. (4) The VQ-VAE architecture (encoder/decoder dimensions, layer counts) is not detailed. (5) Appendix C, which supposedly contains crucial analysis, is referenced but not included in the submission. (6) No discussion of computational cost or training time is provided. (7) The offline datasets (MuJoCo, Adroit) are standard, but exact dataset versions and preprocessing are not specified. Without code, detailed hyperparameters, and seeds, reproduction is infeasible. This is a fatal flaw that caps the reproducibility score at 1."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work is reasonably comprehensive, covering model-free methods (CompILE, RPL, OPAL), model-based methods (TT, TAP), planning approaches (MuZero), and theoretical foundations. However, positioning is imprecise. (1) The paper claims TAP and TT 'face significant latency issues' in stochastic environments but cites Li et al. (2023), which is a concurrent work and not a rigorous comparison. (2) The distinctions between L-MAP and TAP are not clearly articulated. Both use VQ-VAE for discretization; the primary difference appears to be the macro-action formulation, but this is not highlighted. (3) Comparisons to robust RL and Hamilton-Jacobi-Bellman approaches are superficial. (4) The paper does not compare against recent latent action methods or other temporal abstraction approaches in sufficient detail. While the related work section is present, it does not clearly delineate what L-MAP uniquely contributes or why prior approaches are insufficient. The positioning is adequate but not rigorous."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics or broader impacts discussion is provided. The paper makes claims about applicability to autonomous driving and robotic manipulation but does not discuss: (1) Safety implications of deploying learned planners in safety-critical domains. (2) Potential for adversarial attacks on learned models. (3) Data provenance and licensing of benchmarks. (4) Computational resource consumption (training large Transformers and VQ-VAEs). (5) Potential for model misuse or unintended applications. The paper is entirely silent on ethical considerations, which is a significant oversight for work claiming real-world relevance. Per scoring guidance, missing ethics statements cap this criterion at 1-2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper presents a reasonable engineering contribution by combining VQ-VAE-based action discretization with MCTS planning for offline RL in continuous action spaces. However, it suffers from critical weaknesses that preclude acceptance at a top-tier venue. (1) Reproducibility is severely compromised: code is not provided, hyperparameters are largely missing, and Appendix C is absent. Per RBCL Fatal-Flaw Logic, reproducibility ≤ 2 triggers a Reject decision. (2) Empirical validation is inadequate: no ablation studies, no statistical significance testing, and no clear evidence that the method offers substantial improvements over baselines. (3) Technical soundness is questionable: key design choices (masked return-to-go loss, progressive widening parameters, pre-constructed search space) lack rigorous justification or ablation validation. The claim that MCTS expectations mitigate non-injective mapping artifacts is not convincingly argued. (4) Novelty is limited: the approach combines existing techniques without a compelling conceptual insight. (5) No ethics or broader impacts discussion is provided. The paper addresses an important problem but executes the solution in a way that falls short of publication standards for NeurIPS/ICML/ICLR. Substantial revisions, including code release, comprehensive ablations, rigorous baselines, and statistical validation, would be required for reconsideration. The fatal flaw of reproducibility (score 1) combined with weak empirical validation (score 2) and questionable technical soundness (score 2) mandates rejection under RBCL guidelines."
+  }
+}
+```

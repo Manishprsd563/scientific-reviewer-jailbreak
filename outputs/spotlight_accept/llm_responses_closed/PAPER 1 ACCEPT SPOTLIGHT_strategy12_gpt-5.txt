@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper identifies a systematic link between pre-learning keyword probability and post-learning priming, introduces a targeted corpus augmentation (stepping-stone) to raise keyword probability, and proposes an unusual gradient pruning scheme (ignore-topk) that reduces priming while preserving memorization. These ideas are reasonably original within the context of data-induced model editing and continual learning. However, the dataset relies on only 12 keywords and synthetic texts, which risks overfitting the claims to a narrow regime. The causality claim (probability causes priming) rests largely on a single intervention with limited coverage (top-priming samples only), and the ignore-topk mechanism is not fully mechanistically explained, which weakens the claim of a fundamentally new paradigm."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If validated broadly, the findings could inform safer continual learning, targeted model editing, and mitigation of hallucinations by steering how new data affects existing knowledge. The cross-model demonstrations (PaLM-2, Gemma, Llama) suggest potential generality. However, the current evaluation is confined to a constrained, synthetic dataset with 12 keywords, and the downstream utility is not demonstrated on standard editing benchmarks or realistic fine-tuning scenarios. The practical impact of ignore-topk and stepping-stone on real-world training pipelines remains uncertain; it is also unclear whether reducing priming adversely affects beneficial generalization in complex tasks."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "Definitions of priming and memorization as likelihood ratios are clear and reasonable; correlations are reported across multiple models and stages. The stepping-stone intervention provides some causal evidence. Nonetheless, the analysis relies heavily on correlation without robust confound controls (e.g., controlling for context length, entropy, or frequency effects jointly), and significance testing, confidence intervals, or multiple-run variability are not reported. The ignore-topk pruning lacks precise specification (e.g., exact norm, layer-wise handling, optimizer interactions) and theoretical justification. A key unverified assumption is that the priming metric faithfully captures harmful generalization; no robustness checks against alternative priming definitions or sampling temperature regimes are provided."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The study conducts many per-sample insertions and reports effects across different architectures, sizes, and training stages, which is commendable. It includes some ablations (spacing, number of presentations, in-context vs in-weights). However, the dataset is narrow in scope (12 keywords), stepping-stone is tested on only the top-priming cases, and standard editing baselines (e.g., ROME/MEMIT-style locality/specificity trade-offs) are not directly compared. Statistical rigor is limited: no error bars, seeds, or hypothesis tests are reported. The effect of ignore-topk beyond wiki next-word prediction is not broadly validated, and safety or calibration impacts are not measured. These omissions weaken empirical support."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references a project webpage but does not clearly commit to releasing code, prompts, seeds, or the Outlandish dataset. Several experiments depend on proprietary infrastructure/models (PaLM-2), which limits independent verification. Critical procedural details for ignore-topk (e.g., exact computation of update magnitudes, per-parameter vs per-tensor pruning, optimizer state handling, and training schedules) are deferred to appendices and may still be insufficient for faithful replication without code. Per the rubric, unclear availability of code/data and missing end-to-end reproduction instructions cap this criterion at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among interpretability, model editing, and continual learning, citing key works (e.g., circuit-level memory, ROME-like editing, task vector sparsity). Positioning is generally fair. Nevertheless, direct empirical comparisons to established editing methods and their locality/specificity metrics are limited, and broader connections to robust fine-tuning, calibration, or safety-by-training methods are only lightly discussed. A potential omission is a deeper survey of prior work on priming-like spillover in fine-tuning and catastrophic interference mitigation beyond high-level citations."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper frames contributions in the context of reducing hallucinations and improving safety, which is positive. However, there is no explicit ethics statement detailing data provenance/licensing for generated texts, potential misuse (e.g., using ignore-topk to circumvent safety updates or alignment tuning), or environmental cost reporting. Risks of over- or under-generalization in sensitive domains are not discussed. Given these missing elements, this criterion is capped at 2 per the rubric."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper presents an interesting and potentially impactful observation linking pre-learning token probability to post-learning priming, along with two mitigation strategies (stepping-stone augmentation and ignore-topk pruning). While the empirical work spans multiple architectures, the study relies on a constrained synthetic dataset (12 keywords), limited statistical rigor, and insufficient comparisons to standard model-editing baselines. Critically, reproducibility and transparency are inadequate (unclear code/data release; reliance on proprietary models; missing full procedural detail), triggering RBCL §2 Fatal-Flaw Logic and the decision override: because Reproducibility ≤ 2, the paper must be rejected regardless of other strengths. In addition, with total score in the 16–20 range and no dimensions clearly above 4, RBCL Practical ICLR Calibration further supports a conservative Reject. Strengthening reproducibility (public code/data/prompts; seeds; open-model variants), adding statistical rigor, expanding beyond synthetic keywords, and providing stronger baselines would substantially improve the case for acceptance."
+  }
+}

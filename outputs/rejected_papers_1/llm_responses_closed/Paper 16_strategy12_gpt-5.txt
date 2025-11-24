@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "Moderate novelty: the paper systematically fine-tunes ESM2 for DMS-based functional effect prediction, provides ablations (e.g., LoRA vs. full/partial FT), proposes interval-based evaluation splits, and introduces the rBME metric. However, fine-tuning PLMs for DMS tasks and using lightweight heads are known (e.g., LoRA-based ESM2 fine-tuning and regression on embeddings). The metric concept (binning and per-bin error averaging) is a variant of standard stratified error analyses, so methodological novelty is incremental. Potential weakness: the \"inductive bias\" regression head is not precisely specified, and the claim that structural/evolutionary features are redundant is asserted with limited evidence across only nine DMS and small reported margins."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If validated, a simpler ESM2-only pipeline that slightly surpasses a multimodal SOTA (PreMode) could be impactful for practitioners who prefer lighter dependencies (no MSA/structure). The proposed benchmark ideas (interval-based splits) also address a real gap. However, reported gains appear small, transferability is mixed (including near-zero Spearman in a disordered interval and poor cross-protein transfer), and adoption of rBME is uncertain. Potential weakness: conclusions about redundancy of structural/evolutionary inputs may not generalize; the paper does not demonstrate consistent improvements across sufficiently diverse proteins or properties."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Technical ambiguities weaken confidence. The rBME definition mixes notation (defining relative_error_i but summing \"error_i\"), and equal-width, equal-weight bin averaging can overemphasize sparse/noisy bins; epsilon and binning choices are under-specified. The \"inductive bias\" head is not clearly defined (architecture, constraints). Claims such as \"LoRA matches full FT\" and size-scaling observations appear inconsistently evidenced (the paper notes limited compute and instability on PTEN, and in methods they freeze 10/12 layers, raising doubts about full FT comparisons). Potential weakness: possible metric-induced artifacts (e.g., inflating hard-region weighting without calibration/sensitivity analyses) and lack of theoretical justification for rBME’s superiority beyond qualitative plots."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The empirical section reports some numbers (e.g., SNCA/PTEN correlations) and several ablations, but key evidence is incomplete: no comprehensive results table across all nine DMS, limited seeds (often 3, occasionally single-run behavior), no statistical tests or confidence intervals, and unclear reproduction of PreMode with identical settings. Some comparisons rely on plots without consistent quantitative summaries. Instability and compute-limited settings (e.g., PTEN full FT) further weaken conclusions. Potential weakness: missing critical baselines (e.g., simple linear models on ESM features, re-trained multimodal baselines with controlled inputs), and the interval-based evaluation is demonstrated on a single protein, limiting generality."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Some ingredients are provided (GitHub link, several training hyperparameters, hardware, approximate training time, mapping of score columns). However, end-to-end reproducibility remains unclear: exact seeds per experiment, environment details (package versions), precise preprocessing scripts, rBME hyperparameters (epsilon value, bin count policy), and full dataset splits are not fully specified. Potential weakness: relying on external PreMode data without a pinned version may hinder exact reproduction; the public code link in a double-blind setting may also compromise anonymity. Per RBCL, missing/unclear information caps this criterion at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper covers key PLM-based and multimodal approaches (ESM-1v, EVE, PreMode, LoGoFunc) and contrasts pathogenicity vs. functional effect prediction. Positioning against PreMode is appropriate. Potential weakness: the survey could better contextualize other relevant DMS and structure-aware models and recent per-protein fine-tuning or prompt/adaptor-based approaches; the discussion of where rBME fits among existing calibration/stratified metrics is limited."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Minimal explicit ethics/broader impact discussion. While data sources (e.g., MaveDB, PreMode datasets) are cited, licenses, consent, and potential clinical misinterpretation risks are not thoroughly discussed. Potential weakness: absence of a dedicated ethics statement and risk mitigation guidance, especially given the clinical framing; per RBCL, missing ethics considerations warrant a conservative score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the paper offers a practical ESM2 fine-tuning framework, useful ablations, and a proposal for rBME and interval-based benchmarking, the evidence base is insufficient for acceptance. Key issues include ambiguities in the rBME definition and weighting behavior, incomplete specification of the \"inductive bias\" head, inconsistent/limited empirical comparisons (few seeds, missing tables across all DMS, lack of statistical tests), and gaps in reproducibility (missing environment/specs, unclear preprocessing and rBME hyperparameters). Under RBCL §2 Fatal-Flaw Logic, Technical Soundness ≤ 2 and Reproducibility ≤ 2 trigger a mandatory rejection regardless of other strengths; we also apply the Anti-Inflation Safeguard and default conservative stance. The work is promising, but it requires more rigorous and transparent evaluation, clearer methodology, and stronger, statistically supported results."
+  }
+}

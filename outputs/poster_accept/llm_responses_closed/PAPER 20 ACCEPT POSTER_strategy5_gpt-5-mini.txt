@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper advances a new framing: learning a conditional recourse likelihood R_theta(x+ | x) by synthesizing paired training examples and using an autoregressive generative model to forward-sample recourse. This joint training of validity, proximity and plausibility is a meaningful contribution compared to methods that only optimize at inference. However, many components (importance-weighted pairing, encoder-decoder transformers, kernelized output bins) are combinations of existing techniques rather than a fundamentally new algorithmic primitive. One unverified assumption is that the pairing distribution Q constructed from the positive class and classifier confidences faithfully approximates the ideal recourse distribution R in realistic, noisy settings (it requires strong agreement between h and the true P(Y|X)). Another potential weakness is sensitivity to design choices (λ, binning strategy, kernel widths) which may be engineering-heavy rather than conceptual novelty. (RBCL note: scores reflect conservative judgment per Anti-Inflation Safeguard and Default Assumption.)"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Algorithmic recourse is an important applied problem with legal and fairness implications; a method that jointly trades off proximity, plausibility and validity and produces multiple forward-sampled recourses is practically useful and could influence future work on recourse and conditional generation for explanations. Nevertheless, the impact depends on robustness when the deployed classifier h deviates from P(Y|X) and on whether generated proposals are actionable in real settings (legal/regulatory constraints, immutable features). A potential weakness is that gains shown on benchmarks may not transfer to settings with covariate shift, rare positive-class regions, or tightly constrained actionable features; these concerns are not fully resolved in the paper."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "Theoretical claims (consistency of Q as an importance-weighted estimator of R and a 1/N+ rate for expected recourse) are plausible and sketched with standard importance-sampling arguments. The modeling choices (autoregressive transformer + kernelized outputs) are sensible. However, the correctness of results hinges on non-trivial assumptions: crucially the proofs require h to agree with P(Y|X) on support regions used for sampling (i.e., V(x+) = delta(h(x+)>0.5) = delta(P(Y|x+)>0.5)), which may not hold for imperfect classifiers. The paper also glosses over effects of finite sample bias in self-normalized importance sampling and of the choice of λ (which can drastically change weights). These unverified assumptions and approximations (and limited formal treatment of variance/control of importance weights) constitute potential weaknesses that weaken technical soundness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The empirical evaluation covers three standard recourse datasets (Adult, COMPAS, HELOC), compares against a broad set of baselines (including nearest neighbor, VAE-based methods, diffusion with guidance), and includes ablations (e.g., conditional vs unconditional density, λ sensitivity). This breadth supports the main claims. Nonetheless, the paper does not present statistical significance testing, confidence intervals, or results across multiple random seeds to demonstrate stability; it is unclear whether reported gains are robust across runs. Some experimental details (e.g., number of trials, seed selection, hyperparameter sweep ranges, effect on immutable-feature constraints under guidance methods) are not fully documented in the main text excerpt. Single-run reporting (if true) and missing statistical tests are potential weaknesses that reduce confidence in empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper explicitly gives a code repository URL in the abstract, and uses public datasets, which are positive signals. However, the manuscript (excerpt) does not document critical reproducibility details: explicit hyperparameter lists, random seeds, exact training/validation splits, compute environment, and precise instructions for reproducing the reported metrics are not presented in the main text. Per the review rubric, missing or unclear reproducibility information caps this criterion at 2/5. This lack of complete transparency is a potential fatal issue for trustworthy verification of results (RBCL §2 Fatal-Flaw Logic triggered: reproducibility <= 2)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "The paper situates itself clearly in the algorithmic recourse, counterfactual explanations, and generative modeling literatures, cites representative prior methods (Wachter, Mothilal, CRUDS, TAP, diffusion guidance work), and empirically compares to many of them. The contrast between training-ahead conditional recourse likelihood and inference-time optimization is well explained. A potential weakness is that while many baselines are included, the manuscript provides limited discussion on limitations of related generative approaches under covariate shift or distributional mismatch; also a deeper theoretical comparison to alternative importance-weighting or self-normalized estimators would strengthen positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper motivates recourse with fairness and legal considerations and mentions application domains, but the excerpt lacks an explicit Ethics / Broader Impacts section addressing potential harms, misuse (e.g., facilitating gaming of systems), privacy concerns, data licensing, or mitigations. Important ethical questions—such as whether providing multiple recourse options could be exploited for strategic gaming, how immutable or sensitive attributes are handled beyond treating them as infinite-cost, and whether deployment could exacerbate disparities—are not fully explored. The absence of an explicit ethical risk analysis caps this criterion at 2/5 per rubric guidance."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: This paper presents a coherent and practically-motivated approach (GenRe) to learn a conditional recourse likelihood and to sample recourse candidates via a generative model trained on importance-weighted pairs. Strengths include a clear problem framing, plausible theoretical consistency arguments, an autoregressive conditional generator design that produces multiple proposals, and a broad empirical comparison across standard recourse datasets and many baselines. Key weaknesses that drive the decision: (1) Reproducibility concerns — the manuscript does not document essential experimental details (hyperparameters, seeds, splits, runtimes, environment) in the presented text even though a code link is claimed; under the review rules, missing/unclear reproducibility details cap that criterion at 2/5 and trigger the RBCL Fatal-Flaw Logic. (2) Technical assumptions — main theoretical claims rely on the classifier h agreeing with the true conditional P(Y|X) (i.e., V(x+) determined by h equals that determined by P), and on self-normalized importance sampling behavior; these are strong/unverified in practice and can materially affect consistency and variance. (3) Empirical robustness — the paper appears to lack multi-seed runs, uncertainty estimates, or formal statistical tests to confirm the stability of reported gains, and sensitivity to design choices (λ, binning, kernel widths) is only partially explored. Per the mandatory evaluation logic: because reproducibility score <= 2, the decision must be 'Reject' (override applied, total_score capped at 20). If authors address the reproducibility gaps (release runnable scripts with exact hyperparameters, seeds, and environment; include statistical significance and multi-seed stability) and provide an expanded empirical/ablation study showing robustness under classifier miscalibration and covariate shift, the work could merit reconsideration. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2)."
+  }
+}

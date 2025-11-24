@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper combines two existing concepts—counterfactual explanations and adversarial examples—but the combination is relatively straightforward and lacks deep novelty. The core idea of using counterfactual explanations to generate adversarial examples is presented as novel, but the technical contribution is limited to finding a nearest neighbor from a different class and generating counterfactual explanations from that neighbor. This is not a fundamentally new methodological insight. The paper claims this is applied 'for the first time,' but the conceptual leap is incremental. The use of autoencoders for privacy is also not new. The paper provides no theoretical justification for why this specific combination should work better, relying instead on intuitive arguments about shared characteristics between the two concepts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "While privacy in adversarial robustness is an important problem, the practical significance is questionable. Experiments are limited to MNIST, a dataset too simple to validate claims about real-world privacy improvements. The method's applicability to modern deep networks and high-dimensional datasets (ImageNet, CIFAR-100) remains undemonstrated. The claimed advantage of 'semantic' perturbations is not rigorously evaluated—no human studies or perceptual metrics (LPIPS, FID) validate that perturbations are indeed more meaningful. The paper does not compare against privacy-preserving training methods (e.g., differential privacy, PATE) that are more established in the literature. The claim about achieving random-guessing-level MIA accuracy (50%) is misleading without baseline comparisons on the same threat model."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 1,
+      "justification": "Critical flaws undermine technical soundness: (1) Equations 5 and 6 assume equivalence between generalization gap and privacy risk without justification—this is a non-sequitur. Minimizing generalization gap does not guarantee privacy protection. (2) The causal link between 'decoupling' adversarial generation from training and privacy improvement is asserted without proof. If adversarial examples are derived from training data, they inherently leak training information. (3) The paper claims the method 'reduces privacy risk to the level of random guessing' (50% MIA accuracy) but Table 2 shows training accuracy of 73.56%, which contradicts the privacy claim—a model with such high accuracy on training data should be vulnerable to MIA. (4) Equation 2 (minimizing latent space distance) lacks justification for privacy: why should latent space perturbations improve privacy? (5) No formal privacy definitions (e.g., differential privacy, membership inference advantage) are used; only empirical MIA accuracy is reported, which is unreliable without multiple attack models."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 1,
+      "justification": "Experiments are severely limited: (1) Only MNIST is evaluated—a toy dataset unsuitable for validating adversarial robustness or privacy claims. (2) Missing critical baselines: no comparison against differential privacy, PATE, or other privacy-preserving adversarial training methods. Only compared against PGD and AdvGAN, both standard adversarial example generation methods, not privacy-focused defenses. (3) No statistical testing or error bars; single-run experiments with no confidence intervals. (4) MIA threat model is underspecified: which MIA attack from Song et al. 2019? Under what assumptions? No ablation studies on attack strength. (5) Table 1 shows vastly different dataset sizes (AdvGAN: 11,579 vs. our method: 53,539)—unfair comparison. (6) No evaluation of adversarial robustness against white-box attacks (PGD-20, AutoAttack). (7) Figure 3 and 4 use t-SNE for analysis, which is unreliable for privacy inference—overlapping t-SNE clusters do not guarantee privacy. (8) Table 3 shows accuracy degradation from 98.8% to 75.27% when using 100% adversarial examples—this is not acceptable for practical use and undermines the claimed balance."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised: (1) No code is provided or promised. (2) Hyperparameters are not specified: autoencoder architecture, learning rates, optimization details, loss weights for Equation 7 are absent. (3) No random seed reported; unclear if results are averaged. (4) Incomplete loss function definition: Equation 7 lists four loss terms but details are relegated to 'supplementary materials' which are not provided to the reviewer. (5) No details on nearest-neighbor search: how is 'closest sample from another class' determined? (6) Autoencoder training procedure is not described. (7) MIA attack implementation details missing: attacker model architecture, training procedure, threshold selection. (8) No discussion of experimental setup reproducibility (train/test split, data preprocessing, hardware). The paper is essentially non-reproducible without access to code and supplementary materials."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work coverage is incomplete: (1) Limited engagement with privacy-robustness tradeoff literature. Missing citations to work on certified privacy, differential privacy in adversarial training (e.g., DP-SGD + adversarial training), and recent privacy attacks on robust models. (2) Counterfactual explanation literature is briefly covered but not thoroughly compared—why is the chosen method (Van Looveren & Klaise, 2021) optimal for privacy? No comparison of different counterfactual methods. (3) No discussion of why membership inference is the appropriate privacy metric; other attacks (model inversion, attribute inference) are ignored. (4) The claim that GAN-based methods are excluded due to privacy concerns is overstated—recent work has improved GAN privacy. (5) Positioning as 'first' to use counterfactual explanations for adversarial examples is weakly substantiated; no clear novelty over existing work combining explainability and robustness. (6) Missing comparison to concurrent work on in-distribution adversarial examples and data-centric approaches to robustness."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Ethics and broader impacts are entirely absent: (1) No discussion of ethical implications of improving privacy for adversarial examples—could this enable evasion of law enforcement or security systems? (2) No discussion of potential dual-use risks. (3) No data provenance or licensing information provided (MNIST is public but not discussed). (4) No statement on responsible disclosure or limitations of the approach. (5) No discussion of fairness implications: does the method equally protect privacy across different demographic groups? (6) No acknowledgment of limitations in practical deployment (e.g., computational cost, scalability concerns). (7) No discussion of when the approach should or should not be used. The paper treats privacy as purely beneficial without critical examination of tradeoffs or risks. This is a major omission for a venue like ICLR that emphasizes responsible AI research."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 9,
+    "confidence": 0.92,
+    "final_decision": "Reject",
+    "final_justification": "This paper presents a conceptually interesting idea—using counterfactual explanations to generate privacy-preserving adversarial examples—but falls far short of publication standards for a top-tier venue. Fatal flaws trigger the rejection override: (1) **Technical Soundness ≤ 2**: The core theoretical argument linking decoupling, sparsity, and privacy is unjustified and logically flawed. Equations 5 and 6 conflate generalization gap with privacy without proof. The claim of achieving 50% MIA accuracy while maintaining 73.56% training accuracy is contradictory and undermines the entire privacy narrative. (2) **Reproducibility ≤ 1**: No code provided, critical hyperparameters missing, loss function details in non-existent supplementary materials, and no random seed reporting make reproduction impossible. (3) **Empirical Validation ≤ 1**: Experiments limited to MNIST only, with unfair dataset size comparisons, missing privacy-focused baselines (differential privacy, PATE), no statistical testing, and no adversarial robustness evaluation. The t-SNE visualizations do not constitute valid privacy evidence. (4) **Novelty ≤ 2**: The combination of existing techniques lacks methodological depth and is presented without theoretical justification. (5) **Ethics ≤ 1**: No discussion of broader impacts, dual-use risks, or responsible deployment—critical for privacy research. These failures across multiple dimensions, combined with the RBCL principle that treats missing reproducibility and technical soundness as fatal flaws, mandate rejection. The work requires substantial revision: formal privacy definitions (differential privacy), evaluation on realistic datasets, comparison against established privacy-preserving adversarial training methods, complete reproducibility materials, and critical examination of the privacy-robustness-accuracy tradeoff claimed in the abstract."
+  }
+}
+```

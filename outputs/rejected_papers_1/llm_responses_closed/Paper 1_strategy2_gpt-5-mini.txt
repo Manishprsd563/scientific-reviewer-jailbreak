@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes a hybrid batching strategy that mixes monolingual and cross-lingual batches. This is a simple and pragmatic idea but appears incremental rather than a genuinely new methodological insight (weakness: combining existing sampling strategies without new loss terms, theoretical guarantees, or architecture). An unverified assumption is that simple mixing is sufficient across all language pairs and domains; no theoretical analysis shows why the particular mixing (α=0.5) yields the observed trade-offs in general. (I applied a conservative stance per RBCL; novelty not high enough for a 4–5 as that is reserved for genuine methodological breakthroughs.)"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The approach is practically useful: simple to implement, low overhead, and evaluated across several multilingual retrieval benchmarks and two model families (XLM-R, LaBSE). This suggests reasonable impact for practitioners seeking improved multilingual/multitask retrieval. Potential weakness: the reliance on in-house machine translation to expand training data raises questions about real-world applicability (translation quality, domain mismatch) and whether gains transfer to production settings or other domains. Another unverified assumption is that the same α generalizes across datasets and language sets beyond those tested."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "Technical components are standard and correctly described (dual-encoder, InfoNCE loss, in-batch negatives, cosine similarity). Training and batching procedures are plausible and experiments appear internally consistent. Potential weaknesses: key methodological choices (e.g., why choose shared-parameter dual-encoder vs. alternatives, effects of validation on English only) are not fully justified; there is limited theoretical analysis explaining why hybrid batching should reduce language bias systematically. The paper does not analyze potential confounding factors (e.g., translation artifacts, validation/checkpoint selection on English) that could bias results. I therefore assigned a cautious mid-level score."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Strengths: evaluations across multiple benchmarks (XQuAD-R, MLQA-R, MIRACL), two pretrained models, comparisons to two reasonable baselines (monolingual X-X, cross-lingual X-Y), and some ablation over α values. Weaknesses: the paper appears to report single-run results with no statistical tests or multiple random seeds (penalized per the Empirical Rigor rule). Important ablations are missing or not clearly reported: e.g., sensitivity to translation quality, effect of training data size per language, inter-language class imbalance, and domain transfer. The checkpoint selection used only English validation data (potentially biasing results) and there is no evidence of significance testing or variance estimates, which weakens confidence in result robustness."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility weaknesses: the authors describe an 'in-house machine translation pipeline' and mined datasets (e.g., Yahoo QA) but do not indicate release of code, translated corpora, or the MT pipeline; random seeds and full run details are not provided; only limited hyperparameters are listed and no training scripts or evaluation code are provided. Because of these omissions, the reproducibility score is capped low per the instructions. This is a fatal practical concern (unreleased private data / in-house preprocessing) that prevents verification and triggers RBCL fatal-flaw logic (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and positions itself relative to several relevant prior works (LaBSE, InfoXLM, LaREQA, and recent multilingual retrieval and alignment techniques). It fairly compares to two sensible baselines for batching. Potential weakness: the related-work discussion does not deeply compare to recent strong approaches that combine synthetic translation, knowledge distillation, or more sophisticated debiasing/contrastive losses for multilingual alignment; missing explicit discussion of translation-quality-aware training or prior work on batching/data-sampling strategies in retrieval beyond a few citations. Some comparisons (e.g., to methods that use retrieved negatives or hard negatives across languages) are not exhaustive."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The authors include a Limitations section noting risks like societal biases present in training data, which is good. However, they do not provide a dedicated ethics statement, data provenance details (licenses, consent), or discussion of risks from machine-translated training data (e.g., propagation/amplification of translation errors or cultural misrepresentations). The use of in-house MT and mined QA data without explicit license/provenance information is an unverified ethical concern. Given these omissions, a conservative low-mid score is assigned."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Overall assessment: the paper presents a simple, pragmatic hybrid-batching approach that yields consistent empirical improvements across several benchmarks and two model families; this practical contribution may be useful to practitioners. However, there are multiple important concerns that lead to rejection. The strongest negatives are reproducibility and empirical rigor: the authors rely on an in-house MT pipeline and mined datasets without indicating public release of code, translations, or preprocessing scripts; random seeds and full release details are missing. This lack of reproducibility is a fatal practical flaw per the review rules and prevents independent verification. Empirical issues (no significance testing, likely single-run experiments, English-only validation/checkpoint selection) further weaken confidence that reported gains are robust rather than due to selection bias. Novelty is limited (an incremental combination of batching strategies without deeper theoretical justification). Related-work coverage and ethics/provenance reporting are acceptable but incomplete. Per the RBCL and evaluation logic: because the reproducibility score is <= 2, the decision is downgraded to 'Reject' (RBCL §2 Fatal-Flaw Logic) and the total score is capped as required. I recommend rejection with encouragement to the authors to (1) release code, training data (or at least translation scripts and a clear data-provenance / license statement), (2) report multiple runs with seeds and statistical tests, (3) provide ablations on translation quality and checkpoint selection (English validation bias), and (4) better situate novelty relative to recent alignment and debiasing methods. Addressing these would materially increase confidence in the claims."
+  }
+}

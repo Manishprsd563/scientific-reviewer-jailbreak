@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper introduces EXE, a benchmark for evaluating code execution capabilities of LLMs on real-world Python code. While the application to real-world code is valuable, the core idea of testing code execution is not new—prior work (Learning To Execute, CRUX-Eval) established this paradigm. The main novelty is scaling to real-world repositories and introducing continuous task generation. However, the execution prediction task itself is straightforward (predict return value or exception), and the technical contribution is primarily engineering-focused rather than methodologically novel. The test case generation using LLM-based input synthesis is reasonable but not particularly innovative. Potential weakness: The paper does not present fundamentally new insights into why models fail or succeed at code execution—insights are mostly descriptive (e.g., 'floating point math is harder')."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "A code execution benchmark with 33,875 tasks from real repositories is potentially useful for the community. The claimed advantages (difficulty scaling, diversity, continual generation, cost-effectiveness) address real benchmark limitations. However, several concerns limit significance: (1) The benchmark's primary utility over existing code benchmarks (HumanEval, MBPP) is unclear—the paper claims correlation with code writing ability but provides no empirical evidence of this claim. (2) Results show similar model rankings as existing benchmarks, raising questions about what new insights EXE provides. (3) The connection to cybersecurity is mentioned but underdeveloped. (4) For practitioners, a 72.4% pass rate on GPT-4o suggests the benchmark may already be approaching saturation. Potential weakness: No user study or downstream task validation showing that code execution ability on EXE correlates with real-world coding competency or practical utility."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The pipeline for dataset construction (repo selection → function filtering → test case generation) is reasonable and well-described at a high level. However, several technical concerns arise: (1) The claim that 'inlining external libraries' preserves semantic correctness is unverified—inlined code may behave differently than actual imports. (2) The filtering for 'side effects' is claimed to be based on static AST analysis, but detecting all side effects (e.g., via closures, object mutations) statically is incomplete. (3) The error comparison uses 'LLM-based string matching' for exception messages, which is problematic—LLMs may disagree on equivalent error messages. (4) The formula for composite task generation (n² · (T_max)^k · C) is presented without justification or empirical validation that it accurately bounds actual composable tasks. (5) The normalization by 'lines of code' in Figure 8 counts only 'executable syntax tokens,' but this metric is not formally defined. Potential weakness: No ablation studies validating the filtering criteria actually remove problematic cases while preserving realistic code."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The empirical evaluation has critical gaps: (1) Table 1 shows only one-shot pass rates (Pass@1) without passing@k to assess if models can generate correct answers in multiple attempts—standard for code benchmarks. (2) No error bars, confidence intervals, or statistical significance tests are provided for any reported results. (3) The claim about 'smooth difficulty scaling' relies on log-linear correlations in Figure 5, but the shaded 'variance' bands are not defined, and statistical tests are absent. (4) The 'execution path diversity' analysis (CV = 0.61 for conditionals) lacks context—what is a good CV value? Are these statistically significant? (5) Figure 6 (test case generation analysis) spans only 11 functions, which is insufficient to generalize. (6) No ablation of filtering criteria or test case generation strategy. (7) The comparison to 'HumanEval-like performance' in Table 1 is claimed but not empirically shown side-by-side. (8) No validation that the 'continually updatable' property actually prevents training data contamination. Potential weakness: The paper lacks rigor in statistical validation and does not include confidence intervals or significance tests for any key claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised: (1) No mention of code release, data release, or where the benchmark will be hosted. The paper states results cost '$33 to produce' but provides no link to download the dataset. (2) Prompting strategy is vaguely described ('odata json representation and parser') without showing actual prompts or parsing logic. (3) Test case generation uses 'LLM function calling schema' to create inputs, but no details on the schema, LLM used for generation, temperature, or retry logic are provided. (4) LLM-based exception comparison lacks the actual prompt or comparison logic. (5) Random seed for test case generation is not mentioned. (6) Model inference hyperparameters (temperature, max_tokens, etc.) are not provided. (7) No code for dataset construction pipeline, filtering logic, or evaluation. (8) The claim of filtering to 33,875 tasks from 1,000 repos suggests >10x filtering; filtering logic details are relegated to appendices (A.2, A.3, A.5) not available in the paper provided. Without the appendices or actual code, results are unverifiable. This violates fundamental reproducibility standards for benchmarks. Potential weakness: Paper is essentially irreproducible as-is; critical infrastructure (data, code, prompts) is absent or unavailable for review."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 4) provides a reasonable overview of code generation (HumanEval, MBPP), execution (Learning To Execute, CRUX-Eval, Neural Turing Machines), and benchmarking trends (saturation, live benchmarks). However, key gaps exist: (1) CRUX-Eval (Gu et al., 2024) is cited as showing 'moderate correlation' between execution and code writing ability, but the paper does not empirically validate this claim on EXE. (2) The paper claims to address limitations of prior work (e.g., 'prior works removed mathematical operations'), but does not explain why these limitations are problematic or validate that removing them improves realism. (3) Comparisons to HumanEval are informal; no side-by-side evaluation on identical models is shown. (4) The positioning relative to MBPP, CodeNet, and The Stack is superficial. (5) Recent work on code understanding and semantic parsing is not discussed. (6) The cybersecurity angle is mentioned in Section 5 as an 'extension' but is not developed, making it unclear how EXE differs from or complements existing security benchmarks. Potential weakness: Insufficient empirical comparison to prior execution benchmarks to justify the claim that EXE is superior; missing discussion of recent code understanding literature."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Ethics and broader impacts are inadequately addressed: (1) The paper mentions filtering repositories to include only 'permissive licenses that allow derivative works with attribution,' but does not verify that all 1,000 repositories were checked or that attribution is correctly provided. (2) No discussion of potential biases in the benchmark—e.g., does overrepresenting modern, type-annotated code introduce bias toward certain coding styles or languages? (3) The cybersecurity connection (Section 5) hints that EXE could 'aid humans with crafting vulnerabilities,' which raises concerns about dual-use potential, but this is not discussed. (4) No discussion of data privacy—are any functions from repositories containing sensitive data, credentials, or personal information? (5) No statement on whether the code snippets are properly anonymized or whether the benchmark itself will be released under a clear license. (6) The paper does not discuss potential harms if models trained on EXE gain improved code execution capabilities (e.g., malware generation). Potential weakness: Minimal ethical consideration; potential dual-use implications (vulnerability discovery, malware writing) are mentioned but dismissed without serious analysis."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.75,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "EXE addresses a relevant problem—benchmarking code execution on real-world code—and proposes a scalable, cost-effective dataset of 33,875 tasks. However, the paper has critical weaknesses that prevent acceptance in its current form. (1) **Reproducibility Crisis (RBCL Fatal-Flaw):** The paper provides no code, no dataset link, no prompts, and no hyperparameters. Appendices with crucial filtering logic are not included. This alone warrants rejection under RBCL §2 Fatal-Flaw Logic, as reproducibility score is capped at 1/5. (2) **Empirical Validation Gaps:** Results lack statistical rigor (no confidence intervals, significance tests, or ablations), rely on only 11 functions for test case scalability claims, and use only Pass@1 without Pass@k. The connection to real-world utility is unvalidated. (3) **Limited Technical Novelty:** The core task (predict code execution output) is not new; CRUX-Eval and Learning To Execute established this. The contribution is primarily engineering-focused dataset construction, which is valuable but incremental. (4) **Unverified Claims:** The claimed correlation between code execution and code writing ability relies on cited work but is not empirically demonstrated on EXE. The claim of 'smooth difficulty scaling' uses log-linear correlations without statistical validation. (5) **Incomplete Extensions:** Cybersecurity claims and mechanistic interpretability directions are speculative and underdeveloped. The paper oversells its contributions. Under strict ICLR standards, the reproducibility deficit alone (no code, no data, no prompts) triggers rejection. The empirical validation lacks rigor, and the novelty is limited. The paper would benefit from: (a) releasing code, dataset, and prompts; (b) adding statistical tests and confidence intervals; (c) providing Pass@k results; (d) empirically validating the correlation to code writing ability; (e) developing the cybersecurity angle or removing it; (f) including full appendices with filtering logic. With these revisions addressing reproducibility and empirical rigor, the paper could become acceptable."
+  }
+}
+```

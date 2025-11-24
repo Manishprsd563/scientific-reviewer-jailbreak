@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic, greedy token-tree construction for speculative decoding that prioritizes nodes by an estimated acceptance proxy derived from the draft distribution, plus a thresholded, layer-wise construction variant for efficiency. This is a distinct formulation compared to fixed-tree methods (e.g., Sequoia’s DP under a different assumption) and selection-based dynamic trees (e.g., EAGLE-2, ReDrafter) that cannot use standard verification. However, the core insight (acceptance correlates with draft probability; greedily expand high-probability subtrees) is close to existing intuitions and practices, making the contribution somewhat incremental. Potential weakness: The claimed “optimality under mild assumptions” hinges on approximating acceptance rates with draft probabilities and is not fully substantiated in the main text; the assumptions and limits of applicability are not rigorously explored."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust and general, higher acceptance rates and speedups (up to ~9x on Llama2-70B with CPU offloading) are meaningful for LLM serving. The dynamic allocation strategy could have practical impact across distributions and model scales. However, some reported gains depend on a highly skewed T_t/T_d regime (CPU-offloaded 70B vs 7B draft), and improvements over Sequoia are modest in several settings. Missing comparisons to strong recent baselines (e.g., Medusa, EAGLE/EAGLE-2, ReDrafter) reduce the clarity of real-world impact. Potential weakness: Lack of quality-preservation metrics or unbiasedness checks beyond assumption casts doubt on broad deployability."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The method relies critically on Hypothesis 1 and an argument from a KL divergence upper bound to justify that higher draft probability implies higher acceptance probability, then approximates the acceptance SD[x] ≈ p_d[x]. This approximation is nontrivial and may be problematic when T/D ratios are far from 1 or under distribution shift, and it is used to drive a greedy optimality claim. The paper references a proof of optimality in an appendix but does not detail conditions or provide a formal guarantee of unbiasedness for the dynamic tree within standard verification beyond high-level statements. Algorithmic details (e.g., residual distribution handling and unbiasedness with dynamic expansion) are insufficiently specified to rule out subtle biases or violations. Potential weakness: The optimality and correctness depend on unverified assumptions and approximations; rigorous proofs and formal conditions are not present in the main body."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover multiple datasets, temperatures, and target sizes, and include Sequoia and SpecInfer. However, there is no comparison against several competitive or recent methods (Medusa, EAGLE/EAGLE-2, ReDrafter), few/no ablations (e.g., greedy vs thresholded construction, sensitivity to threshold C, depth vs width trade-offs), and no statistical reporting (variance, multiple seeds). There is also no validation of output quality/unbiasedness (e.g., perplexity, likelihood-match to target model) to ensure correctness is preserved under the dynamic tree. Potential weakness: Single-run style reporting and absent statistical tests make robustness unclear; critical ablations and sanity checks are missing."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Key implementation details (C++ token-tree construction, threshold selection strategy, CUDA graph capture specifics, exact hyperparameters, seeds) and code availability are not provided. The paper references appendices with proofs and additional algorithms, but these are not available in the provided text. Without code and precise configurations, reproducing the performance claims—especially latency and throughput under different hardware profiles—is difficult. Potential weakness: Missing code and detailed configs; per RBCL, absence of evidence on reproducibility caps this score."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper discusses SpecTr, SpecInfer, Medusa, Sequoia, EAGLE-2, ReDrafter, and dynamic depth decoding, and provides a qualitative positioning. This is reasonably comprehensive, and the distinction between selection-based building (hard to verify) and sampling-based building (amenable to standard verification) is useful. Potential weakness: Empirical comparisons exclude several of these methods; claims about certain methods’ verification limitations could be more carefully substantiated; very recent variants and implementation nuances may be underexplored."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics statement or discussion of data licenses/provenance and potential risks (e.g., bias amplification through faster generation, energy/compute considerations for large-scale serving) is provided in the text. Potential weakness: Missing ethics/broader impact discussion triggers a conservative assessment per the rubric."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "While the paper offers a plausible and practically interesting dynamic token-tree strategy with promising speedups, it relies on unverified approximations (e.g., SD[x] ≈ p_d[x]) and references to proofs that are not presented in the main text, leaving correctness and optimality insufficiently justified. Empirical validation lacks key baselines, ablations, statistical rigor, and unbiasedness/quality checks. Critically, reproducibility is limited by missing code and detailed configurations. Per RBCL §2 Fatal-Flaw Logic and the overrides, Reproducibility ≤ 2 (and Technical Soundness = 2) mandates a Reject decision regardless of other strengths, and the total score is capped accordingly. The work could be reconsidered with a formal correctness analysis, broader and more rigorous experiments, and a complete reproducibility package."
+  }
+}

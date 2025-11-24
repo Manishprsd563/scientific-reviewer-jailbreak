@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core contribution is a simple hybrid batch sampling strategy (mixing monolingual and cross-lingual batches with probability α=0.5). This is fundamentally an engineering choice with minimal technical novelty. The paper does not introduce new loss functions, architectural innovations, or theoretical insights. The approach is a straightforward combination of two existing baseline strategies (X-X-mono and X-Y), which the authors themselves acknowledge. While pragmatic, this lacks the originality expected for top-tier venues. Potential weakness: The paper does not explain *why* this simple averaging works or provide theoretical justification for the specific hyperparameter choice α=0.5."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem of simultaneous optimization across monolingual, cross-lingual, and multilingual retrieval is practically relevant. However, the significance is limited by the marginal improvements achieved. For example, on XQuAD-R with XLM-R (Table 1), the hybrid approach achieves 0.798 monolingual MAP versus 0.792 for X-X-mono (0.75% gain) and 0.705 cross-lingual MAP versus 0.700 for X-Y (0.71% gain). These are modest improvements. The reduction in language bias is meaningful (~30% for XLM-R on XQuAD-R), but this improvement is primarily attributable to the cross-lingual component, not the novelty of the hybrid combination. Potential weakness: The paper does not demonstrate clear superiority over prior methods designed to address the same problem (e.g., methods by Hu et al., 2023; Huang et al., 2023a), making the practical advantage unclear."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical approach is sound in its basic execution: the contrastive learning framework (InfoNCE loss) and dual-encoder architecture are standard and correctly implemented. However, there are significant gaps in theoretical justification. (1) The paper provides no analysis of why α=0.5 is optimal. The grid search over [0, 1] is mentioned but results are not shown. (2) No theoretical explanation is provided for why averaging two conflicting objectives (monolingual vs. cross-lingual optimization) should yield improvements across all settings. This appears to be an empirical observation without principled grounding. (3) The machine translation pipeline used to create parallel training data is not fully characterized—translation quality, error rates, and potential artifacts are not discussed. Potential weakness: The claim that hybrid batch training 'mitigates language bias' lacks mechanistic explanation. The reduction in bias could be an artifact of data augmentation rather than the batching strategy itself."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Critical flaws in experimental validation: (1) **Missing ablations**: No ablation study on the impact of α. The paper mentions grid search but reports only α=0.5. Were improvements consistent across α ∈ [0.4, 0.6] as claimed? No confidence intervals, error bars, or significance tests are provided. (2) **Single validation set**: Checkpoint selection uses only English examples from SQuAD-Shifts, which introduces bias. Cross-validation or multi-lingual validation sets would be more robust. (3) **No statistical significance testing**: All reported improvements lack p-values or confidence intervals. Many differences are <1% and may not be statistically significant. (4) **Limited baselines**: The paper compares only against X-X-mono and X-Y. Recent strong baselines (e.g., methods from Hu et al., 2023; Huang et al., 2023a; Lawrie et al., 2023) are mentioned but not experimentally compared. (5) **Data contamination risk**: Training data includes translated datasets; test sets (XQuAD-R, MLQA-R) are parallel question-answer pairs. Possible overlap or train-test leakage is not discussed. Potential weakness: The improvements are marginal and may not hold under more rigorous statistical analysis."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised. (1) **No code release mentioned**: The paper does not state whether code will be released. This is critical for hybrid batch sampling experiments. (2) **In-house machine translation pipeline not released**: The paper uses a proprietary MT pipeline to generate parallel training data. The pipeline details, model, quality metrics, and output are not provided. This is a core component of the training data and cannot be reproduced. (3) **Missing hyperparameter details**: While learning rate (3e-5), batch size (100), and weight decay (1e-2) are mentioned, other critical details are absent: random seed(s), number of training epochs, convergence criteria, hardware specifications (A100 GPU mentioned but insufficient for reproducibility), and exact optimizer configuration. (4) **Validation set not publicly available**: The paper uses 'SQuAD-Shifts dataset' for early stopping but does not clarify how to construct the English validation set. (5) **No data release plan**: Training datasets include proprietary sources (Yahoo QA 'mined from Yahoo Answers') and in-house translations. It is unclear if these will be released. Decision downgraded due to RBCL §3 Evidence Severity Scaling: absence of code and in-house data constitutes evidence of absence of reproducibility."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work discussion is adequate in breadth but insufficient in depth and experimental rigor. (1) **Fair comparison**: The paper mentions recent relevant work (Hu et al., 2023; Huang et al., 2023a; Lawrie et al., 2023) but does not experimentally compare against these methods. This is a critical omission. The paper acknowledges these methods 'attempt to mitigate language bias' and poses a motivating question ('Is there a straightforward approach...?'), yet provides no empirical evidence that the proposed simple method is competitive. (2) **Positioning unclear**: The paper positions itself as offering a 'straightforward approach' without loss function modifications. However, the practical advantage over existing methods is never demonstrated. Are the improvements of Hu et al., 2023 or Huang et al., 2023a larger or smaller? No comparison is provided. (3) **Incremental positioning**: The paper essentially combines two known strategies (X-X-mono and X-Y from Roy et al., 2020). The novelty over prior work is unclear. Potential weakness: Without experimental comparison to concurrent strong baselines, the paper's positioning and contribution are speculative. The claim that this approach is 'straightforward' is not evidence that it outperforms more complex methods."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Ethics and broader impacts are minimally addressed. (1) **Limitations section**: Section 6 acknowledges that the work 'may reflect societal biases present in the training data' but provides no concrete mitigation strategies or analysis. (2) **Machine translation bias**: The in-house MT pipeline is used to create parallel data across 9 languages. MT systems introduce systematic biases and errors that can propagate to the retrieval model. This is not discussed. (3) **Data provenance unclear**: Training data sources include 'Yahoo Answers' (mined from user-generated content with unknown licensing and consent) and proprietary datasets. Data usage rights and ethical sourcing are not addressed. (4) **Language coverage**: While 9 languages are used, coverage is limited (no African languages, limited indigenous languages). The paper does not discuss the limitations of this coverage or potential harms to underrepresented language communities. (5) **Fairness in retrieval**: The paper reduces 'language bias' as measured by rank distance, but does not address fairness in result diversity, gender bias in queries/passages, or accessibility for users with disabilities. Potential weakness: The acknowledgment of bias in Section 6 appears performative without substantive mitigation or analysis."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.92,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper proposes a hybrid batch training strategy for multilingual information retrieval that combines monolingual and cross-lingual batches with α=0.5. While the problem is practically relevant and the approach is technically sound in basic execution, the paper suffers from critical weaknesses that preclude acceptance at a top-tier venue. **Fatal Flaws:** (1) **Reproducibility (score 1)**: The core training data relies on an in-house, unreleased machine translation pipeline. Without this, the work cannot be reproduced. Code release is not mentioned. Per RBCL Fatal-Flaw Logic, this alone justifies rejection. (2) **Empirical Validation (score 2)**: No statistical significance testing, no ablation on α despite claiming robustness, single-run experiments, and crucially, no experimental comparison to concurrent strong baselines (Hu et al., 2023; Huang et al., 2023a; Lawrie et al., 2023). The improvements are marginal (<1% in many cases) and lack confidence intervals. (3) **Novelty (score 2)**: The contribution is purely an engineering choice—mixing two existing batch strategies. There is no new theory, loss function, or architectural innovation. This is an incremental combination of known components. (4) **Technical Soundness (score 3)**: While the approach is correctly implemented, there is no theoretical or mechanistic explanation for why α=0.5 is optimal or why the hybrid approach should improve across all settings. The grid search results are not shown. (5) **Related Work (score 2)**: Critical recent baselines are mentioned but not experimentally compared. The paper does not demonstrate that its 'straightforward' approach outperforms more sophisticated methods designed for the same problem. **Impact of RBCL:** Decision downgraded from 'Borderline / Major Revision' due to RBCL §2 (Fatal-Flaw Logic): Reproducibility ≤ 2 automatically triggers 'Reject' decision. Additionally, RBCL §5 (Weighting Severity over Quantity) applies: missing reproducibility and missing experimental comparisons are critical, non-compensable flaws. **Recommendation:** Rejection. Authors should: (1) release code and MT-generated data, (2) provide comprehensive ablations with statistical tests, (3) experimentally compare against Hu et al., Huang et al., and Lawrie et al., (4) provide theoretical justification for α=0.5, and (5) address ethical concerns in data sourcing and MT bias."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "Maintaining per-client local models and aggregating them post-unlearning (BMT), plus structuring sub-FL models with coding-inspired trees (MMT with Shannon–Fano/Huffman-based construction), are reasonably fresh combinations for FU and represent a nontrivial design choice beyond standard retrain-from-scratch or checkpointing. However, key elements (e.g., training disjoint sub-FL models and aggregating them) are conceptually close to ensemble/partition-based unlearning ideas, and the paper does not clearly differentiate against related partition-and-aggregate paradigms (e.g., SISA-style approaches). Potential weakness: the central claim of “exact” unlearning rests on unverified assumptions; the paper does not provide a formal proof that the resulting model matches retraining without the removed client under the same randomness."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If the approach truly enabled exact unlearning with strong post-unlearning performance, it would be meaningful in practice. The idea of leveraging pre-trained per-client or sub-group models to accelerate recovery is potentially useful. However, the computational/storage overhead (maintaining multiple models per client or sub-FL models), communication costs at unlearning time (uploading full local models), and lack of formal guarantees for exactness reduce practical impact. Potential weakness: scalability and resource costs are not rigorously quantified (e.g., memory/compute/communication analyses); the claim of exactness appears overstated, which undermines the key value proposition."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The methodology is described at a high level, but the central correctness claim—exact federated unlearning—is not substantiated with a proof tying the post-unlearning training trajectory to the retrain-from-scratch outcome under the same randomness. Aggregating isolated local models to initialize retraining does not, in general, guarantee identity with retraining from random initialization or with the exact retrained solution. Formal conditions/assumptions that would make exactness hold are absent. Potential weakness: Section 3.2 (MMT) details appear incomplete in the provided text, and no theoretical guarantees or convergence analyses are presented; the notion of 'no double influence' is asserted without formal justification of equivalence to exact unlearning."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates on multiple vision datasets and two NLP tasks, and includes some ablations (heterogeneity, branching factor) and comparisons to several baselines. However, statistical rigor is lacking (no multiple seeds, no error bars or significance tests), some crucial setup details are missing (e.g., number of clients, data partitioning specifics for NLP tasks, precise MMT tree construction and training schedules), and the evaluation focuses on accuracy recovery without analyzing compute/communication overheads or time-to-utility. Potential weakness: the core claim of exactness is not validated empirically by matching weights or distributions to a retrained-from-scratch reference; reproducibility is further hindered by missing code and incomplete algorithmic details."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Some hyperparameters, optimizers, and hardware are reported, and datasets are standard. However, there is no code, no explicit random seeds, incomplete description of the MMT algorithm and tree-construction procedures, and insufficient details to reproduce figures or baselines exactly. Missing code and incomplete algorithmic specification cap this criterion per rubric. Potential weakness: key implementation decisions (client counts, partition seeds, communication protocols, aggregation specifics, model checkpointing) are unspecified, preventing faithful reproduction."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites MU and FU literature (e.g., FedEraser, Exact-Fun, FedCIO, FATS) and distinguishes approximate versus exact unlearning. The positioning of MMT relative to clustering/aggregation approaches is touched upon. However, the discussion does not fully clarify how BMT/MMT differ from prior partition-based and ensemble-style unlearning frameworks, nor does it reconcile the paper’s use of 'exact' with standard definitions that require equality to retraining. Potential weakness: potentially relevant work on theoretical guarantees for exact unlearning and analysis under FL non-iid settings is not deeply engaged, and the novelty over partition-and-aggregate paradigms remains under-argued."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper mentions GDPR/CCPA motivations and uses public datasets, but there is no dedicated ethics/broader impacts analysis. Notably, the requirement to upload full local models for unlearning may increase privacy leakage risk (model inversion/membership inference), and persisting multiple per-client models elevates attack surface; such risks are not discussed. Potential weakness: no discussion of licenses, data provenance verifications, or mitigation strategies (e.g., DP, secure aggregation) for the extra model exchanges."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "While the paper proposes intuitively appealing strategies (BMT/MMT) that may speed post-unlearning recovery, it lacks a formal justification for its central claim of exact federated unlearning. Aggregating per-client local models to initialize retraining does not generally yield equivalence to retraining without the removed client, and the paper provides neither theoretical guarantees nor empirical evidence matching the retrained-from-scratch solution. Experiments, though diverse, omit statistical rigor and key reproducibility details; code is not provided. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical soundness ≤ 2 and reproducibility ≤ 2 trigger an automatic Reject. Under the RBCL Anti-Inflation Safeguard and Error Asymmetry Principle, the missing guarantees and transparency outweigh the empirical breadth. A major revision with formal proofs (or corrected claims), thorough overhead analyses, rigorous multi-seed evaluations, and a complete, open-source implementation would be necessary for reconsideration."
+  }
+}

@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic token tree construction approach for speculative decoding, which is a meaningful contribution beyond fixed-tree methods. However, the core novelty is somewhat limited: (1) Hypothesis 1 (higher draft probability correlates with higher acceptance rate) is intuitive and empirically validated rather than theoretically surprising. (2) The greedy expansion strategy is conceptually straightforward—selecting the highest-value expandable node at each step. (3) Eagle-2 (Li et al., 2024) and other concurrent works also explore dynamic tree structures, reducing the novelty gap. The threshold-based optimization (Section 5.4) is a pragmatic engineering choice but not a fundamental algorithmic innovation. The paper does make a solid empirical contribution, but the methodological novelty is incremental rather than transformative."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "Speculative decoding acceleration is highly relevant for LLM inference in production environments. DYSPEC demonstrates consistent and substantial speedups (up to 9.1× throughput, 9.4× latency reduction on Llama2-70B) across multiple datasets and temperatures, which would have clear practical value. However, the significance is partially limited by: (1) The method is incremental over Sequoia and Eagle-2, which also achieve strong results. (2) Applicability is restricted to scenarios where a draft model is available and co-located with the target model—not universally applicable. (3) The performance gains, while substantial, are not transformative enough to redefine the field. The work has solid applied value but lacks the conceptual depth or breakthrough impact expected for top-tier acceptance."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns emerge: (1) Hypothesis 1 is supported empirically (Figure 2) but the KL-divergence argument in Section 4 is informal and hand-wavy. The claim that 'tokens with small D[x] have less impact on D_KL, allowing greater variation' does not rigorously justify that high-draft-probability tokens must have high target probability. A counterexample: if target is uniform and draft is highly concentrated on a small set, high D[x] tokens could still face rejection. (2) The approximation SD[t_i] ≈ p_d[t_i] in Section 5.1 is crude and unjustified. Acceptance probability depends on both draft and target; using only draft probability ignores target distribution entirely, which is a significant modeling simplification. (3) The 'optimality' proof referenced in Appendix D is not included in the paper, making it impossible to verify the theoretical claims. (4) Equations and notation are sometimes unclear (e.g., the definition of 'contribution' in Section 5.1 lacks rigor). These issues suggest the theoretical foundation is weak relative to the empirical claims."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments are reasonably comprehensive in breadth but lack depth in critical areas: (1) Datasets are appropriate (C4, OpenWebText, CNN DailyMail, GSM8k, MT-Bench), and results are consistent across them. (2) Baselines include Sequoia and Specinfer, which are relevant competitors, though Eagle-2 (a concurrent dynamic-tree method) receives only brief mention and no direct comparison. (3) Temperature variation (0 and 0.6) is tested, but ablation studies are sparse. Specifically: no ablation on the threshold value (Section 5.4)—how sensitive is performance to this choice? No ablation comparing greedy vs. dynamic vs. fixed strategies directly. (4) Figure 2 motivates Hypothesis 1 but uses only one dataset (CNN DailyMail); broader empirical validation across datasets would strengthen this. (5) Statistical significance testing is absent; single-run results with no error bars or confidence intervals raise reproducibility concerns. (6) The claim about optimality (Algorithm 1) lacks empirical validation—no comparison to oracle solutions or other approximations."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility issues: (1) No mention of code release or availability. (2) The 'optimality proof' is relegated to Appendix D, which is not included in the paper—this is a fatal omission for verifying core claims. (3) Hyperparameter details are sparse: draft temperature is fixed at 0.6, but target temperature varies (0, 0.6). No justification or ablation for these choices. The threshold value in Section 5.4 is described as 'typically around 1/n' but exact values used in experiments are not specified. (4) Random seeds are not mentioned. (5) Implementation details are incomplete: while C++ acceleration of tree construction is mentioned, the exact compilation flags, CUDA version, and library versions are not specified. (6) The CUDA graph setup ('capture 129 different input lengths') is mentioned for Sequoia but exact reproduction requires knowing these lengths. (7) No discussion of variance across runs or statistical confidence. These omissions make independent reproduction extremely difficult and raise questions about the paper's readiness for publication."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is adequate but positioning could be clearer: (1) The paper discusses SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, and ReDrafter—a reasonable set of baselines. (2) However, Eagle-2 is mentioned late in related work and receives minimal discussion despite being a concurrent dynamic-tree method (Li et al., 2024). The distinction claimed ('DYSPEC does sampling at each node; Eagle-2 greedily chooses top-k') is not thoroughly compared empirically. (3) The paper acknowledges Eagle-2 'cannot apply standard verification' but does not deeply explore the implications or provide experimental evidence that this is a critical limitation. (4) Positioning relative to Sequoia could be sharper: Sequoia uses DP to optimize trees; DYSPEC uses greedy expansion. Why is greedy optimal or better? The theoretical comparison is missing. (5) The paper claims DYSPEC answers RQ1 (finding near-optimal structures) but does not formally define 'near-optimal' or prove convergence properties. Contextualizing within broader speculative inference literature would strengthen motivation."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics section or discussion of broader impacts is present. Given that this is a systems/inference optimization paper, one might argue ethics concerns are minimal, but the following should be addressed: (1) Datasets used (C4, OpenWebText, CNN DailyMail, GSM8k, MT-Bench) have known issues (toxicity, bias, copyright) that should be acknowledged. (2) No discussion of computational carbon footprint or environmental impact of the experiments. (3) No mention of responsible disclosure if vulnerabilities or issues are discovered. (4) The models used (Llama2) have license terms that should be explicitly stated. (5) Potential dual-use concerns of faster LLM inference (e.g., enabling harmful content generation at scale) are not addressed. The complete absence of any ethics consideration, even a brief paragraph, is a notable gap for a modern ML venue and represents a significant institutional oversight."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "DYSPEC presents a reasonable engineering contribution to speculative decoding with solid empirical results. However, critical weaknesses in technical soundness, reproducibility, and theoretical rigor preclude acceptance at a top-tier venue. Specifically: (1) **Fatal-Flaw Trigger—Reproducibility (Score 2):** The paper fails to provide code, missing appendices (e.g., Appendix D with optimality proof), hyperparameter details, random seeds, or sufficient implementation specifics. This directly violates the reproducibility override rule. (2) **Technical Soundness (Score 2):** The KL-divergence argument for Hypothesis 1 is informal and unconvincing; the approximation SD[t_i] ≈ p_d[t_i] is crude and lacks justification; the claimed 'optimality' proof is inaccessible. These core theoretical claims are inadequately supported. (3) **Limited Novelty (Score 3):** The greedy dynamic tree expansion is conceptually straightforward. Concurrent work (Eagle-2) addresses similar problems, and the contribution is incremental over Sequoia. (4) **Experimental Gaps:** No ablation studies on threshold selection, no statistical significance testing, sparse comparison with Eagle-2, and single-run results without error bars. (5) **Missing Ethics Section:** No discussion of broader impacts, data provenance, or ethical considerations. Per RBCL §2 (Fatal-Flaw Logic), the reproducibility score of 2 alone mandates a 'Reject' decision, regardless of strong empirical results. The paper would benefit from: (a) releasing code and full appendices, (b) rigorously justifying the approximation SD[t_i] ≈ p_d[t_i], (c) providing ablation studies and statistical testing, (d) deeper theoretical analysis or oracle comparison for optimality claims, and (e) adding ethics/broader impacts discussion."
+  }
+}
+```

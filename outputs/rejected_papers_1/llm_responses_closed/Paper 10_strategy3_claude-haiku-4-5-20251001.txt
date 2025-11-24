@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "SWR presents a layer-wise rescaling approach based on proportionality that is novel in its specific formulation. However, the core idea of weight rescaling to prevent unbounded growth is not fundamentally new—prior work by Niehaus et al. (2024) and Alabdulmohsin et al. (2021) already proposed weight rescaling methods. The main novelty lies in the soft rescaling formula (Equation 3) that interpolates between initial and current norms using a hyperparameter λ. Theorem 1 on proportionality is mathematically sound but applies only to homogeneous activation functions and does not capture novel theoretical insights beyond existing scaling theory. The contribution is incremental rather than a significant methodological breakthrough. Potential weakness: The paper does not sufficiently differentiate why soft rescaling with EMA is fundamentally superior to prior rescaling approaches beyond empirical results."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "SWR addresses plasticity loss and unbounded weight growth, which are recognized problems in the field. The method is simple to implement and requires minimal computational overhead, making it practically useful. However, the significance is limited by several factors: (1) the improvements, while consistent, are often modest (e.g., 0.33% on CIFAR-10 CNN); (2) VGG-16 shows the largest gains (~4%), but VGG is outdated—modern architectures like ResNets and Transformers are not tested; (3) the method is primarily evaluated on small-scale image classification tasks; (4) it is unclear whether SWR generalizes to modern training paradigms (e.g., large-scale pretraining, vision transformers, language models). Potential weakness: The paper lacks evidence that the method scales to contemporary deep learning problems, severely limiting its claimed impact on the field."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "Theorem 1 is mathematically correct but relies on strong assumptions: (1) it only applies to homogeneous activation functions, excluding batch normalization until addressed post-hoc in Algorithm 1; (2) the proof implicitly assumes the network computes linear transformations at intermediate layers when biases are rescaled, which is only true with homogeneous activations. The soft rescaling formula (Equation 3) is heuristic and lacks rigorous justification. The paper claims SWR 'bounds weight magnitude' but the bound is not formally stated or proven in the main text—the proof is deferred to Appendix B. The balancedness claim (Section 3.4) lacks formal proof and relies on toy experiments. The claim that SWR prevents 'unbounded growth' is weakened by the soft formulation, which only aligns norms to an interpolated target. Potential weakness: The paper conflates different notions of 'boundedness'—SWR does not prevent weight magnitude growth absolutely but rather ties it to initial norm; this distinction is glossed over."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments are conducted on small-scale, standard benchmarks (MNIST, CIFAR-10/100, TinyImageNet) with dated models (MLP, CNN, VGG-16). Critical gaps: (1) No experiments on modern architectures (ResNets, DenseNets, Vision Transformers) or large-scale datasets (ImageNet); (2) No statistical significance testing—standard deviations are reported but no p-values or confidence intervals; (3) Limited ablation studies—the hyperparameter λ in Equation 3 is never ablated or analyzed; (4) The warm-start and continual learning setups, while relevant, use artificially simple data splits that may not reflect realistic scenarios; (5) Baseline comparisons are incomplete—only L2, L2 Init, Head Reset, and S&P are compared; other recent plasticity-loss methods (e.g., Elsayed et al., 2024) are mentioned in the abstract but not compared; (6) Results in Table 1 show SWR loses to L2 on some benchmarks (no improvements on MNIST, marginal on CIFAR-100 CNN-BN), contradicting the claimed consistency. Potential weakness: Single runs or insufficient repetitions for small datasets make results unreliable; no hyperparameter sensitivity analysis provided."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper defers most experimental details to Appendix D, but critically: (1) No code is provided (standard practice for top venues requires releasing code); (2) Critical hyperparameter λ is not tuned or reported for each experiment—it is unclear what value(s) were used; (3) Random seeds are not explicitly stated, though 'averaged over 5 runs' suggests multiple seeds were used; (4) Environment details (hardware, library versions, precision) are absent; (5) Figure 1 caption states 'averaged over 5 runs' but Table 1 shows standard deviations suggesting more runs, creating confusion; (6) Appendix D is referenced repeatedly but contents are not verified in this review; (7) The algorithm (Algorithm 1) is provided, but the exact update rule for λ or EMA implementation is vague ('with an exponential moving average'—no decay rate specified). Potential weakness: Without released code and complete hyperparameter specifications, independent reproduction is not feasible; this violates reproducibility standards expected at top venues."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Section 2 provides a reasonable survey of weight regularization and re-initialization methods, positioning SWR within the landscape. However, critical gaps exist: (1) Recent plasticity loss papers (e.g., Elsayed et al., 2024, mentioned in abstract) are cited but not compared experimentally; (2) The distinction from Niehaus et al. (2024), which also proposes weight rescaling to enforce standard deviation preservation, is not clearly articulated—SWR uses norm ratios and soft interpolation, but the practical differences are unclear; (3) Comparison baselines are limited to relatively old methods (L2 from 1991, L2 Init from 2023, but no recent work); (4) The paper claims SWR avoids 'additional gradient computations' versus L2 Init, but this claim is not quantified or verified empirically; (5) The connection to spectral normalization and Lipschitz constraint literature is mentioned peripherally but not deeply explored. Potential weakness: The paper undersells the novelty by not clearly delineating how soft rescaling differs from Niehaus et al. (2024) and other concurrent work, creating ambiguity about the true contribution."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no ethics section, no discussion of broader impacts, and no mention of potential risks or societal implications. For a method that regularizes neural networks, this is a missed opportunity to discuss: (1) fairness implications of weight regularization on model bias; (2) robustness of SWR to adversarial perturbations; (3) applicability to sensitive domains (e.g., medical imaging, hiring); (4) reproducibility and accessibility concerns (no code released); (5) environmental costs of retraining experiments. While the paper focuses on technical contributions, the complete absence of any ethical consideration or discussion of limitations is a significant oversight for a venue like ICLR that emphasizes responsible AI research. Potential weakness: Absence of any ethics-related discussion suggests the authors did not seriously consider the broader context of their work, which is expected for top-tier venues."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper proposes Soft Weight Rescaling (SWR), a layer-wise weight rescaling method to address plasticity loss and unbounded weight growth. While the core idea is intuitive and Theorem 1 on proportionality is mathematically sound, the work suffers from critical limitations that prevent acceptance at a top-tier venue. (1) **Novelty is incremental**: SWR extends prior rescaling methods (Niehaus et al., 2024; Alabdulmohsin et al., 2021) with a soft interpolation formula and EMA, but this is an engineering contribution rather than a fundamental insight. (2) **Reproducibility fails ICLR standards**: No code is released, critical hyperparameters (λ, EMA decay) are not fully specified, and experimental details are deferred to appendices. This violates the reproducibility expectations of top venues. (3) **Empirical validation is limited**: Experiments are confined to small-scale benchmarks (CIFAR, VGG-16) without modern architectures (ResNets, Transformers) or large-scale datasets. Results are inconsistent (Table 1 shows SWR loses to L2 on some tasks), and improvements are modest (often <1%). Statistical significance is not established. (4) **Theoretical contributions are overstated**: Theorem 1 applies only to homogeneous activations and does not capture novel scaling insights. The soft rescaling lacks formal justification. Claims of 'boundedness' and 'balancedness' are informal and unsupported by formal proofs in the main text. (5) **Experimental design has flaws**: Hyperparameter λ is never ablated, baselines exclude recent plasticity-loss methods, warm-start and continual learning settings are artificially simple, and results lack statistical testing. (6) **No ethics or broader impact discussion**, which is increasingly expected at ICLR. The paper would require major revisions—including code release, comprehensive experiments on modern architectures, ablation studies, formal proofs of all claims, and fair comparisons with recent methods—to meet publication standards. The work has merit as a technical contribution but is not sufficiently rigorous or comprehensive for acceptance in its current form."
+  }
+}
+```

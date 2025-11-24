@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The orbit-based feature augmentation is a reasonable and practically-motivated combination of symmetry/orbit ideas with input augmentation, but it is largely incremental relative to existing symmetry-breaking and augmentation techniques (e.g., random features, positional IDs, prior orbit or symmetry-based approaches and recent SBS/probabilistic canonicalization work cited). At least one potential weakness/unverified assumption: the paper claims conceptual novelty yet does not clearly separate which parts are genuinely new methodology versus straightforward adaptations of prior orbit/SBS ideas; scalability and computational cost of orbit detection on very large instances (e.g., SMSP with 23k variables) are assumed manageable but not thoroughly justified or profiled."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If effective, improving GNN performance on symmetric ILPs is practically useful (many real-world ILPs exhibit symmetry; improved prediction/training efficiency can help learned heuristics). However, a key limitation is scope: the method is targeted to ILPs with formulation symmetry and relies on detected orbits and label-adjustment (SymILO); applicability to broader classes of optimization problems or other ML tasks is unclear. Another unverified assumption: the claimed large empirical gains generalize across diverse, realistic ILPs beyond the reported benchmarks, and that orbit computation and SymILO label transformations are feasible and affordable in practical solver pipelines."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical argument that permutation equivariance/invariance causes indistinguishability of symmetric variables is conceptually sound and aligns with known results; propositions are stated and the paper references proofs in the appendix. Nevertheless, there are unverified assumptions and gaps: (1) reliance on Assumption 1 (the model perfectly respects the stated equivariance/invariance) without discussing approximate implementations or architectural deviations; (2) the reasoning glosses over practical issues such as numerical ties, approximate symmetry, or soft symmetry caused by noisy coefficients; (3) the appendix proofs are referenced but not visible here, so correctness cannot be independently confirmed. These issues lower confidence in flawless technical correctness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experimental setup covers three ILP benchmarks of varying size and compares several augmentation schemes (No-Aug, Uniform, Position, Orbit, Orbit+), and uses a symmetry-aware metric (Top-m% error). However, important empirical weaknesses are present: (1) no numerical results, confidence intervals, or statistical tests are shown in the provided excerpt (single-run reporting appears implied); (2) limited ablations on key design choices (e.g., impact of sampling draws, Orbit vs Orbit+ detailed differences, sensitivity to orbit-detection errors) and no runtime/overhead profiling for orbit detection or SymILO label adjustments; (3) missing critical baselines: other recent symmetry-breaking or canonicalization-based approaches (SBS variants, probabilistic canonicalization) are discussed but not included as quantitative baselines. These deficiencies make the empirical evidence insufficiently rigorous to fully support strong claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The authors provide a public code link (https://github.com/NetSysOpt/GNNs Sym ILPs) and describe datasets and many training details (optimizer, learning rate, batch size, epochs, sampling scheme). Nonetheless, key reproducibility details are either not stated or not clear in the excerpt: random seeds and full environment/container details are not specified; it is not explicit whether the code includes the dataset generation scripts for BPP or the SCIP runs/solutions used for labels; the exact model hyperparameters (e.g., hidden sizes, layer normalization/dropout, initialization) and training seeds for reported runs are not fully enumerated. Therefore reproducibility is plausible but not fully verified."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a range of prior work across ILP learning, symmetry handling, and recent symmetry-breaking ML approaches, and positions its contribution relative to random-feature and positional-ID augmentations. However, the comparison lacks depth in places: (1) the distinctions to the most closely related symmetry-breaking techniques (e.g., SBS, probabilistic canonicalization, Morris et al.'s orbit use) are discussed but not deeply analyzed or experimentally compared; (2) the claim of novelty over earlier orbit-based or canonicalization methods is not supported by thorough comparative experiments or formal delineation. This makes the positioning somewhat incomplete and the fairness of empirical comparisons uncertain."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics, broader impacts, or data provenance statement is included in the excerpt. While the datasets are standard ILP benchmarks (some public) and the work is methodological, at least one weakness/unverified assumption: the paper does not discuss potential misuse modes (e.g., optimization used in resource allocation with social impacts), licensing of provided code/data, or environmental cost of heavy solver runs and orbit detection for very large instances. Absence of an explicit ethics / Broader Impacts section caps this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.72,
+    "final_decision": "Weak Reject",
+    "final_justification": "Summary: The paper identifies a relevant and practical problem (GNNs failing to distinguish symmetric variables in ILPs) and proposes an orbit-based feature augmentation scheme with reasonable guiding principles and some theoretical framing. Empirically, the work reports experiments on three ILP benchmarks and claims improved training efficiency and predictive performance. However, key weaknesses outweigh strengths: (1) novelty is incremental — the method is largely an adaptation of known symmetry/orbit augmentation ideas; (2) empirical validation lacks crucial rigor (no visible statistical reporting, limited ablations and missing strong comparative baselines like canonicalization/SBS variants, and no runtime overhead profiling); (3) some reproducibility details (seeds, full environment, dataset generation/labels provenance) are not fully specified in the excerpt; (4) no ethics / broader impacts statement is provided. Applied RBCL rules and adjustments: I began from a conservative presumption of rejection (RBCL Default Assumption). I applied the Anti-Inflation Safeguard (RBCL) by conservatively assessing scores and reducing aggregate confidence—per the RBCL instruction the computed total was conservatively adjusted (each criterion was treated with a stricter baseline, and an anti-inflation adjustment was applied before deriving the final total). No fatal flaw (technical_soundness ≤ 2 or reproducibility ≤ 2) was detected that would force an automatic 'Reject', so the decision follows the numeric rubric after these conservative adjustments. Given the conservative stance and the empirical/positioning gaps, I recommend 'Weak Reject' (practical equivalent to rejecting at most venues unless authors substantially strengthen empirical rigor, add thorough ablations, include full reproducibility artifacts and scripts, and clarify distinctions versus closely related symmetry-breaking methods)."
+  }
+}

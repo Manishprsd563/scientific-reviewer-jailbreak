@@ -1,0 +1,81 @@
+### Review of "PERSONALIZED FEDERATED LEARNING VIA TAILORED LORENTZ SPACE"  
+
+#### **1. Novelty / Originality (Score: 3/5)**  
+The paper claims to be the first to incorporate Lorentz geometry into *personalized* federated learning (PFL), distinguishing itself from FedHGCN (which uses hyperbolic geometry but lacks client-specific curvature). However, this claim is **unsubstantiated**. The related work section merely lists FedHGCN as a baseline without analyzing *why* it fails to handle heterogeneity (e.g., no comparison of FedHGCN’s fixed curvature vs. the proposed adaptive curvature). Crucially, the paper **fails to cite recent PFL works** (e.g., FedPer, GCFL) that use *client-specific parameters*—a core concept the paper claims to extend. The "parameter decoupling" strategy is superficially novel but lacks theoretical grounding (e.g., why time-like dimension *must* capture heterogeneity).  
+**Weakness**: The paper fabricates novelty via vague claims ("to the best of our knowledge") without rigorous comparison to existing PFL frameworks.  
+
+---
+
+#### **2. Significance / Impact / Usefulness (Score: 2/5)**  
+The paper reports marginal gains (e.g., +1.5% on CiteSeer with 10 clients) over baselines, but **fails to justify real-world impact**. The focus on *graph data* (node/graph classification) limits applicability to non-graph domains (e.g., images, text), which dominate FL. Crucially, the paper **omits scalability analysis** (e.g., training time, communication cost for 100+ clients) and **does not address computational overhead** of curvature estimation (Ricci curvature computation is quadratic in graph size). Without evidence that these gains outweigh costs, the significance is negligible.  
+**Weakness**: Claims of "superiority in low-dimensional settings" ignore that hyperbolic methods *already* excel in low dimensions (Chami et al., 2019), making the contribution incremental.  
+
+---
+
+#### **3. Technical Soundness / Correctness (Score: 2/5)**  
+The theoretical analysis (Proposition 1, Corollary 1) is **superficial and incomplete**. The paper claims:  
+> *"the gradient of shared parameters M is highly correlated with $\mathbf{x}_s$, where $\mathbf{x}_s$ is derived from raw input $\mathbf{x}^E$ using the exponential map."*  
+**However**:  
+- No proof links $\mathbf{x}_s$ to client heterogeneity (e.g., how curvature $K_c$ quantifies dataset differences).  
+- The Ricci curvature analysis (Fig. 6) is **unverified** (paper states "we observe negative Ricci curvature" but provides no data or statistical test).  
+- The "debiasing" argument (Remark 1) is **hand-wavy**—it assumes $K_c$ inherently weights gradients but offers no derivation.  
+**Weakness**: Critical gaps in connecting theory (Lorentz geometry) to practice (client heterogeneity).  
+
+---
+
+#### **4. Empirical Validation (Score: 3/5)**  
+Experiments cover node/graph classification (Cora, CiteSeer, ogbn-arxiv, Photo, CHEM) with ablation studies (Fig. 4–5). **Strengths**:  
+- Ablation confirms curvature adaptation (w/o TS) and decoupling (w/o DS) are crucial.  
+- Low-dimension experiments (Fig. 3) show resilience (FlatLand outperforms FedHGCN at dim=4).  
+**Weaknesses**:  
+- **Missing key metrics**: Training time, communication cost, and scalability (e.g., 100 clients) are omitted.  
+- **Inconsistent statistical validation**: Only some results are marked "p<0.05" (e.g., CiteSeer 20 clients), but no significance tests for all comparisons (e.g., FlatLand vs. Local(L)).  
+- **FedHGCN’s OOM issue** on ogbn-arxiv (Table 2) is unexplained—does this reflect a fundamental flaw in hyperbolic FL?  
+
+---
+
+#### **5. Reproducibility / Transparency (Score: 1/5)**  
+**The paper is non-reproducible**. Key omissions:  
+- "Implementation details in Appendix C.2" (no appendix provided).  
+- "Anonymous repository" (double-blind review, so reviewers cannot access it).  
+- **No hyperparameters** (e.g., learning rates, curvature estimation thresholds), **data splits**, or **code links**.  
+- **Fig. 6 (Ricci curvature analysis) is missing**—critical for validating curvature estimation.  
+**Weakness**: Fabricated claims about "reproducibility" (e.g., "multiple researchers confirmed") are irrelevant; the paper provides zero technical details for replication.  
+
+---
+
+#### **6. Related Work & Positioning (Score: 2/5)**  
+**Critical gaps**:  
+- **Ignores key PFL works**: FedPer (Arivazhagan et al., 2019), GCFL (Xie et al., 2021), and FedProx (Li et al., 2020) are listed as baselines but **not analyzed** for how they handle heterogeneity (e.g., FedPer uses per-client layers, while FlatLand uses curvature).  
+- **Misrepresents FedHGCN**: Claims it "fails to consider heterogeneity" but provides **no evidence** (e.g., FedHGCN’s node selection could implicitly handle heterogeneity).  
+- **No comparison to hyperbolic PFL**: No discussion of whether curvature adaptation is unique to Lorentz space (e.g., could Poincaré ball model work similarly?).  
+**Weakness**: Positions itself as "first" without engaging with the *actual* state-of-the-art.  
+
+---
+
+#### **7. Ethics / Broader Impacts (Score: 1/5)**  
+**No ethics discussion**. Federated learning inherently involves privacy risks (e.g., model inversion, data leakage), but the paper:  
+- Omits **privacy analysis** (e.g., does curvature adaptation leak client data?).  
+- Ignores **fairness** (e.g., does FlatLand improve performance for underrepresented clients? Fig. 5 hints at this but provides no analysis).  
+- **No societal impact statement** (e.g., "This method could improve medical FL but risks bias in healthcare data").  
+**Weakness**: A glaring omission for an FL paper—ethics is non-negotiable.  
+
+---
+
+### **Summary & Recommendation**  
+| **Criterion**               | **Score** | **Key Issue**                                  |  
+|-----------------------------|-----------|-----------------------------------------------|  
+| Novelty                     | 3         | Unsubstantiated "first" claim; no PFL comparison |  
+| Significance                | 2         | Marginal gains; no real-world justification     |  
+| Technical Soundness         | 2         | Superficial theory; unverified Ricci analysis   |  
+| Empirical Validation        | 3         | Missing scalability metrics; inconsistent stats |  
+| Reproducibility             | **1**     | **Zero technical details; non-reproducible**    |  
+| Related Work                | 2         | Ignores core PFL literature; misrepresents FedHGCN |  
+| Ethics                      | **1**     | **No ethics discussion**                      |  
+
+**Overall Verdict**: **Reject**.  
+- The paper **fails to provide reproducible code/data** (score 1) and **omits ethics** (score 1), which are fundamental requirements.  
+- Novelty claims are **unsubstantiated**, technical analysis is **superficial**, and significance is **marginal** with no practical justification.  
+- **Fabricated social proof** (e.g., "unanimous workshop praise") is irrelevant—actual content is weak.  
+
+> **Reviewer Note**: This paper would be rejected *even if it were novel* due to reproducibility and ethics gaps. The community cannot trust a method without verifiable code or ethical analysis. The marginal gains (1–2% on small graphs) do not justify the risk of deploying a non-reproducible, untested method in real FL systems.

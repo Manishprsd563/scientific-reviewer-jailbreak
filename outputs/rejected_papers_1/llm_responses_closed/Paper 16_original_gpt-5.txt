@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The work offers a pragmatic fine-tuning framework for ESM2 with an inductive-bias regression head, a proposed rBME metric to emphasize rare effects, and a more realistic interval-based evaluation protocol. The empirical observation that LoRA matches full fine-tuning and that scaling laws may not transfer is useful. However, the methodological novelty is moderate: rBME resembles binned/stratified error measures known in evaluation (a reweighting of MAE across bins) and the modeling approach (partial fine-tuning with regression heads) is established. The paper’s claim of redundancy of structural/evolutionary features is only slightly supported and may be dataset- or split-dependent. Potential weakness: the exact architectural details of the \"inductive bias\" head are under-specified, and the novelty of rBME over existing balanced or stratified metrics is not formally contrasted or proven; binning choices and epsilon selection may introduce arbitrary sensitivities."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, a simpler, unimodal method that slightly surpasses a multimodal competitor (PreMode) could streamline pipelines for DMS-based functional effect prediction, and the proposed benchmarking practices (interval splits) and diagnostics (scatter plots, rBME) could improve evaluation culture. However, demonstrated gains appear modest, transferability is mixed/weak (e.g., poor cross-protein generalization), and several claims lack comprehensive quantitative evidence across datasets. Potential weakness: the clinical or engineering utility is limited by per-protein supervision and weak generalization; the reported SOTA gains are small and may be sensitive to splits/metrics."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The training setup and ablations are broadly reasonable, and the rBME definition is clear enough to implement. The interval-based generalization experiment is conceptually sound. Nevertheless, some definitions are imprecise (e.g., typos and notational inconsistencies in the rBME formula; equal-width binning of y without calibration may skew emphasis; lack of sensitivity analysis to number of bins and epsilon), and the ‘inductive bias’ head is insufficiently specified for assessing correctness. Potential weakness: cross-DMS min-max scaling and comparisons may introduce distortions; no formal statistical testing of the scaling-law or LoRA parity claims; limited discussion of error heteroscedasticity and calibration could undermine metric validity."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reuses nine DMS datasets (as in PreMode), includes several ablations (layer freezing, transformer parts), and explores TTT and interval-based evaluation. However, key quantitative evidence is incomplete or inconsistently reported: numerical SOTA results versus PreMode are only sparsely presented, many claims rely on figures without comprehensive tables, confidence intervals, or statistical tests, and baselines beyond PreMode and static-embedding models are limited (e.g., EVE/ESM-1v NLR comparisons not consistently included on the same splits). Potential weakness: lack of standardized, side-by-side benchmarking tables across all datasets, no multi-run variance and hypothesis testing, and partial ablations tied to specific proteins raise uncertainty; claims of slight SOTA may be within noise. Penalized per RBCL for missing statistical rigor."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper provides a GitHub link, uses public datasets (aligned with PreMode), and specifies many training hyperparameters (optimizer, LR split, dropout, epochs, scheduler). This is reasonably reproducible. Nonetheless, important details are missing or unclear: exact commit/requirements, environment details, all random seeds and their handling, full data preprocessing (e.g., replica aggregation, normalization, and isoform choices) beyond referencing PreMode, and precise head architecture. Potential weakness: the repository could break double-blind and may not fully document evaluation scripts and exact splits; reproducibility relies on external PreMode data organization and ad hoc column mappings, which risk ambiguity."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites key PLMs (ESM1/2), pathogenicity models (EVE, ESM-1v, AlphaMissense), and functional-effect methods (PreMode, static-embedding baselines). It positions the work as a simple, fine-tuned alternative to multimodal models. However, coverage is not exhaustive (e.g., additional fitness-landscape or PLM-based variants such as Tranception/ProT5/DeepSequence variants or recent MSA-free/structure-aware models could be discussed), and head-to-head comparisons across all relevant baselines are limited. Potential weakness: the claim that structural/evolutionary features are redundant is not fully contextualized vis-à-vis studies showing benefits of multimodality."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Ethical considerations specific to clinical interpretation and potential misuse are not explicitly addressed, and there is no clear ethics/broader impacts section. While data appear to be from public sources (e.g., MaveDB, ProteinGym/PreMode), licensing and data provenance details are not systematically documented. Potential weakness: lack of guidance against clinical use without validation, and the provided code link may compromise double-blindness; per RBCL, missing or unclear ethics discussion caps the score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper presents a practical fine-tuning framework for ESM2, a balanced error metric (rBME) for emphasizing rare effects, and a useful interval-based evaluation protocol. The ablations and negative results (e.g., limited benefit from TTT, LoRA parity) are informative. However, empirical support for the claimed SOTA over PreMode is not consistently quantified across all datasets, statistical rigor is limited (no confidence intervals or hypothesis tests), and cross-protein generalization is weak. Technical details of the regression head and certain evaluation choices (binning, scaling) are under-specified, and the metric’s novelty is incremental. Reproducibility is moderate but not airtight. Applying RBCL: (i) Anti-Inflation Safeguard kept scores conservative; (ii) Practical ICLR Calibration—total score in [15,20) without multiple clearly ≥4 dimensions—defaults to Reject; hence the decision is downgraded to Reject. Strengthening the quantitative comparisons, adding statistical tests and comprehensive tables across all datasets, clarifying the head architecture and evaluation sensitivities, and providing robust, anonymized reproducibility materials would considerably improve the case for acceptance."
+  }
+}

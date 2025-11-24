@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core idea of scaling weights down to prevent unbounded growth is not entirely novel, with previous works exploring weight regularization and re-initialization methods. SWR introduces a specific proportional scaling mechanism for weights and biases across layers. However, the exact formulation of the scaling factor, particularly the use of EMA and linking it to initial norms, presents an incremental advancement rather than a fundamentally new concept. A potential weakness is that the novelty might be overestimated without a deeper dive into the specific differences compared to all existing dynamic scaling or re-normalization techniques throughout training."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper addresses a significant problem in deep learning: plasticity loss and unbounded weight growth, which impact generalization and continual learning. If SWR consistently and robustly maintains plasticity and improves generalization across diverse architectures and tasks, it could have a notable impact, especially in continual learning scenarios. However, the reported gains, while positive, are not overwhelmingly large, particularly in smaller models or against strong baselines in all scenarios. An unverified assumption is that the observed improvements generalize well beyond the tested image classification benchmarks to other domains or larger, more complex models and datasets where plasticity loss might manifest differently."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper provides a theoretical justification (Theorem 1) for proportionality and Appendix B claims boundedness of weights. However, the main Theorem 1 relies on homogeneous activation functions and applies to a specific scaling of parameters (weights `c_l * W_l` and biases `(product c_i) * b_l`). The proposed SWR uses a different, more dynamic scaling factor (`c_l = (lambda * ||W_l^init|| + (1-lambda) * ||W_l||) / ||W_l||`), and it's not immediately clear how the proportionality theorem rigorously translates to this dynamic scaling, especially with the EMA. The justification around normalization layers also states that 'we only need to focus on the learnable parameters of the final normalization layer to maintain the proportionality,' which seems an oversimplification without a formal proof applying Theorem 1 to architectures with normalization. These aspects seem technically unverified given the dynamic nature of SWR. The proof for boundedness in Appendix B is also quite high-level and might require more detailed scrutiny for full confidence."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover warm-start, continual learning (full and limited access), and single-task generalization across various models (MLP, CNN, CNN-BN, VGG-16) and datasets (MNIST, CIFAR-10/100, TinyImageNet). This breadth is commendable. Baselines include L2, L2 Init, Head Reset, and S&P, demonstrating a decent comparison. However, the paper lacks detailed ablation studies for the core components of SWR, such as the `lambda` parameter in the EMA formulation, or a comparison against simpler per-layer normalization/rescaling methods. Without these, it's hard to ascertain the specific contribution of the 'soft' aspect and the proportionality constraint. For instance, the results in Table 1 for CIFAR-100 (CNN-BN) show SWR performing slightly worse than L2, and for CIFAR-100 (CNN) it's only marginally better than L2, suggesting SWR isn't universally superior. No statistical significance testing appears to be reported for the experimental results, which is a significant weakness for empirical validation."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper states that 'Detailed experimental settings, including hyperparameters for each method, are in Appendix D.' However, looking through the provided text, there is no Appendix D, nor is there any mention of code availability, specific random seeds, or environment details. The absence of these critical details makes reproducibility extremely challenging, if not impossible. This is a fatal flaw for a research paper submitted to a top-tier conference."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section provides a good overview of unbounded weight growth, various weight regularization methods (L2, L2 Init, spectral norm regularization), and re-initialization strategies. It effectively contextualizes SWR by highlighting the drawbacks of existing methods (e.g., loss of information in re-initialization, computational overhead or optimization difficulties in other regularizations). However, the discussion of 'weight rescaling methods that leverage initial weight' (Alabdulmohsin et al., Niehaus et al.) is brief and could benefit from a more detailed comparison of how SWR fundamentally differs and improves upon these, beyond just stating their limitations (dependence on architecture, fixed rescaling interval). A more direct comparison of the scaling mechanisms would strengthen this section. A weakness is the claim that SWR 'maintains network plasticity' without elaborating on what 'plasticity' truly means in this context and how SWR specifically preserves it beyond just limiting weight growth."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper does not include any discussion or statement regarding ethics, broader impacts, safety, or potential societal implications. This is a common oversight but nonetheless a missed opportunity and a weakness given the increasing importance of these considerations in AI research."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "The paper proposes Soft Weight Rescaling (SWR) to combat plasticity loss and unbounded weight growth. While the motivation is strong and the empirical evaluation covers different scenarios, several critical weaknesses prevent acceptance. First, and most importantly, the paper entirely lacks evidence for reproducibility (no code, no detailed hyperparameters in an accessible appendix), triggering a fatal-flaw override (RBCL §2 Fatal-Flaw Logic, §3 Fatal-Flaw Logic) and resulting in a score of 1 for reproducibility. The technical soundness of applying the proportionality theorem to the dynamic SWR formula is not fully developed, and the boundedness proof is high-level. Empirical validation would benefit greatly from ablation studies and statistical significance testing. Lastly, the paper omits any discussion of ethical considerations. Due to the severe lack of reproducibility, the overall decision must be 'Reject'."
+  }
+}
+```

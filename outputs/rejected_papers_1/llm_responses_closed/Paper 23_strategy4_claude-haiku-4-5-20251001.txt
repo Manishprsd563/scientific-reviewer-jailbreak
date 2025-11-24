@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "StreamingBench introduces a comprehensive benchmark for streaming video understanding, which is a novel contribution in scope and design. However, the core concept of streaming video QA is not entirely new—VStream-QA (Zhang et al., 2024a) already exists, though with severe limitations (32 videos). The three task categories (Real-Time Visual, Omni-Source, Contextual) are reasonable taxonomies but represent refinements rather than fundamentally new insights. The benchmark expands an existing concept rather than introducing a genuinely novel methodological approach. The paper's primary contribution is engineering and curation rather than conceptual innovation. Additionally, the evaluation methodology—converting streaming tasks to offline ones by truncating video—does not faithfully simulate true streaming constraints and undermines novelty claims about assessing genuine streaming capabilities."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "StreamingBench addresses a clear gap in the evaluation landscape. With 900 videos and 4,300 QA pairs across 18 tasks and 8 video categories, the benchmark is substantially larger and more comprehensive than VStream-QA, making it a valuable resource for the community. The empirical finding that even state-of-the-art models (Gemini 1.5 Pro: 67.36%) significantly lag behind human performance (91.66%) provides useful insights for researchers. The analytical experiments (redundancy effects, temporal clues, sequential QA) offer actionable findings. However, significance is limited by a critical flaw: the paper does not actually evaluate true streaming video understanding. Since modern MLLMs cannot process true streaming inputs, the authors simulate streaming by providing pre-truncated video segments. This fundamentally misses the real streaming constraint—models cannot re-process or revisit earlier content. This reduces practical impact for guiding development of actual streaming systems."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper contains a significant technical flaw: the evaluation protocol does not authentically assess streaming capabilities. The authors state (page 7): 'Since these models currently cannot accept streaming video input, we convert each streaming task into an offline one for evaluation. For each question, the model processes the video segment from the start to the point when the question is asked, treating it as the complete input.' This procedure is problematic because: (1) It provides models full access to all prior context in each query, unlike true streaming where models must rely on processed memory; (2) It resets the model state for each question, preventing genuine context carryover; (3) The distinction between 'streaming' and 'offline' evaluation becomes semantic rather than substantive. The QA generation pipeline relies on GPT-4o for automatic generation of 2,500 QA pairs, with human verification claimed but not detailed. The statement 'we shuffle options to ensure balanced distribution' lacks specifics on shuffling methodology. The proactive output task includes only 50 of 250 generated questions 'for efficiency,' raising concerns about cherry-picking and representativeness. The temporal clue classification (Figure 4) is intuitive but lacks formal justification for why this categorization captures meaningful streaming constraints."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover 13 models (3 proprietary, 10 open-source) and include ablation studies examining video length (Table 3), temporal clues (Table 4), redundancy (Table 5), and question references (Figure 5). Human evaluation samples 10% of tasks from each category, yielding 91.66% average accuracy. However, several limitations undermine empirical rigor: (1) Human evaluation is limited to only 10% of data; inter-annotator agreement is not reported. (2) The comparison to human performance is not controlled—humans are shown complete videos with full audio/visual access, while the model evaluation protocol remains unclear regarding audio accessibility. (3) The proactive output task uses only 50/250 questions with acknowledged selection bias. (4) Table 3 formatting is severely corrupted, making results unreadable and unverifiable. (5) No statistical significance tests or confidence intervals are provided for performance differences. (6) The redundancy ablation (Table 5) modifies inputs in potentially non-realistic ways (removing misleading frames), which may not reflect genuine streaming scenarios. (7) Missing error analysis or qualitative failure cases. The paper claims models 'struggle' with certain tasks but lacks systematic error categorization or diagnosis."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility information is missing: (1) The paper states 'StreamingBench consists of 900 videos and 4,300 questions' but provides no indication of data release timeline, access procedures, or licensing. No URLs or supplementary materials are mentioned. (2) The QA generation pipeline is incompletely described—GPT-4o parameters, prompts, sampling strategies, and filtering thresholds are not disclosed. (3) The 'rigorous human verification process' is mentioned but not detailed: no inter-annotator agreement metrics, number of annotators, or revision procedures are provided. (4) Model evaluation setup lacks specifics: How are audio files extracted? What preprocessing is applied? Are models given identical visual encodings? What are the prompt templates? (5) No code release is mentioned or anticipated. (6) The paper lacks details on how video segments are provided to models—are frames sampled uniformly? What resolution? (7) Hyperparameters, temperature settings, and decoding strategies for each model are absent. (8) Random seeds and experimental setup details (e.g., hardware, API versions) are not documented. (9) The statement about releasing remaining proactive output questions 'to support future evaluations' suggests data is not yet available. This fundamentally violates reproducibility standards for top-tier venues."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 2) appropriately discusses video MLLMs and video understanding benchmarks, with Table 1 providing a structured comparison. The paper correctly identifies VStream-QA as the only prior streaming video benchmark and acknowledges its limitations (32 videos, 5 task types, vision-only, independent questions). However, several positioning issues exist: (1) The claim of being 'the first comprehensive benchmark' is overstated—StreamingBench expands VStream-QA substantially but does not fundamentally redefine streaming evaluation. (2) The positioning relative to concurrent work on streaming MLLMs (VideoLLM-online, Flash-VStream, VideoLLM-MoD) is superficial—no direct comparison or discussion of how these systems might approach the benchmark. (3) The paper does not adequately discuss why existing offline benchmarks (MLVU, LVBench, Video-MME) with timestamps or temporal structures cannot be adapted for streaming evaluation. (4) Table 1 comparisons are somewhat misleading—checking 'Temporal Clues' presence does not equate to streaming evaluation rigor. (5) Limited discussion of the gap between benchmark design and actual streaming system requirements (latency, memory constraints, online learning). (6) No discussion of related work in online learning, incremental video understanding, or real-time systems that might inform benchmark design."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper provides no ethics or broader impacts discussion. Critical issues are unaddressed: (1) Data provenance and licensing: The paper states videos are 'manually selected from YouTube' but provides no details on copyright compliance, licensing agreements, or whether creator consent was obtained. (2) Potential for bias: The paper does not discuss demographic representation in the 900 videos or whether task design introduces cultural or contextual biases. (3) Privacy concerns: Videos of real people (referenced in 'life record' and 'education' categories) may contain identifiable individuals; no privacy safeguards are mentioned. (4) Dual-use concerns: Streaming video understanding systems could be used for surveillance or monitoring applications; no discussion of responsible deployment. (5) Labor practices: The paper mentions human annotators but provides no information on compensation, working conditions, or qualification standards. (6) Data retention and reuse: No discussion of how benchmark data will be managed, archived, or whether it will be restricted. (7) The paper provides no ethical review statement or IRB approval documentation. These omissions are particularly concerning for a benchmark involving real-world videos of people and activities."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.85,
+    "final_decision": "Reject",
+    "final_justification": "While StreamingBench makes a useful engineering contribution by assembling a comprehensive benchmark with 900 videos and 4,300 QA pairs across 18 diverse tasks, the paper suffers from critical flaws that warrant rejection from a top-tier venue. Most significantly, the evaluation methodology fundamentally misrepresents what it claims to assess: true streaming video understanding. By truncating videos and providing complete prior context to models, the authors sidestep the core constraint of streaming (limited access to future information and no ability to reprocess past context). This undermines both technical soundness and significance claims. Reproducibility is severely compromised by the absence of code, data release plans, detailed generation procedures, and evaluation specifications. The paper provides no ethics or broader impacts discussion despite using copyrighted YouTube videos and real people's data. While the empirical analysis of model failures (redundancy handling, temporal understanding, sequential QA) offers useful insights, these findings apply to their offline-truncated setting rather than genuine streaming scenarios. The corrupted Table 3 raises concerns about manuscript quality. The paper would benefit from: (1) authentic streaming evaluation protocols, (2) immediate data and code release, (3) ethical review and provenance documentation, (4) rigorous statistical validation, and (5) error analysis with failure categorization. In its current form, this reads as a competent but flawed benchmark paper that does not meet the technical rigor and transparency standards of top-tier venues."
+  }
+}
+```

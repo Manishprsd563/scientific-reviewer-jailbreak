@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a uniformity-driven, multi-objective allocation scheme that integrates three probability matrices (accuracy/sampling-bias suppression, convergence via uncertainty balancing, and scalability for new models) and defaults to greedy tuple selection with BT aggregation. This integration and the explicit uniformity perspective are reasonably novel compared to common RANDOM/ARENA/ALPACA-like heuristics. However, the core components (importance-weighted estimation, uncertainty-based selection, BT/Elo/avg aggregation) are known; the product-composition of objectives is heuristic and not theoretically justified against alternatives (e.g., principled multi-objective optimization or constrained formulations). Potential weakness: the claim that complete uniform sampling minimizes estimation error relies on assumptions (additive zero-sum bias, homoscedasticity) that may not hold for heteroscedastic or nonstationary preferences; the proof is relegated to an appendix and is not validated under realistic annotator/judge noise."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Efficient, scalable preference-based evaluation is important for LLM development, and the reported budget savings (≈17% in static and >50% in dynamic settings) could be useful to practitioners. The framework may influence how evaluation platforms allocate comparisons when models are continuously added. Potential weakness: the improvements are measured primarily against a limited set of baselines and with a ground truth defined by exhaustive comparisons under the same (often proprietary) judge, which may overestimate real-world gains; the 17% saving is modest for O(NM^2) regimes; broader impact beyond the tested settings (e.g., other judge models, noisy annotators, domain shifts) is not demonstrated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The importance-weighted estimator and variance notions are standard, and the decomposition into objectives is coherent. The uncertainty-based allocation aligns with intuitive variance reduction. However, the theoretical arguments rely on assumptions (e.g., additive decomposable bias summing to zero across all tuples, independence, stationarity of the judge, and positivity) that are not rigorously validated. The multiplicative fusion of three objective-specific matrices lacks a principled derivation (e.g., from a Lagrangian or PAC-style bound), and greedy selection can induce starvation and distributional shift relative to the assumed estimators. No formal convergence guarantees or finite-sample error bounds are provided for the combined scheme. Potential weakness: noise and bias from LLM judges, ties, and annotator heterogeneity are not modeled; the claimed uniformity-optimality result may not hold under heteroscedastic noise."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper includes comparisons on AlpacaEval and MT-Bench, multiple judges (GPT-4o, GPT-3.5, Qwen-Plus, limited human), ablations (removing objectives, sampling strategies, and aggregation), dynamic-model scenarios, and a list-wise extension. These are strengths. However, results lack statistical tests/confidence intervals, and some claims (e.g., averages over 10,000 random seeds) are implausible or unclear given reliance on proprietary judges unless all judgments are precomputed, which is not disclosed. Stronger baselines from active ranking/dueling bandits (e.g., Double Thompson Sampling, RUCB/BAI, TrueSkill/TrueSkill2, Crowd-BT with active sampling, HodgeRank-based active methods) are missing. Ground truth is defined by exhaustive querying of the same judge, which risks circularity. Potential weakness: sensitivity to judge noise, ties, and prompt variations is not systematically tested; hyperparameter sensitivity (beyond alpha) and runtime/compute cost are not adequately reported."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Key implementation details and assets (code, scripts, exact prompts, judge outputs for exhaustive comparisons, configuration files, and exact random seeds) are not provided in the text. The approach depends on proprietary LLM judges (GPT-4o/3.5), and it is unclear whether the exhaustive pairwise preferences used to define ground truth are released. Several references to appendices (e.g., proofs, prompts, metrics computation) are not available here. Potential weakness: without public code and released preference matrices, results are not independently verifiable. Per RBCL, missing code/instructions caps this criterion at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper situates itself against RANDOM, ARENA (variance-based), and ALPACAEVAL (reference-model approach) and discusses Elo/BT/avg aggregation. However, it overlooks a substantial body of work on active ranking and dueling bandits (e.g., RUCB/BAI algorithms, Thompson sampling for pairwise preferences, TrueSkill/TrueSkill2, Crowd-BT, HodgeRank and active comparison selection), as well as principled multi-objective allocation frameworks. Potential weakness: limited baseline coverage may inflate perceived gains; the relationship to theoretical results from active preference learning is not explored."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics statement is provided in the text, and risks associated with LLM-judge bias, annotator consent, data provenance/licensing (for benchmarks and judge prompts), and potential misuse are not discussed. Use of proprietary judges raises transparency concerns. Potential weakness: absence of an ethics/broader impacts section triggers a strict downgrade and caps this criterion at a low score per RBCL."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the paper presents a reasonably novel and useful integration of uniformity-driven objectives for CBE, with broad empirical coverage and meaningful practical motivation, it lacks rigorous theoretical guarantees for the combined allocation scheme and omits key active-ranking/dueling-bandit baselines. Crucially, reproducibility is weak: no code or public preference data are provided, prompts and exhaustive judge outputs appear unavailable, and the heavy reliance on proprietary LLM judges undermines independent verification. Per RBCL §2 Fatal-Flaw Logic, Reproducibility/Transparency ≤ 2 mandates rejection regardless of other strengths; thus the decision is downgraded to Reject. Additional concerns include missing statistical significance analyses and an absent ethics/broader-impacts discussion."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "Combines existing components (state-conditioned VQ-VAE, Transformer prior, and MCTS with progressive widening) in a coherent way and introduces a masked-VQ-VAE regularizer to reduce return-driven fragmentation—this is a useful engineering insight but not a fundamentally new methodological paradigm (4–5 reserved for genuinely novel theory). Potential weakness: the masked-vqvae regularizer and its effectiveness are presented empirically but lack theoretical justification and may fail on datasets with extreme return variance. Note: scores conservatively lowered per RBCL Anti-Inflation Safeguard (-0.5) and presumption of rejection."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, L-MAP addresses an important practical bottleneck—planning in high-dimensional continuous action spaces under stochasticity—which would be valuable across robotics and autonomous systems. Potential weakness: scalability claims are tied to offline precomputation and cached latent search spaces; in many real-world online/real-time settings or transfer scenarios the precomputation cost, dataset mismatch, or distributional shift may limit applicability. Conservatively rated and adjusted per RBCL Anti-Inflation Safeguard."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "Method components are plausible and consistent (VQ-VAE discretization, Transformer prior, MCTS with progressive widening); algorithmic choices are reasonable. Potential weaknesses/unverified assumptions: there is no formal analysis of approximation error introduced by the non-injective latent mapping nor guarantees that expectation-over-latents via MCTS yields unbiased value estimates; the interaction between quantization, masked training target, and policy priors could produce systematic biases not characterized theoretically. Some hyperparameters (e.g., L, M, N, λ, α, ε) and stability considerations are not justified analytically. Score reflects empirical plausibility but lack of rigorous correctness proofs."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Authors report comparisons on stochastic/deterministic MuJoCo and Adroit tasks against sensible baselines (TT, TAP, CQL, IQL) and claim latency and performance benefits. Potential weaknesses: the paper lacks explicit reporting of experiment details (number of seeds, variance/confidence intervals, statistical tests), limited ablation studies on key design choices (e.g., masked vs. unmasked VQ‑VAE, choices of macro length L, sensitivity to M/N/λ), and unclear whether results are averaged over multiple runs. Single-run or under-detailed experiments would undermine claims; therefore score capped due to missing experimental detail per instruction."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical information to reproduce the work is missing in the manuscript: no link to code or model checkpoints, no explicit hyperparameter tables, missing random seeds, training/runtime budgets, and no detailed dataset split or preprocessing instructions. Potential weakness: without these artifacts results are unverifiable and non-reproducible. Per the review rules this is a fatal reproducibility flaw; Decision downgraded due to RBCL §2 Fatal-Flaw Logic. Also applied RBCL Anti-Inflation Safeguard in scoring."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and contrasts a broad set of related literature (trajectory modeling, temporal abstraction, robust RL, MuZero variants, TAP). Potential weakness: some recent hierarchical planning or latent-action planning works and empirical baselines for stochastic continuous control may be under-discussed (e.g., deeper connections to hierarchical RL with termination conditions, or evaluation against more ablation-style baselines), making the positioning somewhat optimistic without deeper comparative analysis."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics or broader-impact statement is provided; data provenance and license information are not discussed. Potential weakness: applications to real-world safety-critical domains (autonomous vehicles, robotics) demand risk analysis (e.g., misprediction under distribution shift) and failure modes, which are not addressed. Score capped due to missing ethics discussion per rubric."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Overall, the paper proposes a coherent engineering approach—learning a masked state-conditional VQ-VAE to discretize macro-actions, modeling latent transitions with a Transformer prior, and planning with MCTS and progressive widening—that is practically promising and addresses an important problem. However, the review identifies critical shortcomings that preclude acceptance in its current form. The most decisive issue is reproducibility: the manuscript lacks code, hyperparameters, seeds, and sufficient experimental detail, making results unverifiable (reproducibility score <= 2 triggers fatal override). Empirical validation is also under-specified (unclear number of seeds, missing statistical reporting and comprehensive ablations). Technical soundness is plausible but lacks theoretical guarantees regarding bias from non-injective latent mappings and quantization; several hyperparameters and stability concerns are unexplored. Per the RBCL Fatal-Flaw Logic, because Reproducibility <= 2 the overall decision is 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Additionally, scores were conservatively adjusted per the RBCL Anti-Inflation Safeguard (−0.5 applied when assessing criteria). To be considered for acceptance the authors should (minimally): release code and full experimental details (seeds, hyperparameters, compute budget), provide thorough ablations (masked vs. unmasked VQ-VAE, sensitivity to macro length and sampling budgets), add statistical significance reporting, and either provide theoretical analysis or stronger empirical diagnostics demonstrating that the latent quantization does not introduce systematic bias under stochastic dynamics."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "EXE proposes a large-scale benchmark for predicting program outputs/errors on real-world Python functions, extending prior synthetic or simplified execution benchmarks (e.g., CRUX-Eval) to more diverse, messy code. The pipeline (AST filtering, inlining dependencies, input generation, pass@k) is a careful integration of known components rather than a fundamentally new methodological insight. The inclusion of exception prediction and runtime-statistics-based difficulty analysis adds incremental originality. Potential weakness: the core idea—execution-style evaluation via output prediction—has substantial precedent, and the contribution may be primarily scale and dataset curation rather than a novel methodology."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "A robust, continually updateable execution benchmark could be impactful for evaluating LLMs’ code reasoning. Reported results across several SOTA models are useful, and the dataset’s diversity could inform future model development. However, impact is limited without clear evidence of public release (code/data), stable evaluation protocols, and contamination audits; focusing only on Python and type-annotated, side-effect-free snippets may bias generality. Potential weakness: the claimed sustainability and freshness are not validated by contamination measurement (e.g., time-based splits or exact-match checks), and broader language coverage is only proposed, not delivered."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The AST-based pipeline and constraints to deterministic, side-effect-free code are reasonable, but several technical choices are underspecified or risky. Notably, evaluating exception matches using a language model introduces non-determinism and unverifiable grading unless the exact grader, prompts, and calibration are fixed and released. The claim that LLM-generated inputs ensure task novelty lacks contamination checks. Handling of very long contexts (e.g., 311k tokens) is unclear—how were models with smaller context windows evaluated? Potential weakness: reliance on LLM-as-judge for exception comparison without rigorous, reproducible evaluation protocol is a critical flaw that undermines correctness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover several SOTA models and provide pass@1 results and interesting correlations with code metrics. However, reporting appears to be single-run without statistical tests or confidence intervals, no sensitivity to prompt/hyperparameters, and limited ablations (e.g., isolating confounds from 'directly predictable' tasks). The evaluation’s dependence on an LLM-based comparator for exceptions is not validated for reliability. Potential weakness: missing statistical rigor, lack of reproducible seeds/prompts, and insufficient ablations to disentangle dataset artifacts from genuine execution skills."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper describes a multi-stage generation pipeline and references appendices, but does not clearly provide code, dataset, prompts, seeds, or grader details. The use of a proprietary LLM for exception comparison (implied) without releasing the exact evaluation setup further limits reproducibility. Potential weakness: absent public release and precise configuration details (e.g., prompts, token limits, grader model and thresholds) cap reproducibility per the rubric."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among code generation benchmarks (HumanEval, MBPP), execution-style work (Learning to Execute, CRUX-Eval), agentic and reasoning benchmarks, and large code corpora. It emphasizes differences (real-world code, exception prediction, scalable input generation). Potential weakness: discussion could be deeper on execution-eval specifics and contemporary contamination-aware benchmarking; some closely related evaluation frameworks may be under-discussed."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The authors note filtering to permissive licenses and discuss cybersecurity relevance, but do not detail sandboxing, safety measures for executing code, or mitigation of potential misuse (e.g., assisting exploit development). Data provenance beyond license filtering, privacy concerns, and responsible release plans are not clearly addressed. Potential weakness: missing or minimal ethics/safety analysis caps this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "While the benchmark is promising and empirically informative, key issues prevent acceptance. Technical Soundness is weakened by reliance on an LLM-based grader for exception comparison without a fully specified, reproducible evaluation protocol, and by unclear handling of very long contexts and contamination. Reproducibility is insufficient—no clear release of code/data/prompts/seeds and incomplete reporting of configurations/statistics. Per RBCL §2 Fatal-Flaw Logic, Technical Soundness ≤ 2 and Reproducibility ≤ 2 trigger a Reject regardless of strengths elsewhere; thus, the decision is downgraded accordingly. To be competitive, the authors should release code and dataset with fixed, deterministic grading, provide comprehensive experimental details (prompts, seeds, hyperparameters), add statistical rigor and ablations to control confounds, and include a robust ethics/safety section."
+  }
+}

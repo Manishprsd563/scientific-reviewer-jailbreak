@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core contribution is a straightforward mixture of two existing batch sampling strategies (X-X-mono and X-Y) with a fixed hyperparameter α=0.5. This is an incremental combination of known techniques rather than a novel methodological insight. The paper provides no new loss functions, architectural innovations, or theoretical framework. While the motivation (balancing monolingual and cross-lingual performance) is reasonable, simply mixing batches at a fixed probability is not a sufficiently novel contribution for a top-tier venue. The unverified assumption is that equal weighting (α=0.5) is optimal without exploring principled alternatives or adaptive strategies."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The work addresses a practical problem (simultaneous optimization across retrieval settings) and demonstrates improvements over single-strategy baselines. However, the gains are often marginal (e.g., Table 1: 0.705 vs 0.700 for cross-lingual on XQuAD-R with XLM-R), and the approach is primarily a data sampling heuristic rather than a fundamental advance. The impact is limited because practitioners already know that mixing monolingual and cross-lingual training data can help; the paper merely formalizes this intuition with a naive 50-50 split. A major weakness is the lack of clear guidance on when and why this approach should be preferred over task-specific fine-tuning pipelines in real deployments."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical setup is sound in its basic contrastive learning formulation (Eq. 1 is standard InfoNCE loss). However, there are critical unjustified assumptions: (1) Why is α=0.5 universally optimal? The grid search results (0.4–0.6 range) suggest robustness, but no principled justification for equal weighting is provided. (2) The validation set for early stopping uses only English examples (Section 3.1), which may bias the model selection against languages with lower English-like structure. (3) Language bias is measured only as rank distance; alternative metrics are not explored or justified. (4) The paper claims the approach 'mitigates language bias,' but Table 2 shows X-Y already achieves similar or lower bias—the incremental improvement is modest and sometimes within noise."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover two datasets (XQuAD-R, MLQA-R) and two pre-trained models (XLM-R, LaBSE), which is reasonable but limited. Critical weaknesses: (1) No statistical significance testing (confidence intervals, p-values, multiple runs). All improvements are single-run point estimates. (2) No ablation studies on α sensitivity beyond the mentioned 0.4–0.6 range; α=0.5 appears arbitrary. (3) MIRACL results are relegated to appendix (Tables 12–13 not shown); unclear if improvements hold there. (4) No comparison with other recent multilingual IR methods (e.g., Hu et al. 2023, Huang et al. 2023a) on the same training setup—only cited comparisons from their papers. (5) Machine translation quality for training data is not discussed; potential artifacts or errors could bias results."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper is anonymous and under double-blind review; code and data availability are not mentioned. Critical missing information: (1) No GitHub link, no promise of code release post-review. (2) In-house machine translation pipeline details are absent—how were translations generated? What models? What quality assurance? (3) No random seeds reported; reproducibility across runs is unverifiable. (4) Training datasets include proprietary Yahoo QA and custom translations; accessibility unclear. (5) Validation set construction (SQuADShifts English-only) is underspecified. (6) Hyperparameter choices (learning rate 3e-5, batch size 100) are stated but not justified or ablated. The lack of reproducibility is a critical flaw per RBCL §2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys related work (LaREQA, InfoXLM, LaBSE, etc.) but does not conduct fair empirical comparisons. Cited methods (Hu et al. 2023, Huang et al. 2023a) are only compared via their reported numbers, not retrained on the same setup. The paper raises the question 'Is there a straightforward approach without new loss functions?' but does not empirically validate whether their simple baseline is actually better than those methods when trained identically. This is a significant positioning weakness. Additionally, the paper cites recent work on multilingual translate-train and contrastive alignment but does not discuss why these would not be complementary to hybrid batching, or whether they could be combined."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Section 6 (Limitations) briefly acknowledges result diversity, fairness, and societal bias in training data, but offers no concrete mitigation or analysis. Critical gaps: (1) No discussion of data provenance for translated datasets or Yahoo QA mining. (2) No analysis of whether the model perpetuates bias from English-centric training (English used for validation; most training data likely English-sourced before translation). (3) No ethical review statement or IRB approval mentioned. (4) The claim that the method 'mitigates language bias' is misleading—it only balances rank distances, not fairness or representation. (5) Implications of machine-translated training data (potential errors, artifacts) on downstream use are not discussed. The limitations section is insufficient; it reads as a checkbox rather than substantive engagement."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper proposes a simple hybrid batch sampling strategy (50-50 mix of monolingual and cross-lingual batches) for multilingual information retrieval. While the problem is relevant and the experimental scope is reasonable, the work suffers from critical flaws that prevent acceptance at a top-tier venue. **Novelty is insufficient**: the approach is a straightforward combination of two existing baselines with no new methodology, theory, or insights. **Empirical validation lacks rigor**: no statistical significance testing, single-run experiments, no ablations on the α hyperparameter, and no direct comparisons with recent competing methods on identical setups. **Reproducibility is severely compromised**: no code release promised, in-house translation pipeline is unspecified, training data provenance unclear (proprietary Yahoo QA, unlabeled custom translations), random seeds absent. **Technical soundness has gaps**: the choice of α=0.5 is not justified beyond a reported robust range; validation using only English data biases model selection. **Ethics concerns are unaddressed**: potential amplification of English bias, machine-translation artifacts, and data provenance issues are acknowledged but not mitigated. The improvements over baselines are often marginal (e.g., MAP 0.705 vs. 0.700), and in some cases the proposed method is only a runner-up. Per RBCL §2 (Fatal-Flaw Logic), the combined failure in reproducibility (missing code, unspecified pipelines, no seeds) and lack of statistical validation (single runs, no significance tests) mandates a rejection. The work is technically sound in isolation but insufficient as a research contribution."
+  }
+}
+```

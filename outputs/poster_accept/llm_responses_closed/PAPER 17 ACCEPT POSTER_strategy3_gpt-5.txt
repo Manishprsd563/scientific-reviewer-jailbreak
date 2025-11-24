@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper introduces partial rank sharing across layers via a shared rank pool with layer-specific diagonal weighting, which goes beyond fully shared approaches like VeRA and simple LoRA variants. While conceptually interesting, it builds on known components (LoRA, layer sharing, per-layer scaling) and feels like a targeted enhancement rather than a fundamentally new paradigm. Potential weakness: closeness to prior shared-parameter approaches (e.g., VeRA, Tied-LoRA) may limit originality; the novelty largely hinges on the pooling formulation and selective sharing hyperparameter k without a radically new learning principle."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Gains on code and math benchmarks are consistent and practically relevant for PEFT. The approach preserves LoRA’s advantages and could see adoption in resource-constrained fine-tuning workflows. However, improvements are incremental and not transformative, and FFT still outperforms in math. Potential weakness: downstream impact might be limited if future full-finetuning or stronger PEFT baselines narrow the gap; generality beyond the tested tasks remains to be shown."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The MRE bound (erasa(k) ≤ elora) is plausible via constructive arguments aligning shared and layer-specific components; the parameter accounting appears consistent with LoRA’s overall budget. Implementation details (initialization, scaling of D) are reasonable. Potential weakness: proof presentation contains several notation-errors/typos and relies on the simplifying assumption of uniform layer dimensionality; optimization dynamics and convergence properties under SGD for LLMs are not theoretically analyzed; possible cross-layer interference due to shared pool is not deeply examined."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover two LLMs, multiple ranks, diverse baselines (LoRA, MoRA, VeRA, OLoRA, AdaLoRA, PriLoRA) and include FFT in math; report best/last, training cost, and some scaling studies and forgetting analysis. Potential weakness: missing statistical significance, no multi-seed runs, limited ablation on k for downstream performance (most results use a fixed heuristic k), and incomplete transparency on data contamination checks and evaluation randomness; some tables have formatting inconsistencies."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "A public repo is provided; key training details (optimizer, LR, batch size, epochs, ranks, datasets, evaluation harnesses) are described; prompts and extra details are said to be in the appendix. Potential weakness: random seeds, exact environment/specs, and full run scripts with deterministic settings are not explicitly documented in the main text; some implementation specifics (e.g., exact adapter placement nuances, per-module configs) may require digging into appendices/code."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among LoRA variants, rank allocation, and cross-layer sharing methods, and includes many relevant baselines and citations. Potential weakness: the distinction from closely related sharing schemes (e.g., VeRA/Tied-LoRA) could be articulated more rigorously with clearer theoretical/empirical contrasts, especially regarding optimization stability and expressiveness beyond reconstruction error."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics/broader impact statement is included in the provided text. While datasets used are standard and decontamination is noted for some, licensing, bias, and misuse considerations are not discussed. Potential weakness: missing ethics/safety analysis and data/license provenance details; per the rubric, absence/uncertainty caps this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.68,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "RaSA presents a reasonable and practically useful extension to LoRA by partially sharing ranks across layers with layer-specific weighting, offering consistent improvements on code and math tasks at similar parameter budgets. The reconstruction-error analysis supports the intuition that RaSA can match or outperform LoRA in expressivity. However, the work feels incremental relative to existing sharing approaches, the theory contains presentation/notation issues and does not address optimization behavior in-depth, and the empirical validation lacks statistical rigor (single runs, no significance tests) and limited ablations on the crucial hyperparameter k for downstream tasks. Reproducibility is decent with code released but missing explicit seeds and full environment specs in the main text; ethics/broader impact discussion is absent. Overall, this merits a borderline decision; stronger statistical validation, clearer theoretical exposition, and a deeper empirical ablation/sensitivity study would be needed to move toward acceptance. Note: RBCL anti-inflation and conservatism were applied, yielding a cautious score."
+  }
+}

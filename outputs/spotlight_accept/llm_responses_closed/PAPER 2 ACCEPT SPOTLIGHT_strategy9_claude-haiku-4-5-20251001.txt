@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes UNICBE, which combines three existing objectives (accuracy via uniform sampling, convergence via uncertainty balancing, scalability via new-model allocation) into a unified framework. While the integration is systematic, the individual components are largely known: uniform sampling for bias reduction, uncertainty-based allocation (Arena), and new-model prioritization (AlpacaEval). The novelty lies primarily in multi-objective combination rather than genuinely new methodology. Potential weakness: The paper does not provide a principled theoretical justification for why element-wise multiplication (Eq. 13) is the optimal way to integrate these three matrices; this choice appears heuristic without rigorous derivation."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem of efficient comparing-based evaluation for LLMs is relevant and timely. However, the practical significance is limited: (1) The absolute improvements are modest (17% budget savings over random, Pearson r > 0.995 is near-ceiling for any method); (2) The scalability scenario (50% savings with new models) is interesting but somewhat artificial—in practice, one would likely cache or reuse existing comparisons; (3) The method is primarily an engineering optimization rather than a conceptual advance that would reshape how evaluation is conducted. Potential weakness: The paper does not demonstrate whether the 17% savings translates to meaningful practical benefits in real deployment scenarios (e.g., cost reduction, faster iteration cycles)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns undermine soundness: (1) Equation 10 (P^acc) uses exponential decay with parameter α, but no theoretical justification is provided for why this functional form minimizes bias. The proof in Appendix A (referenced but not shown in detail) only establishes that uniform sampling is optimal; the exponential parameterization is not derived from this principle. (2) Equation 11 (P^con) claims to sample proportional to uncertainty ε, but the derivation of Eq. 9 is informal. The claim that 'uniformly decreasing uncertainty' ensures convergence lacks rigorous analysis. (3) The element-wise multiplication in Eq. 13 lacks justification: why not weighted summation, normalization, or other integration schemes? No ablation compares different integration methods. (4) The bias analysis (Eq. 1-4) assumes a linear model for aggregation error but uses Bradley-Terry (nonlinear) for aggregation—this disconnect is unaddressed. Potential weakness: The core mathematical framework mixes intuitive arguments with incomplete proofs, making it difficult to verify correctness or identify when the method might fail."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Strengths: (1) Experiments use 10,000 random seeds, demonstrating statistical rigor; (2) Multiple judges (GPT-4o, GPT-3.5-turbo, Qwen, human) and benchmarks (AlpacaEval, MT-Bench) support generalizability claims; (3) Ablation studies systematically remove components. Weaknesses: (1) Only 15 models on AlpacaEval (randomly selected) and 5 on MT-Bench—small model sets may not reflect realistic evaluation scenarios with 100+ models; (2) The 'ground truth' (T=NM(M-1) exhaustive evaluation) is obtained only once per benchmark; it is unclear whether this ground truth is stable or if different evaluation runs yield similar ground truths; (3) Statistical significance testing (confidence intervals, p-values) is absent despite claims of rigorous evaluation; (4) The scalability experiment adds one model every 2000 iterations in a controlled manner, but real-world model release patterns are unpredictable; (5) No comparison with more recent methods (e.g., Thompson sampling or other active-learning-based approaches); (6) MT-Bench results 'show relatively larger fluctuations,' suggesting sensitivity to data, yet this instability is not investigated. Potential weakness: The paper reports point estimates and aggregate scores without uncertainty quantification, making it unclear whether observed differences are statistically significant."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical deficiencies: (1) No mention of code availability (GitHub link, supplementary materials, or commitment to release); (2) Hyperparameter α is set to 2 based on preliminary experiments within [1.5, 3] (Appendix F.1 referenced but not fully shown), with no sensitivity analysis or justification for the final choice; (3) The 10,000 random seeds are mentioned but no seed initialization protocol is specified; (4) Prompts used for GPT-4o and GPT-3.5-turbo are claimed to be in Appendix D but not provided in the excerpt; (5) No details on how MT-Bench human preferences were collected or their inter-annotator agreement; (6) The 'detailed proof in Appendix A' is not shown, making the theoretical foundations unverifiable; (7) No statement of intent to release code or data; (8) Computational requirements (runtime, memory) are not reported. Potential weakness: Without code and full hyperparameter details, independent reproduction is impossible, and the method cannot be validated or extended by other researchers. This is a fatal flaw for a method-focused paper."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Strengths: (1) Section 2 clearly categorizes prior work into budget allocation and preference aggregation; (2) Baselines (RANDOM, ARENA, AlpacaEval) are well-chosen representatives of different strategies. Weaknesses: (1) Limited discussion of active-learning literature (e.g., uncertainty sampling, query-by-committee), which are closely related but not mentioned; (2) No comparison with Thompson sampling or Bayesian optimization methods for allocation; (3) The distinction between UNICBE and prior methods is presented as a 'unified multi-objective' approach, but this is not formally novel in optimization—weighted combination of objectives is standard; (4) Missing references to recent LLM evaluation surveys and scalability work in automated benchmarking; (5) The paper claims to 'reconcile accuracy, convergence, and scalability' but does not clearly explain why prior methods could not be trivially extended to do so. Potential weakness: The positioning as a 'unified framework' overstates novelty; the core contribution is engineering multiple existing ideas together, which is less groundbreaking than presented."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics section or broader impact discussion is present in the paper. Missing considerations: (1) No discussion of how evaluation bias could perpetuate unfair model rankings; (2) No mention of potential for this method to reduce fairness of evaluation by under-sampling comparisons for certain models; (3) Data provenance of AlpacaEval and MT-Bench is not discussed (e.g., consent, licensing); (4) No discussion of privacy implications of preference elicitation; (5) No acknowledgment of potential misuse (e.g., manipulating allocation to favor certain models); (6) No discussion of environmental or computational costs of running 10,000+ experimental seeds; (7) The use of proprietary LLM judges (GPT-4o, Qwen) raises licensing and reproducibility questions not addressed. Potential weakness: The complete absence of any ethics consideration is a significant gap for a paper involving human preference data and model evaluation, which has clear societal implications for AI governance."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.72,
+    "final_decision": "Weak Reject",
+    "final_justification": "While UNICBE addresses a relevant problem in LLM evaluation and demonstrates empirical improvements, the paper has critical weaknesses that prevent acceptance. The **Reproducibility score of 1** triggers the fatal-flaw override: no code, incomplete appendices, and missing hyperparameter details render the work non-reproducible—a fatal flaw per RBCL guidelines. Additionally, **Technical Soundness (score 2)** is undermined by informal derivations, lack of justification for key design choices (exponential parameterization, element-wise multiplication), and theoretical gaps between the bias analysis and the aggregation method. The novelty (score 3) is primarily engineering-focused—combining known objectives without genuine methodological innovation. Empirical validation (score 3), while extensive in seeds and judges, suffers from small model sets, absent significance testing, and incomplete reporting. The **complete absence of any ethics discussion (score 1)** is unacceptable for a paper on model evaluation involving human preferences. The practical significance (score 3) is modest: 17% budget savings and near-ceiling correlations suggest the method fine-tunes an already-effective process rather than enabling new capabilities. Under ICLR 2025 norms and the RBCL framework, missing reproducibility and incomplete technical justification mandate rejection. The paper would benefit from: (1) releasing code and complete appendices; (2) providing rigorous theoretical justification for design choices; (3) conducting statistical significance testing; (4) adding a comprehensive ethics section; (5) evaluating on larger, more realistic model sets."
+  }
+}
+```

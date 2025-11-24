@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "RaSA introduces partial rank sharing across layers with layer-specific diagonal weighting and a shared rank pool, which is a meaningful twist on LoRA-style sharing. However, closely related ideas exist (e.g., VeRA, Tied-LoRA, vector banks/linear combinations) that also share/update low-rank structures across layers; the contribution feels incremental rather than a fundamentally new paradigm. Potential weakness: the assumption of same dimensionality across layers narrows applicability, and the novelty relative to fully shared or basis-combination methods is partly a design variant rather than a clear conceptual leap."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The method shows consistent gains over LoRA and several PEFT variants on code and math benchmarks across two base models, indicating practical relevance for PEFT in high-demand tasks. Nonetheless, improvements are moderate in magnitude and FFT still outperforms PEFT on math, tempering broader impact claims. Potential weakness: evaluation is limited to two domains and two model families, leaving uncertainty about generality to other modalities/tasks and real-world deployment constraints (e.g., stability under distribution shift)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The constructive bound e_rasa(k) ≤ e_lora is plausible and the capacity argument via reconstruction error is reasonable in spirit. However, the proof presentation contains notation/typo issues and simplifying assumptions (e.g., D_i operating only on shared components in analysis) that are not fully justified. The link from lower matrix reconstruction error to downstream task performance is indirect, and training dynamics with cross-layer coupling are not rigorously analyzed. Potential weakness: reliance on same-dimension layers and the lack of discussion on optimization stability/training pathologies when sharing ranks across many layers."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover two challenging domains, several ranks, two model families, and competitive baselines (LoRA, MoRA, VeRA, AdaLoRA, OLoRA, PriLoRA), with training cost reporting. The coordinate-descent reconstruction analysis offers additional support. However, results appear to be single runs without statistical tests; no multi-seed variability or confidence intervals are reported. The choice of k is primarily justified via reconstruction error, with limited downstream ablation; BEST vs LAST without a validation set risks test-set selection bias even if framed as an upper bound. Potential weakness: missing variance analysis and broader benchmarks (e.g., instruction following, safety, multilingual) limit robustness of claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "A public repo is provided and the paper references appendices with prompts and training details; training times and optimizer are reported. Nonetheless, random seeds, environment specs, and exact reproducibility instructions (e.g., hardware, software versions, seed-controlled runs) are not clearly enumerated in the main text, and we cannot verify the repository contents here. Potential weakness: absence of explicit multi-seed protocols and end-to-end reproducibility checklists prevents assigning a higher score."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among LoRA variants, dynamic rank allocation, and sharing-based approaches (VeRA, Tied-LoRA, vector banks), and includes several of these as baselines. However, positioning could be sharper in distinguishing partial sharing vs. other global/shared-basis methods and in covering additional widely used baselines (e.g., QLoRA) or discussing why they are out-of-scope. Potential weakness: the boundary between incremental novelty and prior sharing strategies is not fully dissected, which blurs the precise contribution delta."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work uses public datasets and mentions decontamination for code data, but an explicit ethics/broader impacts discussion is not visible in the provided text. There is limited discussion of data licenses, potential biases propagated by GPT-3.5–generated training data (MetaMathQA), or implications of deploying higher-capacity adapters (e.g., misuse). Per the rubric, missing or unclear ethics statement caps this criterion. Potential weakness: lack of a dedicated ethics section addressing data provenance and societal risks."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "RaSA is a well-motivated and practically relevant refinement of LoRA, demonstrating consistent, moderate gains on code and math tasks with a clear parameter-efficiency story and a reasonable theoretical capacity argument. However, the overall evidence falls short of top-tier standards: (1) novelty appears incremental relative to prior sharing-based PEFT variants; (2) technical presentation includes simplifications/notation issues and does not firmly link reconstruction capacity to end-to-end optimization; (3) empirical validation lacks multi-seed statistics and broader downstream/ablation coverage, and uses BEST vs LAST without a validation set; (4) no explicit ethics/broader impacts statement is provided. Given these limitations and adhering to RBCL principles, the decision is downgraded to Reject per RBCL §3 Practical ICLR Calibration (scores map to Borderline, which is treated as Reject absent an exceptional breakthrough) and §6 Error Asymmetry Principle. The work is promising; with stronger statistical rigor, broader evaluations, clearer theoretical exposition, and an ethics statement, it could be competitive in a future submission."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper combines state-conditioned VQ-VAE discretization, a Transformer latent prior, and MCTS with progressive widening to plan over learned macro-actions. This combination is a sensible and moderately novel engineering of existing components (masked VQ-VAE objective to suppress return-induced fragmentation is a noteworthy contribution). However, the core components (VQ-VAE, Transformers, MCTS, progressive widening) are established; the work reads as an intelligent composition rather than a fundamentally new methodological paradigm. Potential weakness / unverified assumption: it is unclear whether the masked-VQ regularizer consistently yields stable, semantically meaningful codes across diverse domains (assumption about robustness of discretization is unverified). Also, the novelty claim could be weakened if close prior works (e.g., TAP, other latent planning works) already explored similar state-conditioned discretizations—comparative novelty depends on experiments and ablations that are not fully detailed here."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If effective and reproducible, L-MAP addresses an important problem (planning in high-dimensional continuous, stochastic domains) and could impact offline RL and robotics by reducing latency via temporal abstraction. Potential weakness / unverified assumption: the paper claims broad superiority over many baselines and applicability to high-dimensional tasks, but without access to detailed experiment budgets, latency measurements under realistic constraints, or evidence of transferability, the claimed practical impact is uncertain. There is also an implicit assumption that the learned macro-actions generalize beyond the offline dataset distribution, which is not demonstrated in the provided text."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The method is described coherently: the VQ-VAE masking loss, the autoregressive latent prior, and MCTS with progressive widening are plausible and consistent. There are no obvious mathematical errors in the presented derivations. Potential weakness / unverified assumption: several key assumptions are not justified theoretically—e.g., that taking expectations over latent transitions reliably mitigates non-injectivity-induced stochasticity in all regimes, or that the proposed regularizer prevents 'reward-hacking' of codes; convergence properties or bounds for planning in the learned latent space are not provided. Robustness to quantization hyperparameters, codebook size, and choice of L (macro length) is not analyzed theoretically and may materially affect correctness in practice."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper claims extensive empirical evaluation on stochastic MuJoCo and Adroit tasks and compares to both model-based and model-free baselines. However, the provided manuscript excerpt lacks crucial experimental details: number of random seeds, statistical significance tests, full ablation studies (e.g., effect of masking term, codebook sizes, macro length L, MCTS budget tradeoffs), wall-clock latency benchmarks under controlled compute budgets, and full hyperparameter settings. Potential weakness / unverified assumption: it is unclear whether reported gains are robust across seeds or rely on cherry-picked runs; single-run or insufficiently repeated experiments would undermine claims. Because of these missing details, empirical validation is not fully convincing."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript does not present links to released code, full hyperparameter lists, random seeds, or exact training and evaluation pipelines in the provided excerpt. The dataset provenance is partially discussed but the narrative includes an unusual meta-claim and malformed JSON at the end, suggesting incompleteness in the submission. Potential weakness / unverified assumption: without code, seeds, and exact preprocessing and decoding/decoding scripts, the experiments cannot be verified or reproduced. Because reproducibility is severely under-specified, I cap this score low. NOTE: This low reproducibility score triggers the RBCL Fatal-Flaw Logic and the review decision is downgraded as required (Decision downgraded due to RBCL §2 Fatal-Flaw Logic and reproducibility <= 2)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys a broad set of relevant literature (trajectory transformers, TAP, MuZero, temporal abstraction literature). The authors draw connections to robust RL and planning literature. Potential weakness / unverified assumption: some claims of conceptual novelty relative to TAP and similar latent-planning works are asserted but lack precise contrasts or quantitative side-by-side ablations to isolate contributions. It is not fully clear whether all pertinent recent works on latent action representations, sequence modelling for planning, and hierarchical offline RL are compared empirically or conceptually."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes acknowledgements and a short remark about dataset biases, but there is no dedicated Ethics or Broader Impacts section detailing risks, potential misuse, data licensing, or safety concerns for real-world deployment (e.g., autonomous driving or robotic manipulation). Potential weakness / unverified assumption: the authors assert robustness of the dataset via an external meta-analysis claim (including an odd in-text JSON block), but do not provide provenance, license details, or mitigation strategies if deployed in safety-critical systems. This lack of explicit mitigation plans and provenance information limits the ethical evaluation."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary: L-MAP is a well-motivated approach that combines state-conditioned VQ-VAE discretization, an autoregressive latent prior, and MCTS with progressive widening to enable macro-action planning in stochastic, high-dimensional continuous control. The idea is promising and could have practical impact. However, key weaknesses prevent acceptance in its current form: (1) severe reproducibility issues (no code, missing hyperparameters/seeds and incomplete/malformed parts in the manuscript), (2) empirical validation lacks critical details (seed counts, statistical tests, full ablations and latency/compute-controlled benchmarks), and (3) some technical assumptions (robustness of masked VQ-VAE across domains, stability of planning in non-injective latent maps) are unverified. According to the RBCL rules: reproducibility score <= 2 triggers a mandatory Reject and caps the total at 20; I therefore set the final decision to 'Reject' and explicitly note: Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2). With remedial work—release of code, full experimental details and seeds, stronger ablations isolating the contributions (e.g., ablate masked regularizer, codebook size, macro length, MCTS budget), and clearer ethics/data provenance—this work could warrant a stronger decision in a resubmission. As-is, the missing reproducibility and incomplete empirical evidence make the claims unverifiable and the paper unsuitable for acceptance."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea—dynamically expanding a speculative token tree guided by draft probabilities—is a plausible and useful development over fixed-tree approaches (Sequoia, SpecInfer, Medusa). However, related prior works (Eagle-2, ReDrafter, Sequoia) already explore dynamic or draft-probability-based construction and there is substantial overlap in high-level goals; the contribution appears to be an incremental algorithmic refinement (greedy heap expansion + thresholding) rather than a fundamental new paradigm. Potential weakness / unverified assumption: the claim that the greedy expansion is near-optimal rests on assumptions and a proof contained in an appendix (not verified in main text), and the method's novelty depends on implementation/engineering choices rather than a clearly separable conceptual advance. (RBCL: Anti-Inflation Safeguard applied — score kept conservative.)"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If the reported speedups generalize, improving acceptance rates and throughput for speculative decoding has clear practical impact for LLM inference pipelines, especially for large target models where draft/target latency ratios are high. Potential weakness / unverified assumption: benefits may depend strongly on draft/target model pairing, temperature, and system-level engineering (CUDA graph, CPU-offload tricks); it is unclear how well gains persist across different hardware setups and production constraints. The paper does not fully quantify sensitivity to those operational factors."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper provides an intuitive derivation linking draft probabilities and acceptance rates (via KL constraints) and describes a greedy algorithm with a claimed optimality proof. The complexity analysis is reasonable. Potential weakness / unverified assumption: key theoretical claims (optimality of greedy expansion, the estimate SD[t] ≈ p_d[t]) rely on strong or unstated assumptions and proofs are deferred to appendices; I could not verify correctness or required conditions from the main text. Also, approximating acceptance rate by draft probability is heuristic and may break down when draft and target distributions differ substantively."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The empirical section reports experiments across multiple datasets (C4, OWT, CNN DailyMail, GSM8k, MT-Bench) and model scales (7B, 13B, 70B) and compares to relevant baselines (Sequoia, SpecInfer), which is a strength. Potential weakness / unverified assumption: the paper lacks details on number of runs, variance/error bars, statistical significance, and important ablations (sensitivity to budget m, threshold C, draft temperature, draft model choice). There is limited visibility into implementation tricks (e.g., CUDA-graph usage) that materially affect results; potential single-run averages and missing standard deviations reduce confidence in empirical claims. Because missing statistical rigor is present, the score is capped low per scoring rules."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper describes implementation details (use of C++ for tree construction, hardware used), but does not provide a code release, explicit hyperparameters, random seeds, or configuration files and does not state where the implementation will be published. Potential weakness / unverified assumption: absence of released code and missing training/inference hyperparameters prevents reproduction; per RBCL rules this missing information triggers a strong downgrade. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility ≤ 2) and Evidence Severity Scaling (absence of code treated as evidence of absence)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys many recent speculative-decoding and tree-based methods (SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, ReDrafter) and positions DYSPEC relative to them, explaining differences in sampling vs selection and dynamic construction. Potential weakness / unverified assumption: although coverage is broad, some claims about what prior methods can or cannot do (e.g., verification compatibility of Eagle-2, pruning consequences) are asserted without empirical side-by-side diagnostics, and the comparison could be strengthened with deeper ablations isolating which components drive gains."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no explicit ethics, broader impacts, or data-provenance statement and does not discuss potential misuse, fairness, or licensing considerations. Potential weakness / unverified assumption: absence of an ethics discussion and provenance statements prevents assessment of broader risks associated with speeding up LLM generation; per scoring rules this omission requires a low score. Decision downgraded due to Evidence Severity Scaling and RBCL default presumption of rejection when documentation is incomplete."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary: DYSPEC presents a sensible and practically-motivated refinement for speculative decoding—dynamic greedy expansion of a token tree guided by draft probabilities—and reports substantial empirical speedups on several datasets and model scales. Strengths include relevance to reducing LLM inference latency, comparisons to several prior methods, and implementation attention (C++ tree construction, multi-model evaluation). Critical weaknesses: the paper does not release code or provide sufficient reproducibility details (hyperparameters, seeds, exact implementation), lacks statistical rigor and ablations to support empirical claims, and some theoretical claims are deferred to appendices and rest on unstated assumptions. Per the reviewer-bias correction layer (RBCL) and the rubric: reproducibility score ≤ 2 constitutes a fatal flaw that mandates a 'Reject' decision (RBCL §2 Fatal-Flaw Logic). Additionally, the total score (16) falls in the 'Borderline / Major Revision' band but RBCL instructs defaulting to Reject in that range unless multiple dimensions are clearly above 4; here they are not. Therefore the final decision is Reject. To improve, the authors should (1) release code and detailed configs/seeds, (2) provide variance/error bars and multiple runs with statistical tests, (3) include ablations on threshold C, budget m, and draft-model choices, and (4) surface the key proofs and assumptions in the main text so correctness can be verified."
+  }
+}

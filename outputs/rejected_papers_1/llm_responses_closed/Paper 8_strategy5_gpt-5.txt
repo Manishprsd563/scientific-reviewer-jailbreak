@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper frames recall-oriented evaluation for LMs with equivalence classes and introduces a molecule-based benchmark enabling near-exact recall measurement, a simple perplexity-based recall predictor for i.i.d. sampling, and a recall-leaning decoding variant (retain all beams, B=G). These contributions are directionally interesting but largely compose known pieces: using perplexity to estimate generation probabilities is straightforward, and the decoding is essentially exhaustive top-G/large-beam enumeration rather than a fundamentally new algorithm. Potential weakness: generality beyond SELFIES-equivalence and small-molecule regimes is unverified, and the novelty of the decoding method relative to diverse beam search/coverage-penalized decoding is not clearly distinguished."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, recall-centric evaluation and prediction could be valuable for domains emphasizing coverage (e.g., molecular enumeration, certain security tasks). The benchmark may catalyze study of recall as a first-class metric. However, evidence is restricted to small molecules; transfer to code vulnerabilities or general text remains speculative. The proposed B=G beam strategy may be computationally prohibitive at scale and of limited practical use. Potential weakness: claims of broader applicability (security, healthcare) are not empirically demonstrated, and scalability/compute costs for large-beam decoding are not analyzed."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The recall estimator 1 - (1 - Σ_j p_ij)^G under i.i.d. sampling is standard and reasonable. The setup with equivalence classes is well-motivated. Nonetheless, key assumptions are strong: (i) independence and identical sampling; (ii) availability/coverage of all string variants per molecule—practically approximated via up to 1M randomizations for only 500 molecules; (iii) representativeness of the validation subset for global recall prediction. The decoding proposal (B=G) lacks theoretical analysis, and the feasibility at B=10^7 is questionable. Potential weakness: the precision/recall predictions depend on accurate estimation of Σ_j p_ij, but the enumeration of realizable representations is incomplete and may bias estimates, and there is no error analysis or bounds."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper provides multiple analyses: four molecular subsets, pretraining vs. no pretraining, representation (SELFIES vs. SMILES; canonical vs. randomized), temperature sampling, and a recall-aware loss exploration across model sizes. The correlation between predicted and actual recall is reported as very high. However, key baselines are missing (e.g., diverse beam search, coverage penalties, MBR sampling, DPP/MMR-style diversity methods, or non-LLM generative models like GFlowNets/VAEs/GA). Statistical rigor is limited (no multiple seeds, no confidence intervals, no significance tests). Potential weakness: single-run results and absence of standard diversity-aware decoding baselines undermine the strength of empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper does not provide code, explicit training/evaluation scripts, or full hyperparameter tables and seeds. The 848M-molecule pretraining subset construction and the evaluation sets (500 molecules × up to 1M randomizations) are not released here, and implementation details for large-beam decoding (B up to 10^7) are insufficient for reproduction. Per the rubric, missing code and unclear execution details cap this criterion at 2. Potential weakness: absent artifacts and seed-level details make it difficult to verify the reported correlations and replicate the large-scale generations."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among molecular generation, SMILES/SELFIES randomization, and precision/recall metrics in generative modeling, and references MAUVE and KNN-based recall estimators. However, it omits several relevant decoding literature threads: diverse beam search (e.g., Vijayakumar et al., 2018), coverage-penalized beam search, anti-degeneracy decoding (e.g., Welleck et al.), MBR sampling, and DPP/MMR-style selection, which are directly pertinent to diversity/recall. Potential weakness: incomplete coverage of decoding/diversity methods makes the novelty of the proposed generation strategy less clear."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work touches on applications in security and healthcare but lacks a dedicated ethics/broader impacts discussion. Dual-use risks in molecular generation (e.g., facilitating harmful compound discovery), data licensing, and dataset provenance are not substantively addressed. Per rubric, missing/unclear ethics considerations cap the score at 2. Potential weakness: absence of risk mitigation strategies, usage constraints, or disclosure of licensing for datasets and generated artifacts."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper presents an interesting recall-oriented perspective with a molecule-based benchmark and a simple perplexity-derived recall predictor for i.i.d. sampling, along with empirical analyses across representations and model sizes. However, critical gaps remain: (i) missing artifacts and insufficient training/evaluation details prevent reproducibility (RBCL §2 Fatal-Flaw Logic and Scoring Discipline: reproducibility ≤ 2 enforces Reject), (ii) empirical methodology lacks multi-seed statistics and omits key diversity-oriented decoding baselines, and (iii) the decoding proposal (B=G) is computationally heavy and insufficiently contrasted with established methods. While the direction is promising, the current submission does not meet the rigor and transparency expected at a top venue. Decision downgraded due to RBCL §2 Fatal-Flaw Logic and §3 Practical ICLR Calibration."
+  }
+}

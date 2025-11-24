@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "SPE-Unlearn proposes structure-aware masks targeting heads and filters which is a reasonably novel application within parameter-efficient unlearning for Transformers (more structural than per-parameter heuristics). However the contribution appears incremental rather than a fundamentally new methodological paradigm (the idea of mask-based selection and sparse updates builds on prior parameter-efficient and pruning literature). Potential weaknesses / unverified assumptions: (1) the paper claims a theoretically derived optimal masking strategy but the provided derivation in the main text is high-level and concrete proofs/lemmas/conditions are missing here (so novelty claims are not fully substantiated); (2) it assumes structural-level masking generalizes across Transformer sizes and tasks (claims to extend to LLaMA/OPT are unverified). Note: I applied RBCL Anti-Inflation Safeguard (scores conservatively reduced) in forming this score."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Efficient and principled unlearning for large Transformers is an important practical problem (GDPR / 'right to be forgotten', MLaaS). If SPE-Unlearn reliably reduces computation/memory while preserving fidelity, it would be useful to practitioners. Potential weaknesses / unverified assumptions: (1) experiments are reported on modestly sized fine-tuned models (BERT-base, DistilBERT, RoBERTa-large) but the claim of scalability to much larger foundation models is untested; (2) the assumed 90% sparsity regime being widely applicable is asserted but not thoroughly stress-tested across diverse tasks and removal rates; (3) benefits depend on accuracy of mask selection which is empirically only partially characterized."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several steps rely on approximations that are not fully justified in the provided material: e.g., using a diagonal empirical FIM as a proxy for Hessian/inverse-Hessian is a common approximation but its error bounds in the sparse structure-aware masked setting are not derived rigorously here. Claims that sparsity reduces approximation error 'by a factor proportional to sparsity' are stated without formal bounds in the main text. Potential weaknesses / unverified assumptions: (1) off-diagonal FIM terms are assumed negligible for these masks, but this may fail when heads/filters interact strongly; (2) claimed optimality of the mask objective and greedy warm-start algorithm lack full convergence/approximation guarantees in the exposition. Because key theoretical details and proofs are missing/unclear, I cap this score at 2 (Missing/unclear information cap). Decision impact: technical_soundness <= 2 triggers RBCL Fatal-Flaw Logic -> final decision must be 'Reject'."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper presents experiments on multiple models and tasks and compares against several baselines (RT, FT, GD, SA, SO). Positive aspects: memory/time/runtime and several metrics (unlearning accuracy, MIA, remaining/testing accuracy) are reported and a 90% sparsity regime is explored. Potential weaknesses / unverified assumptions: (1) experiments appear to use a single random selection of forgetting samples and do not report multiple seeds or statistical variability (no confidence intervals or significance tests), making results brittle; (2) ablation studies are limited—e.g., sensitivity to sparsity levels, mask selection hyperparameters, and effect of warm-start vs. other search strategies are not fully shown here; (3) some important baselines from recent unlearning literature or stronger variants (e.g., more advanced memory-aided schemes, alternative mask-selection baselines) are missing or not fully described; (4) details on dataset splits, exact unlearning scenarios (how samples chosen) and how MIA is constructed are underspecified in the provided material. Following the rubric, single-run / missing statistical tests penalize empirical rigor and cap the score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is weak or absent in the provided submission fragment: there is no explicit link to released code, and critical details are missing or only referenced to appendices ('Appendix A.1') which are not available here. Potential weaknesses / unverified assumptions: (1) no code or experimental scripts, no random seeds or number of runs reported, and only high-level hyperparameter descriptions referenced (but not verifiable in this text); (2) Algorithm 1 is referenced but not shown here, so exact implementation details for mask optimization and warm-start greedy search are unclear. Because of these omissions I assign a very low reproducibility score. Decision impact: reproducibility <= 2 triggers RBCL Fatal-Flaw Logic -> final decision must be 'Reject'. I explicitly note: Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites a broad set of prior works in Transformer unlearning and parameter-efficient methods and attempts to position SPE-Unlearn as structure-aware compared to parameter-level heuristics. Potential weaknesses / unverified assumptions: (1) claims of being 'the first' to categorize memory-free vs. memory-aided successive second-order unlearning should be tempered unless earlier literature is exhaustively checked; (2) comparisons could be strengthened by including more recent or stronger baselines and by discussing relations to pruning/masking literature and influence-function based works in more depth. Some experimental baselines may be missing or insufficiently described."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper does not present an explicit ethics or broader impacts statement in the provided text. Potential weaknesses / unverified assumptions: (1) no discussion of data provenance, licenses, or whether forgetting requests could be abused; (2) no analysis of potential harms (e.g., partial unlearning leaving residual memorized sensitive data that could still be probed) or of safe deployment practices. Given the privacy-motivated application, an explicit ethics section and careful analysis of failure modes is expected but missing here; this absence lowers the score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical problem (efficient unlearning for Transformers) and proposes a plausible structure-aware masking approach (SPE-Unlearn) integrated with second-order unlearning. Empirically, the submission reports runtime and memory improvements and competitive unlearning/fidelity metrics on a set of models and tasks. However, there are critical shortcomings that preclude acceptance in its current form. The most important problems are (1) insufficient technical rigor and missing derivations/guarantees for key theoretical claims (diagonal FIM approximation, sparsity-related error bounds, mask optimality), and (2) poor reproducibility and transparency (no released code, missing algorithm pseudocode/details, no seeds or multi-run statistics). Additional concerns include limited empirical rigor (no standard deviations/significance testing, limited ablations and sensitivity analyses), incomplete baseline coverage, and absence of an ethics/broader-impacts discussion despite the privacy-sensitive nature of unlearning. These are non-compensatory: per the RBCL/Fatal-Flaw Logic, technical_soundness <= 2 and reproducibility <= 2 force a 'Reject' decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Also, I applied the RBCL Anti-Inflation Safeguard (scores were conservatively reduced) and treated missing information as evidence of absence when capping relevant criteria. To be potentially acceptable after revision the authors should (at minimum): provide complete theoretical derivations and formal bounds for approximations, release code and exact experimental scripts (including hyperparameters, seeds, and environment), run multiple trials with statistical measures and ablations (sensitivity to sparsity, mask selection choices), include stronger baselines and clearer algorithm pseudocode, and add an ethics/broader-impacts section analyzing privacy failure modes. Given the fatal weaknesses in soundness and reproducibility, I recommend Reject."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper proposes a new framing: directly learning a conditional recourse likelihood R_theta(x+ | x) trained on constructed positive-negative pairs and using forward sampling at inference. This departs from prior methods that perform search/optimization at inference and includes a theoretical consistency argument for the pairing strategy. Potential weakness / unverified assumption: the core novelty hinges on the pairing estimator Q being a good proxy for the ideal R, which critically depends on the classifier h aligning with P(Y|X) and on the coverage of D_h^+; if h is miscalibrated or D_h^+ is small/biased the novelty advantage may be limited. Also, while innovative, some elements (generative models for plausible recourse, importance-weighted pairing) build on known components — the degree of novelty is strong but not an outright paradigm shift."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "If the approach reliably produces plausible, low-cost, and valid recourse by training a conditional generative model, it meaningfully advances algorithmic recourse practice by avoiding brittle inference-time optimization and by offering multiple sampled recourses. This has clear utility for recourse research and potentially real-world deployment. Potential weakness / unverified assumption: impact depends on generalization to richer data modalities, realistic constraints (heterogeneous immutable features), and on the availability of sufficiently representative positive examples; the claimed real-world utility may be limited where D_h^+ is biased or sparse."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The derivations (importance-weighted estimator Q and consistency claims) are plausible and the authors provide theorem statements with arguments showing Q is a consistent self-normalized estimator under stated conditions. Potential weakness / unverified assumption: key theoretical results rely on strong assumptions — notably that the classifier h sufficiently matches P(Y|X) (they state consistency when h equals the conditional), that D_h^+ has support where R has support, and that immutability constraints are correctly encoded in the cost; these assumptions are not guaranteed in practice. Moreover, proofs assume correct modeling choices (e.g., kernel binning, auto-regressive factorization) without analysis of approximation error or finite-sample behavior beyond the stated 1/N_+ rate; such gaps limit confidence in broad correctness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experimental suite covers synthetic 2D demonstrations, three real-world tabular datasets, multiple baselines (including nearest-neighbor, VAE-based methods, and diffusion-guided approaches), ablations (role of conditional likelihood), and sensitivity over the balance parameter λ. This is reasonably thorough and supports many claims. Potential weakness / unverified assumption: the paper does not show statistical significance (e.g., multiple runs, confidence intervals), may rely on single runs, and there is limited discussion of hyperparameter sensitivity beyond λ; important baselines (recent conditional generation approaches or human-evaluation for plausibility/actionability) may be missing or under-explored. The reliance on specific plausibility metric (LOF) without complementary human or task-specific validation is a limitation."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper explicitly states a GitHub repository link in the abstract, which is a positive sign. However, in the manuscript excerpt there is no explicit, detailed listing of exact training hyperparameters, random seeds, preprocessing/data-split specifics, compute environment, or step-by-step reproduction instructions; appendix references are mentioned but not shown here. Potential weakness / unverified assumption: absence of explicit hyperparameters, seeds, and full experiment scripts in the paper text forces the reviewer to rely on the external repo (which may or may not contain full instructions). Per the review rules, missing/unclear reproducibility information caps the score at 2/5. Decision note: this low reproducibility score triggers the RBCL fatal-flaw rule (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a broad set of recourse and counterfactual explanation literature, discusses differences to methods that optimize at inference, and compares empirically to several representative baselines, including likelihood-based and verifier-augmented approaches. Potential weakness / unverified assumption: the related-work discussion could better acknowledge very recent advances in conditional generative modeling for structured/tabular data and clarify distinctions from any closely related concurrent works; the positioning around diffusion-based conditional guidance is briefly touched but could be deeper to ensure fairness in comparison and highlight limitations of prior art."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly acknowledges dataset bias in the conclusion and cites a meta-analysis asserting benchmark utility, which is helpful context. Potential weakness / unverified assumption: there is no dedicated ethics or broader impact section discussing risks of generated recourse (e.g., facilitating gaming, disparate impacts across subgroups, privacy leakage, or governance), no discussion of dataset licenses or provenance, and no mitigation strategies for misuse. Per review rules, the absence of a clear ethics/broader-impacts treatment caps the score at 2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: This paper presents a well-motivated and promising approach (GenRe) that directly models a conditional recourse likelihood R(x+|x) using importance-weighted pairing and an auto-regressive generative model, together with theoretical consistency claims and extensive empirical comparisons. Strengths include a clear framing of the joint objectives (validity, proximity, plausibility), a practical encoder-decoder parameterization for sampling recourse, theoretical arguments for the pairing estimator Q, and a broad empirical evaluation against multiple baselines and ablations. However, there are several critical concerns that prevent acceptance in its current form. Most important is reproducibility/transparency: although a GitHub link is mentioned, the paper as presented lacks explicit, verifiable details about hyperparameters, seeds, data splits, and full experiment scripts in the text/appendix available here; per the review rules, missing or unclear reproducibility information caps that criterion at 2/5. Because reproducibility ≤ 2 is a fatal condition under the RBCL (Fatal-Flaw Logic), the overall decision must be 'Reject' regardless of strengths in other areas; consequently the reported total_score is capped at 20. Additional serious concerns: (1) Technical assumptions underlying the theoretical claims are strong — they require h to align with P(Y|X) and adequate support in D_h^+; practical departures from these assumptions (miscalibrated classifier, biased/sparse positives) could invalidate the estimator and degrade recourse quality. (2) Empirical validation lacks reported statistical robustness (no confidence intervals or multiple run variance reported), limited discussion of hyperparameter sweeps beyond λ, and limited human or domain-specific evaluation of plausibility/actionability. (3) Ethics and broader impacts are not sufficiently addressed — there is little discussion of potential harms, fairness across subgroups, or misuse mitigation. Rules & explicit RBCL downgrades applied: (a) Reproducibility was capped at 2/5 due to missing explicit reproducibility artifacts in the paper (RBCL § Evidence Severity Scaling); this triggered the mandatory override: reproducibility ≤ 2 => final decision must be 'Reject' and total_score capped at 20 (RBCL § Fatal-Flaw Logic & Decision Overrides). (b) I applied the Anti-Inflation Safeguard logic in assessing scores (more conservative judgments than typical) and adhered to the presumption of rejection. Recommendation to authors: provide a comprehensive reproducibility package (complete code, exact hyperparameters, random seeds, environment, data preprocess/splits, and scripts to reproduce tables and figures), include statistical significance (multiple runs / CI), explicitly analyze robustness to classifier miscalibration and D_h^+ sparsity/bias, expand ethics/broader-impacts discussion (including subgroup analyses and potential misuse mitigation), and clarify/strengthen theoretical/empirical treatment of approximation errors. With these additions and clarifications the paper could be a strong candidate for acceptance in a subsequent revision."
+  }
+}

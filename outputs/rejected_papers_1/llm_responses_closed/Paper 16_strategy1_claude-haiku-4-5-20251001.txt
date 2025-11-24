@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper fine-tunes ESM2 on DMS datasets and proposes a regression head—both incremental extensions of existing methods (Schmirler et al. 2024 already fine-tuned ESM2 with LoRA). The main claimed novelties are: (1) finding that LoRA matches full fine-tuning, and (2) proposing rBME metric. However, the first is expected and unsurprising (LoRA typically matches full fine-tuning in many domains), and the second is a straightforward binning scheme lacking deep conceptual innovation. The paper is primarily an empirical study optimizing existing components rather than introducing fundamentally new methodology. No novel architecture, training paradigm, or theoretical insight is presented."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "While functional effect prediction is important, the paper's practical impact is severely limited by its own findings: (1) ESM-Effect shows 'mixed transferability' to unseen regions (Section 5.4: Spearman rho -0.02 on disordered regions), (2) it completely fails on out-of-protein generalization (GCK to SRC: rho 0.03), (3) modest improvements over PreMode (0.59 vs 0.59 on PTEN, 0.63 vs similar on SNCA) do not justify the framework. The authors themselves acknowledge: 'the field has still a long way to go until it can guide treatments.' The proposed rBME metric, while potentially useful, is incremental. The work's utility for real clinical or engineering applications is questionable given poor generalization."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Critical technical issues undermine soundness: (1) The rBME metric derivation is ad-hoc—the equal-width binning (100 bins) lacks justification and is arbitrary; no theoretical motivation for this particular formulation is provided. (2) Section 7.7 reveals the full fine-tuning setup on PTEN is incomplete due to 'training instability' and 'limited compute resources'—missing critical experimental data undermines claims of 'state-of-the-art.' (3) The paper uses mean embeddings but does not adequately explain why mutation-position embeddings were not consistently used (mentioned briefly in 7.7), making ablations incomparable. (4) The 'inductive bias regression head' is never clearly defined or justified theoretically. (5) Test-time training (Section 7.3) showed no benefit, contradicting motivation. The theoretical foundation is weak; many design choices appear empirically motivated rather than principled."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 1,
+      "justification": "Severe empirical limitations trigger a score of 1: (1) CRITICAL: Full fine-tuning results on PTEN (enzyme activity) are missing entirely (Section 7.7: 'lacking given our limited compute resources'). This is a core ablation for the main claim and its absence invalidates comparative conclusions. (2) Baseline comparisons are limited to PreMode; no systematic comparison with other functional effect predictors (e.g., Derbel et al. 2023, Marquet et al. 2022) on the same datasets. (3) Random seed stability: only 3 seeds reported for most experiments, insufficient for statistical robustness. (4) No statistical significance tests (p-values, confidence intervals) are provided. (5) Generalization experiments (GCK→SRC, SNCA intervals) reveal catastrophic failure but are relegated to appendix, undermining the 'SOTA' claim. (6) The 9 DMS datasets are the same as PreMode, limiting independent validation. (7) No error bars or uncertainty quantification in figures. The experimental evidence does not adequately support the 'state-of-the-art' claim given missing critical ablations and poor generalization."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "While code is promised (GitHub link provided), several reproducibility gaps remain: (1) Hyperparameter details are incomplete—the 'inductive bias regression head' is mentioned but never formally specified (architecture, layers, activation functions unclear). (2) The paper uses 'split learning rate' (1e-5 for ESM2, 1e-4 for head) but the rationale is unexplained and not standard practice. (3) Data preprocessing details are vague—'exact score calculation methods' are mentioned as a problem but the paper's own preprocessing is not fully transparent. (4) Random seed handling: only 3 seeds reported; full results across seeds are not provided. (5) The 'one cycle learning rate scheduler' lacks specification (max learning rate, cycle fraction). (6) Environment details (PyTorch version, hardware-specific settings) are minimal. (7) The missing PTEN full fine-tuning experiment is not reproducible due to 'limited compute.' Reproducibility is compromised by incomplete method specification and missing experimental results."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 3) is well-structured and covers pathogenicity prediction, functional effect prediction, and benchmarking comprehensively. However, critical gaps exist: (1) Recent fine-tuning approaches (Schmirler et al. 2024) are mentioned but superficially—the paper's findings (LoRA=full fine-tuning, no scaling benefits) directly parallel Schmirler's work, yet the distinction is not clearly articulated. (2) Comparisons are primarily to PreMode; other functional effect predictors (Derbel 2023, Marquet 2022) are cited but not empirically compared. (3) The positioning relative to multimodal approaches is incomplete—the claim that 'structural and evolutionary features are redundant' is based on one comparison to PreMode; no ablation of PreMode components is provided. (4) The paper lacks comparison to classical machine learning baselines (Random Forest, SVM) on the same datasets, limiting perspective on improvement magnitude. The positioning is adequate but not comprehensive; key prior work is underexplored empirically."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "This paper has zero ethics discussion. (1) No explicit ethics or broader impacts statement. (2) Data provenance: the paper uses DMSs and ProteinGym datasets but does not discuss ethical considerations around functional effect prediction in clinical contexts—e.g., potential for misuse if predictions guide treatment. (3) Licensing: no mention of code/model licenses or data licensing agreements. (4) The paper mentions 'precision medicine' and 'clinicians' as stakeholders but does not address the risk of deploying models with poor generalization (e.g., -0.02 Spearman on disordered regions) to clinical decision-making. (5) No discussion of fairness across protein types (the paper shows massive generalization failures across kinase families). (6) The 'synthetic' or experimentally-derived nature of DMS data and potential biases in what mutations were attempted is not discussed. Per ICLR standards, the complete absence of ethics consideration is a significant gap, especially for a method positioned for clinical applications."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.85,
+    "final_decision": "Reject",
+    "final_justification": "This paper merits rejection due to multiple fatal flaws that cannot be compensated by moderate strengths. CRITICAL ISSUES: (1) **Missing Core Experiment**: Full fine-tuning ablation on PTEN (enzyme activity) is entirely absent due to 'limited compute resources' (Section 7.7)—this undermines the central claim of optimized ESM-Effect performance and is a non-negotiable experimental gap for a top-tier venue. (2) **Overstated Claims**: The paper claims 'state-of-the-art' (SOTA) but the evidence is weak: modest improvements over PreMode (often <0.05 Spearman), and no systematic comparison with other functional effect predictors. Critically, the paper's own generalization experiments reveal catastrophic failure (GCK→SRC rho 0.03; SNCA disordered region rho -0.02), fundamentally limiting real-world applicability—yet this is relegated to appendix. (3) **Technical Soundness ≤ 2**: The proposed rBME metric is ad-hoc (arbitrary 100 equal-width bins, no theoretical justification). The 'inductive bias regression head' is never formally specified. Multiple design choices (mean vs. position embeddings, learning rate split) lack principled justification. (4) **Reproducibility ≤ 2**: The 'inductive bias head' architecture is undefined. Missing PTEN results are unreproducible. Hyperparameter choices (learning rates, scheduler) are incomplete. (5) **Empirical Validation ≤ 1**: No statistical significance testing, only 3 random seeds, missing critical ablation, no comparison to other functional effect methods, and poor generalization drastically undermines claims. (6) **Novelty ≤ 2**: The core contribution (fine-tuning ESM2 with LoRA matching full fine-tuning) is incremental; LoRA achieving full fine-tuning performance is expected, not novel. The rBME metric is a straightforward binning scheme. (7) **Zero Ethics Discussion**: Despite positioning for clinical applications, no discussion of risks, fairness, or responsible deployment. **RBCL APPLICATION**: Per the Reviewer Bias Correction Logic, this paper triggers the Fatal-Flaw condition: (i) Technical Soundness = 2 (ad-hoc metrics, incomplete specs), (ii) Reproducibility = 2 (missing experiments, undefined architecture), (iii) Critical missing experiment (PTEN full fine-tuning), making the final decision **'Reject'** mandatory, overriding any total-score calculation. The paper reads as early-stage empirical work with incomplete experiments, unsubstantiated claims, and limited novelty—unsuitable for NeurIPS/ICML/ICLR in its current form. Recommendation: Major revision required, including completion of all ablations, rigorous generalization analysis, formal metric justification, and honest assessment of limitations before resubmission."
+  }
+}
+```

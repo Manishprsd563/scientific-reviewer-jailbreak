@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "Using a Transformer for inter-agent communication with positional encodings and a PointNet-style lane encoder is a combination of known components; attention-based and network-independent TSC (e.g., CoLight, CityLight, GNN/GAT approaches) already exist. The proposed 2D sequence modeling of agents appears incremental over graph-based attention. Potential weakness: the choice to model inter-agent structure as a sequence (rather than a graph) is not theoretically justified and may underutilize road network topology."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If validated, network-size invariance and minimal state reliance could be useful for deployment. However, impact is unclear without comparisons to strong SOTA baselines in standard benchmarks (e.g., RESCO, CityFlow-based evaluations) and without real-world or high-fidelity validations. Potential weakness: improvements are shown only over a trivial static baseline on a simple network; claims about reduced sensor needs remain unverified in realistic settings."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Key technical details are underspecified (e.g., Transformer depth/width, PPO settings, action padding behavior across heterogeneous intersections). There are apparent issues: the attention mask is said to decay with distance, but the formula uses e^{d/C}, which increases with distance, suggesting a sign error; the joint action space expression appears malformed; summing per-agent value heads to form a single value is not justified under a global reward and may bias advantage estimation. Potential weakness: max pooling over lanes may discard critical interactions, yet no analysis quantifies information loss or alternatives."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 1,
+      "justification": "Evaluation is limited: comparisons are primarily against a static schedule baseline (trivial), with no head-to-head against strong MARL/GNN/attention baselines (e.g., CoLight, RGLight, IG-RL, CityLight) on standard benchmarks. No multiple seeds, confidence intervals, or statistical tests; ablations on key components (positional encoding, distance mask, lane pooling) are missing. Multi-network training does not converge. Potential weakness: claimed 300 experiments lack transparent reporting, preventing verification."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "No code, model checkpoints, or dataset generation scripts are released; hyperparameters, training schedules, and random seeds are not provided. Cluster/Docker usage is mentioned but without precise configurations or run scripts. Potential weakness: the automated environment generation and distributions (P_E(·|N, ρ)) are not specified in enough detail to replicate sampling or results. Per rubric, missing key resources caps this criterion at ≤2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Some relevant works are cited (RESCO, IG-RL, MuJAM, RGLight, CityLight) but important attention-based TSC methods (e.g., CoLight) and widely used baselines (PressLight, IntelliLight, MA2C variants) are not discussed in depth or compared empirically. The paper does not clearly delineate what is truly novel relative to attention/GNN-based inter-agent communication. Potential weakness: the related work table is difficult to parse and omits key methodological distinctions that would clarify positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics/broader impacts section is provided. Risks around fairness (e.g., impacts on pedestrians/cyclists/emergency vehicles), failure modes, deployment safety, and data provenance are not addressed. Potential weakness: claims about emission reductions rely on simulation; externalities and unequal impacts across neighborhoods are unexamined. Per rubric, missing or unclear ethics discussion caps this criterion at ≤2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 11,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the paper targets an important application and proposes a practical architecture, the contribution appears incremental relative to existing attention/GNN-based MARL for TSC, and the experimental evidence is insufficient (no strong baselines, no statistical rigor, and non-convergent multi-network training). Technical clarity is lacking, with apparent issues (e^{d/C} mask sign, malformed joint action expression) and unverified assumptions (lane max-pooling sufficiency, value aggregation). Reproducibility is poor with no released code or detailed configurations. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical_soundness ≤ 2 and reproducibility ≤ 2 mandate Reject regardless of other strengths. To reconsider, the authors should release code and generation scripts, provide rigorous multi-seed evaluations with strong baselines on standard benchmarks, correct/clarify the technical formulations, and include thorough ablations and an ethics/broader impacts analysis."
+  }
+}

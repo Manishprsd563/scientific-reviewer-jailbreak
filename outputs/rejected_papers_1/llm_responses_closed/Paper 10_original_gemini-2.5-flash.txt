@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of 'Soft Weight Rescaling' (SWR) as a method to prevent unbounded weight growth and recover plasticity is a moderately novel approach building upon existing ideas of weight regularization and re-initialization. The introduction of 'proportionality' and its application to scaling weights, particularly for biased networks and those with normalization layers, presents a somewhat new perspective. However, weight scaling and regularization based on initialization norms or growth rates are not entirely new concepts (e.g., L2 Init, various forms of weight normalization). One potential weakness is that the novelty might be seen as an incremental combination or refinement of existing techniques rather than a fundamentally new idea, especially given the similarities to other dynamic weight regularization or re-initialization schemes."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem of plasticity loss and unbounded weight growth is significant in deep learning, particularly for warm-start, continual learning, and generalization. If SWR consistently and robustly outperforms baselines, it could have a positive impact. The empirical results show modest improvements in several setups, particularly for VGG-16, suggesting potential utility. A weakness is that the gains, while present, are not overwhelmingly large across all experiments or models, leading to questions about its broad applicability and the magnitude of its impact compared to simpler methods like L2 regularization in some contexts. The claim of balancing weight magnitude between layers is also significant, but its practical impact could be more rigorously demonstrated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical proof for 'proportionality' (Theorem 1) seems sound for homogeneous activation functions, allowing for scaling without changing network behavior. The modification to the scaling factor using EMA introduces a soft constraint rather than a hard one, which is reasonable. The proof of boundedness (Appendix B, not fully provided in snippet but claimed) is crucial. However, a potential weakness lies in the assumption that 'proportionality' implies identical behavior for classification tasks; while the *output logits* are scaled, the *decision boundary* for a classification task remains the same, which is correct. A minor unverified assumption is that the Frobenius norm is sufficient for the 'rate of change' (how much the model has changed from the initial state) and that `(1-lambda)*||W_l||` portion of the scaling factor adequately prevents unbounded growth while preserving information better than hard scaling. The stability of this soft scaling over extended training needs further theoretical analysis, especially regarding convergence properties."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper includes experiments on warm-start, continual learning (full and limited access), and single-task generalization across multiple models (MLP, CNN, CNN-BN, VGG-16) and datasets (MNIST, CIFAR-10/100, TinyImageNet). This breadth is commendable. However, the experimental setup could be improved. For example, the learning rate for generalization experiments is fixed at 0.001 for 200 epochs, which is not a standard optimal setting for many of these models/datasets. The lack of detailed error bars or statistical significance testing for some plots (Figs. 2, 3, 4) makes it harder to definitively compare performance. Also, while ablation studies are mentioned, a more explicit ablation on the components of SWR (e.g., the effect of lambda, the choice of norm, or removal of bias scaling) would strengthen the empirical validation. For instance, the 'toy experiment' in Appendix C demonstrating improved balancedness is mentioned but not detailed in the snippet provided, which is a weakness as well."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper mentions 'Detailed experimental settings, including hyperparameters for each method, are in Appendix D.' and 'Additional results for the warm start in the Appendix F.' & 'Additional results for other models and datasets are provided in Appendix F.' It also mentions the 'proof of the boundedness of the weight magnitude in Appendix B' and a 'toy experiment in Appendix C.' Without access to these appendices or accompanying code, it is impossible to fully assess reproducibility. The lack of explicit mention of code availability (e.g., a GitHub link) or clear statements about random seeds and environment in the main paper is a significant weakness, capping this score at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "The related work section provides a good overview of 'Unbounded Weight Growth,' 'Weight Regularization' (L2, L2 Init, spectral norm, distance-to-initialization), and 'Re-initialization methods' (Head Reset, S&P, Layerwise, Weight Rescaling). The paper effectively positions SWR by highlighting its advantages over existing methods, particularly in addressing the trade-off between preventing weight growth and preserving learned information. It also frames SWR as combining benefits from both regularization and re-initialization. A minor unverified assumption is that the limitations claimed for prior methods (e.g., 'optimization difficulties' for additional loss terms, 'additional computational cost' for re-initialization) are uniformly true across all applications, which might depend on specific implementations or scale."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper does not include any discussion of ethics, broader impacts, societal implications, risks, data provenance, or licenses. This absence of consideration for ethical aspects is a significant oversight, especially for a paper submitted to top-tier conferences that typically require such statements. This automatically caps the score at 1 for this criterion, reflecting a lack of engagement with these important considerations."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.8,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "The paper proposes Soft Weight Rescaling (SWR) to combat plasticity loss and unbounded weight growth, building on the concept of network proportionality. While the core idea has moderate novelty and addresses a significant problem, several critical aspects require revision. The empirical validation, while broad, lacks sufficient rigor in statistical analysis and detailed ablation studies. Most critically, the reproducibility score is low (2/5) due to the absence of explicit code availability and necessary details in the main manuscript, which would trigger a 'Reject' under the RBCL. However, given the *mention* of appendices that *might* contain such details, and the possibility these were simply omitted from the provided snippet, I'm providing a 'Borderline / Major Revision' decision assuming those details are indeed in the appendices. If, however, the appendices also lack these details or code, the decision *must* be 'Reject'. Furthermore, the complete lack of an ethics statement (1/5) is a major flaw for a top-tier conference submission. The theoretical claims are plausible but the full proofs and the practical implications of balancing weights need more detailed exposition. The impact scores are not overwhelmingly strong to overcome these weaknesses. The current weaknesses would necessitate major revisions for acceptance."
+  }
+}
+```

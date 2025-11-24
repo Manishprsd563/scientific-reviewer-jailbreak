@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper targets a practical yet under-explored regime (sparse TTA for edge devices) and proposes a combination of representative sample selection (CnDRM) with an inference-only normalization adjustment (IoBMN). While the framing of sparse adaptation is timely, both components appear to be composed of known ideas (confidence-based sampling, domain-centroid selection using early-layer statistics, and normalization adjustment via stored statistics) rather than a fundamentally new algorithmic principle. Potential weakness: the use of first-layer statistics and Wasserstein distance for domain representativeness may be an incremental design choice; the novelty relies on integration rather than a clearly novel theoretical insight. Unverified assumption: that early-layer stats suffice to represent domain shift robustly across architectures and datasets."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If reproducible, reducing adaptation frequency while retaining accuracy can materially benefit latency-sensitive deployments. The reported latency gains on Raspberry Pi and improved accuracy at low adaptation rates indicate practical value, and the approach is orthogonal to many TTA methods. Potential weakness: evaluation focuses on corruption benchmarks (CIFAR/ImageNet-C) rather than realistic streaming/continuous shift scenarios, so real-world impact is uncertain. Unverified assumption: single-device (RPi 4) latency results generalize to diverse edge hardware and varying stream rates."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The methodology is plausible: selecting high-confidence, prediction-balanced samples plus domain-centroid proximity, and an inference-time normalization using memory statistics with a soft-shrinkage update. The approach leverages established intuitions from domain adaptation and BN calibration. Potential weakness: several mathematical details are unclear or garbled (e.g., equations for centroid updates, notational inconsistencies), and there is limited theoretical justification regarding convergence, robustness to pseudo-label noise, or guarantees under severe shift. Unverified assumption: that early-layer feature statistics reliably represent domain centroids and that the shrinkage thresholds (alpha, lambda) can be set consistently across methods and datasets without overfitting."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments are broad across CIFAR10/100-C and ImageNet-C, with five SOTA TTA baselines, multiple adaptation rates, latency measurements on-device, and ablations isolating CnDRM and IoBMN. This is a solid empirical scope. Potential weakness: results appear averaged over only three seeds without statistical tests; some tables have formatting issues and inconsistent values, and realistic continuous/streaming shift or event-triggered adaptation comparisons are missing. Unverified assumption: that improvements at high corruption severity generalize to natural, non-synthetic shifts and to variable input rates."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "While standard datasets are used and implementation details are referenced in appendices, the submission does not explicitly provide code, detailed hyperparameters, or full environment/seed settings in the text. Given the reliance on subtle implementation choices (memory size management, centroid updates, shrinkage thresholds, device configuration), missing artifacts impede verification. Per the rubric, missing or unclear information caps this criterion. Potential weakness: lack of explicit code and scripts for latency tracking and integration with each TTA baseline. Unverified assumption: that appendices or later releases will cover all necessary details to reproduce accuracy/latency results on edge devices."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a broad set of TTA methods and positions SNAP-TTA as orthogonal. It references data-efficient sampling literature and BN stats adaptation. Potential weakness: limited discussion of prior sparse/event-driven or budgeted adaptation strategies, streaming/continuous domain adaptation frameworks, or methods that adaptively determine when to update under compute constraints. Unverified assumption: that existing sampling-based TTA (e.g., selective update triggers) are not directly comparable or superior under similar latency budgets."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work aims at latency-sensitive safety-critical contexts (e.g., autonomous driving) but does not include a dedicated ethics statement or discussion of risks, failure modes, or safety mitigations. Potential weakness: absent consideration of misuse or safety implications when adaptation is sparse and potentially miscalibrated, and no discussion of dataset licensing or broader impacts. Unverified assumption: that corruption datasets’ use poses no ethical or licensing issues and that the technique will not introduce harmful failures in real-time systems."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "Although the paper addresses a practical and important problem and presents encouraging results across multiple TTA baselines and datasets, reproducibility is insufficiently supported (no explicit code or detailed artifacts), triggering RBCL §2 Fatal-Flaw Logic and Decision & Overrides: reproducibility ≤ 2 requires rejection and caps the total score. Additional concerns include unclear mathematical details, limited validation on realistic streaming/domain dynamics, and missing ethics discussion. The current submission would benefit from releasing code and comprehensive implementation details, clarifying the IoBMN formulation and hyperparameter selection, and evaluating on continuous shift or event-triggered adaptation to substantiate real-world impact."
+  }
+}

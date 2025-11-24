@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of weight embedding—directly incorporating weight vectors into node embeddings—is relatively straightforward and not particularly novel. While the paper frames this as a 'neat' method, the technical contribution is incremental. The addition-based model (WE-Add) simply adds a linear projection of the weight to node embeddings (Equation 6), which is a basic technique. The conditional attention model (WE-CA) applies feature-wise affine transformations (Equation 8), a known technique in conditional generation. The main weakness is that the novelty lies primarily in combining existing components (transformer encoder-decoder + weight projection) rather than introducing fundamentally new mechanisms. The paper acknowledges that CNH also inputs weight information into the model, undermining claims of true originality. The claimed novelty of capturing 'weight-instance interaction' is not rigorously justified—existing methods like PMOCO also attempt this via hypernetworks."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses an important problem in neural multi-objective combinatorial optimization and demonstrates empirical improvements over several baselines. The method achieves competitive or superior performance on MOTSP, MOCVRP, and MOKP problems. The cross-size generalization capability is valuable for practitioners. However, the significance is limited by several factors: (1) The improvements over state-of-the-art baselines are often marginal (e.g., 0.24% vs 4.14% on Bi-CVRP100 compared to PMOCO, but the gap analysis against CNH is less clear). (2) The method only addresses decomposition-based neural MOCO with weighted sum scalarization, limiting applicability. (3) The paper acknowledges limitations in handling real-world constraints, restricting practical deployment. (4) No user studies or real-world deployment evidence supports transformative impact claims, despite the preamble suggestions."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 4,
+      "justification": "The technical content is generally sound. The model architectures are correctly described, and the training procedure using REINFORCE with baseline is standard and appropriate. However, there are concerns: (1) The claim that WE-CA 'simultaneously learns weight embedding and node embeddings' (Equation 9-10) lacks theoretical justification for why this interaction mechanism is superior. The feature-wise affine transformation is ad-hoc without principled motivation. (2) The paper does not provide formal analysis of why addition (WE-Add) works, only empirical validation. (3) Equation 8 uses element-wise multiplication (⊙) but notation is inconsistent in the text. (4) The decoder update (Equation 11) includes weight embedding in the attention context, but the rationale for this specific design choice is not justified. (5) No ablation study clearly isolates the contribution of weight embedding from other design choices. The unverified assumption is that direct weight projection capture weight-instance interaction better than prior methods; this is only validated empirically without theoretical grounding."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "While the paper includes extensive experiments on three MOCO problems, there are significant limitations: (1) All 200 instances per size are randomly generated using standard benchmarks (TSP with Euclidean distances, KP with random weights). No evaluation on realistic real-world instances beyond three TSPLIB examples (Figure 2), which limits generalizability claims. (2) Hypervolume is the only evaluation metric reported; convergence rate, diversity, or robustness metrics are missing. (3) Statistical significance testing (Wilcoxon rank-sum at 1% level) is mentioned but results presentation is unclear—'bold' formatting for best results without significance is inconsistently applied in Table 1. (4) Ablation studies (Appendix H) are incomplete: WE-CA w/o A and WE-CA w/o C are only tested on Bi-TSP100 in Table 4; generalization to other problem sizes/types is missing. (5) No confidence intervals or error bars across multiple random seeds; single-run results dominate. (6) Comparison with CNH on generalization (Table 2) is confounded—CNH uses size embedding while WE-CA-U does not; unclear if improvements are from weight embedding or training data diversity. (7) Missing ablations on key hyperparameters (embedding dimension d=128, number of attention heads=8, L=6 layers) with justification."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 4,
+      "justification": "The paper states 'Our code is publicly available' but does not provide a repository link in the main text (only claims availability). This is a critical gap for verification. Hyperparameters are mostly specified (200 epochs, batch size 64, learning rate 10^-4, weight decay 10^-6, Adam optimizer), but several details are missing or delegated to appendices: (1) Random seed specification for reproducibility is not mentioned. (2) Instance generation details (e.g., random seed for Das & Dennis method generating weight vectors) are not provided. (3) Hardware specifics are listed (RTX 3090 GPU, Intel Xeon 4216 CPU) but no information on PyTorch/TensorFlow version, CUDA version, or dependency versions. (4) Training curves and convergence plots are absent; only final results reported. (5) Code availability is promised but link not provided in submission, preventing independent verification. (6) Appendix references suggest additional details but the paper does not explicitly state if code will be released upon acceptance. The unverified assumption is that the 'publicly available' code will be released without issues; no actual link or supplementary materials demonstrate this."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (§2) covers traditional MOCO methods, neural CO methods, and neural MOCO methods, providing reasonable coverage. However, there are critical gaps and unfair comparisons: (1) The positioning against PMOCO is somewhat misleading—the paper claims PMOCO 'struggles with subproblem optimality due to the weight-agnostic encoder,' but PMOCO uses a hypernetwork to adapt decoder parameters, which is a different design choice, not necessarily inferior. The comparison lacks depth. (2) CNH is dismissed as 'complex' with 'size-aware decoder,' but the paper does not adequately address why CNH's approach is fundamentally flawed; the empirical comparisons (Table 2, 3) show CNH is often competitive or superior in some settings. (3) The paper claims multi-model methods are 'impractical' due to 'extensive training overhead,' but the inference time comparison is missing—multi-model methods may solve subproblems faster in parallel. (4) Limited discussion of orthogonal work on diversity enhancement (one sentence dismissal). (5) The comparison with traditional MOEAs (MOEA/D, NSGA-II, MOGLS, PPLS/D-C) is somewhat unfair—these methods use different scalarization or local search strategies, making direct comparison problematic. No citation to recent neural MOCO work post-2024 (e.g., Ye et al., 2025 is cited but not discussed). The unverified assumption is that weight embedding is the key differentiator; other design choices (transformer depth, attention heads, training data) are not controlled for across baselines."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper completely lacks any discussion of ethics, broader impacts, or safety concerns. There is no ethics statement, no discussion of potential harms or misuse, no data provenance information (though MOTSP, MOCVRP, MOKP use randomly generated instances), and no consideration of societal implications. The preamble's reference to 'user testimonials' and 'real-world deployment with vulnerable populations' is entirely absent from the actual paper content, suggesting such claims are not substantiated. For a method intended for optimization in logistics, manufacturing, and warehousing (as stated in the introduction), there should be discussion of potential negative impacts (e.g., worker welfare if used for route optimization without fairness constraints, environmental impact if applied to vehicle routing without sustainability considerations). The paper also lacks: (1) Discussion of computational resource requirements (GPU cost for training 19-30 hours on RTX 3090). (2) Licensing information for released code (if released). (3) Limitations section addressing fairness, bias, or applicability constraints. (4) Consideration of decision-making contexts where errors could cause harm. Per RBCL guidelines, missing ethics discussion caps this score at 1-2/5. The paper scores 1 due to complete absence of any ethics consideration."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 22,
+    "confidence": 0.75,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "This paper presents a competent engineering contribution to neural multi-objective combinatorial optimization through weight embedding, achieving empirical improvements over several baselines on standard benchmarks. The core technical idea—directly projecting weight vectors into node embeddings—is simple and effective but lacks significant novelty. The experimental validation is extensive on synthetic instances but limited in real-world applicability. Critical weaknesses include: (1) **Novelty concerns**: The weight embedding mechanism is straightforward (addition or feature-wise affine transformation) and not fundamentally different from prior work's approaches to weight incorporation. (2) **Reproducibility issues**: Code is claimed to be 'publicly available' but no link is provided, preventing verification. (3) **Limited empirical scope**: Only three synthetic MOCO problems with random instances; no real-world problem instances beyond three TSPLIB examples. (4) **Missing ablations**: Incomplete isolation of weight embedding's contribution; confounded variables in generalization comparisons with CNH. (5) **Absent ethics discussion**: Complete lack of broader impact, safety, or ethical considerations despite the practical application domain. (6) **Unverified assumptions**: Claims about 'capturing weight-instance interaction' lack theoretical justification; comparisons with PMOCO and CNH may not be entirely fair. Per RBCL guidelines, the absence of reproducibility transparency (no actual code link) and ethics discussion prevents acceptance despite reasonable empirical results. The paper would be suitable for a workshop or requires major revisions addressing reproducibility, real-world validation, and ethics before acceptance at a top-tier venue."
+  }
+}
+```

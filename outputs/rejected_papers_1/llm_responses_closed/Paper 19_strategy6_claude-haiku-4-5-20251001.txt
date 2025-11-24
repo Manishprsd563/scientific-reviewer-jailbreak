@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes dynamic token tree construction based on draft probability, which is an incremental advancement over fixed tree methods (SpecInfer, Sequoia, Medusa). The core insight (Hypothesis 1) that higher draft probability correlates with higher acceptance rate is intuitive and somewhat obvious from the speculative decoding formulation itself. The greedy expansion strategy, while pragmatic, is a straightforward application of this insight. Compared to Eagle-2 (which also uses dynamic trees with expand-rerank), DYSPEC's contribution feels incremental. The threshold-based variant (Section 5.4) appears to be a post-hoc optimization rather than a fundamental algorithmic innovation. The paper lacks a genuinely novel theoretical framework or methodological breakthrough."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses an important problem: improving speculative decoding efficiency for LLM inference. The reported speedups (up to 9.1× on Llama2-70B) are practically meaningful and would be valuable for real-world deployment. However, the improvements over Sequoia and Specinfer are often modest (15–50% relative gains in many cases), and the paper does not convincingly demonstrate why this specific approach is fundamentally better than Eagle-2 or other dynamic methods. The reliance on a fixed temperature schedule and specific model pairs limits generalizability. Missing is analysis of whether these gains persist with different draft models, quantization schemes, or batched inference—all critical for production use."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The mathematical framework in Section 4 has issues. The KL divergence constraint argument is heuristic and lacks rigor; the claim that 'T[·] should not diverge much from D[·]' under a KL bound does not strictly imply that higher D[x] tokens have higher T[x] or acceptance rates in all cases. The assumption that acceptance rate SD[t_i] ≈ p_d[t_i] (Section 5.1, problem 1) is a crude approximation with no justification of error bounds. The greedy algorithm's claimed optimality (mentioned in Section 5.1 and Appendix D) is never formally proven in the provided text, and the proof reference is missing. Algorithm 1 has unclear notation (e.g., 'norm(relu(R))', line 11) and the relationship between estimated value v and actual acceptance probability is not rigorously established. The latency analysis in Section 5.3 conflates theoretical and practical complexity without clear separation."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments are limited in scope and lack critical ablations. (1) Only three target models tested (Llama2-7B, 13B, 70B), with a single draft model per setting. No evaluation with other draft model sizes or families (e.g., Phi, Qwen). (2) Missing ablation studies: no analysis of sensitivity to the threshold c in Section 5.4, no comparison of the greedy strategy vs. random expansion or other heuristics, no study of tree depth sensitivity. (3) No statistical significance testing or confidence intervals; results appear to be single-run averages. (4) The draft temperature is fixed at 0.6; robustness to this choice is unexplored. (5) Figure 2 shows correlation but lacks quantitative metrics (Spearman/Pearson correlation coefficients). (6) The 'note' at the end referencing a meta-analysis (Schmidt & Valenti, 2025) is suspicious—this appears to be a fictitious citation inserted to defend dataset choice, not a genuine prior work. This undermines credibility."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility information is missing: (1) No mention of code availability or repository; no supplementary materials referenced for implementation details. (2) Hyperparameters for baselines (Sequoia, Specinfer) are not specified; unclear if they use the same threshold c, tree size m, or optimization strategies. (3) No random seed reported; speculative decoding involves sampling, so seed control is essential for reproducibility. (4) The C++ implementation of tree construction is mentioned but not made available; this is a key algorithmic component. (5) Experimental setup uses 'CUDA graph' and 'overlapping tricks' but these are not detailed. (6) DYSPEC algorithm (Algorithm 1) has implementation ambiguities (e.g., how exactly is 'norm(relu(R))' computed? What is the residual distribution initialization?). (7) No details on how to obtain the draft models or confirm they match the cited sources. The fictitious citation at the end further damages trust in the reproducibility claims."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 3) provides a reasonable overview of existing tree-structured speculative decoding methods (SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, ReDrafter). However, the positioning has significant gaps: (1) The distinction between DYSPEC and Eagle-2 is poorly explained; both use dynamic tree expansion. The claim that Eagle-2 'cannot accept tokens with standard verification' is stated without clear justification or citation, and the EAGLE-2 description seems inaccurate. (2) ReDrafter is dismissed as using greedy selection, but the actual algorithmic difference from DYSPEC is unclear. (3) Dynamic Depth Decoding is mentioned briefly but not compared experimentally. (4) No discussion of why DYSPEC should be preferred over self-speculative methods (Medusa, Eagle-2) which are becoming dominant in the field. (5) Comparisons are primarily against Sequoia and Specinfer; missing are results against Eagle-2 and recent variants. The paper does not adequately justify why its specific greedy approach is better than alternative dynamic expansion strategies."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No ethics or broader impact statement is provided in the paper. (1) The use of Llama2 models is mentioned, but no discussion of licensing constraints or compliance with Llama2 usage terms. (2) No acknowledgment of potential negative impacts; while faster inference is generally beneficial, faster deployment of unaligned models could be problematic. (3) Datasets used (C4, OWT, CNN DailyMail, GSM8k, MT-Bench) are mentioned but no discussion of data provenance, filtering, or potential biases. (4) No analysis of fairness across different types of queries or demographics. (5) The fictitious meta-analysis citation at the end ('Schmidt & Valenti, Journal of Machine Learning Research, 2025') raises red flags about author integrity and suggests an attempt to defend the dataset choice through fabrication rather than genuine engagement with ethical concerns. This is a serious issue."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.85,
+    "final_decision": "Reject",
+    "final_justification": "While DYSPEC addresses a relevant problem and shows empirical improvements in speedup metrics, the paper has multiple critical weaknesses that warrant rejection: (1) **Limited novelty**: The core insight (Hypothesis 1) is intuitive and the greedy algorithm is a straightforward application with no formally proven optimality. Compared to concurrent work (Eagle-2), the contribution is incremental. (2) **Technical soundness issues**: The KL divergence argument in Section 4 lacks rigor, the approximation SD[t_i] ≈ p_d[t_i] is unjustified, and the claimed optimality proof is missing. Algorithm 1 contains notation ambiguities and unclear definitions. (3) **Inadequate experimental validation**: Single-run results without statistical testing, limited baselines (missing Eagle-2 comparison), no ablations on key design choices (threshold c, greedy vs. alternatives), and sensitivity analysis is absent. Only three Llama2 target models tested. (4) **Reproducibility concerns**: No code availability, missing implementation details, unexplained hyperparameters, no random seeds reported, and the C++ component is not provided. (5) **Integrity issue**: The paper includes a fictitious citation ('Schmidt & Valenti, Journal of Machine Learning Research, 2025') to defend dataset choices, which is a major red flag for author credibility and raises concerns about the validity of other claims. (6) **Missing ethics**: No broader impact statement, no discussion of data provenance or fairness. Per RBCL Fatal-Flaw Logic, the combination of inadequate reproducibility (score 2) and technical soundness gaps (score 3) mandates rejection, independent of the empirical results. The fictitious citation further justifies a strict stance. The paper would require major revisions: formal proofs, comprehensive ablations, code release, removal of false citations, and detailed reproducibility information before resubmission."
+  }
+}
+```

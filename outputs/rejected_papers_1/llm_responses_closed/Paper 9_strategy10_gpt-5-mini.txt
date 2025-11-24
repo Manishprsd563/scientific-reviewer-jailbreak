@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a combined sample-selection (CnDRM) and inference-only normalization adjustment (IoBMN) for sparse test-time adaptation, which is a pragmatic combination not obviously present in prior TTA work. This is a moderate novel contribution because the two components together are positioned specifically for latency-sensitive STTA on edge devices. Potential weakness / unverified assumption: the core ideas resemble incremental combinations of existing concepts (representative sampling, BN-stat adjustments) rather than a fundamentally new theoretical insight; the paper assumes that centroid-based domain representativeness (using early-layer BN stats) generalizes across many types of shifts without formal justification or theory."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The focus on latency-sensitive, resource-constrained deployment and demonstration on a Raspberry Pi testbed is practically relevant and could matter to practitioners deploying TTA on edge devices. Potential weakness / unverified assumption: the real-world impact depends on many deployment details (varying stream rates, device heterogeneity, power constraints); the paper reports a single-device testbed and assumes the observed latency-accuracy trade-offs will generalize to other devices and realistic data streams without extensive cross-hardware validation."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The mathematical formulation of IoBMN and the sampling heuristics are clearly described and appear internally consistent; variance estimates and the soft-shrinkage mechanism are plausible and implementable. Potential weakness / unverified assumption: there are heuristic choices (e.g., using first normalization layer stats for domain centroid, fixed alpha=4, choice of confidence threshold) that lack theoretical justification; assumptions about sampling distribution approximations and independence used in variance estimates are not fully justified, and edge cases (multi-modal domain shifts, highly imbalanced classes) are not analyzed theoretically."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The authors evaluate across multiple standard corrupted benchmarks (CIFAR10-C, CIFAR100-C, ImageNet-C), multiple TTA baselines, several adaptation rates, ablations, and a real-device latency measurement on Raspberry Pi; they report averages and standard deviations over three seeds, and include ablations that isolate CnDRM and IoBMN. Potential weakness / unverified assumption: experiments use only three random seeds (limited for robust statistical claims), there is no reporting of statistical significance tests, and some reported gains vary substantially across methods and corruptions; additionally, details about hyperparameter searches and selection procedures are deferred to appendices but not clearly reproduced, so reproducibility of experiments is uncertain."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper describes implementation details in appendices (e.g., hyperparameter choices mentioned), and standard datasets are used, which helps reproducibility. Potential weakness / unverified assumption: no public code repository or explicit license is provided in the main text, and while appendices are referenced for hyperparameters and settings, concrete release of code, exact seed values, device scripts for Raspberry Pi latency measurement, and pre-processing details are not made explicit; per scoring rules, missing/unclear release leads to a capped score (this justification notes the downgrade due to missing public code / reproducibility artifacts)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and positions itself relative to recent TTA methods (Tent, CoTTA, EATA, SAR, RoTTA) and data-efficient sampling literature, and it claims Appendix A contains further related work. Potential weakness / unverified assumption: the main text gives limited critical analysis distinguishing where SNAP-TTA fundamentally departs from sampling-based TTA or BN-stat adjustment methods; some relevant recent works on sample selection or lightweight adaptation optimizations may be under-discussed, and fairness of baselines (exact hyperparameter parity, augmentation choices) is not fully detailed in the main text."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes a short 'Limitations and future work' subsection discussing deployment considerations and memory overhead, which is useful. Potential weakness / unverified assumption: there is no explicit ethics or broader impact section addressing potential misuse, data provenance, licensing of pre-trained models/datasets, privacy implications of storing representative samples on edge devices, or safety considerations for latency-critical domains (e.g., autonomous driving); absence of a clear ethics statement and data provenance discussion leads to a conservative score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "While the paper addresses an important practical problem and provides a pragmatic framework (CnDRM + IoBMN) with thorough empirical evaluations across multiple benchmarks and a real-device latency measurement, there are critical concerns preventing acceptance. The primary issue is low reproducibility: no public code or full, explicit reproducibility artifacts (release of scripts for device measurements, exact seeds, complete hyperparameter sweeps) are provided in the main submission, and the ethics/data-provenance discussion is minimal. Per the review instructions and RBCL (Fatal-Flaw Logic), reproducibility score <= 2 mandates a Reject decision; I therefore set the decision to 'Reject' and capped the total score accordingly (Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility <= 2). Additional concerns: several heuristic design choices lack theoretical justification (first-layer BN centroid, fixed alpha, confidence threshold), limited statistical rigor in experiments (only three seeds, no significance testing), and the claim of broad generalization to diverse real-world edge deployments is not fully supported by cross-hardware or continuous stream evaluations. The work is promising and could be resubmitted after: (1) releasing code, exact experiment scripts, seeds, and device measurement harness; (2) expanding statistical reporting (more seeds or significance tests); (3) adding deeper analysis of failure modes and theoretical justification or ablation for key heuristics; and (4) including an explicit ethics / data-provenance statement. Under current submission, these issues—particularly reproducibility—are fatal per the RBCL rules."
+  }
+}

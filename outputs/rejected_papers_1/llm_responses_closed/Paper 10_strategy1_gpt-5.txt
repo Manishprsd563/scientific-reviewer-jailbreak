@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), which leverages a proportionality property to scale weights (and biases) and a soft per-layer rescaling rule tied to initial norms. While the framing via proportionality is interesting, the core idea overlaps with existing weight rescaling and norm-regularization approaches (e.g., Niehaus et al., 2024; Alabdulmohsin et al., 2021; L2-to-init penalties), and the novelty over these is not decisively established with direct comparisons. Potential weakness: the claimed novelty hinges on assumptions of homogeneous activations and architectural constraints; the distinct contribution versus prior rescaling methods remains under-validated."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If robust, a low-cost mechanism to curtail weight growth and maintain plasticity could be broadly useful. Reported gains include up to ~4% on TinyImageNet with VGG-16. However, the scope is limited to small-to-midscale image classification with conventional CNNs; there is no evaluation on modern large-scale architectures (e.g., transformers, residual nets with GELU), distribution shifts, or task-heterogeneous continual learning settings. Potential weakness: practical impact remains uncertain without demonstrations on stronger benchmarks and architectures widely used today."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The proportionality theorem (for homogeneous activations) is plausible, but proofs are deferred to the appendix and practical conditions (e.g., normalization layers, biases, residual connections) are only briefly treated. The claim that proportional rescaling preserves performance is nuanced for softmax cross-entropy: logit scaling changes probabilities and calibration, which may affect optimization and reported accuracy beyond argmax invariance; this interaction is not rigorously analyzed. The EMA-based soft rescaling rule and boundedness guarantees are not clearly specified in the main text (ambiguities around λ/EMA and stability of cumulative bias scaling). Potential weakness: extensions to common non-homogeneous activations (e.g., GELU), residual networks, and complex normalization stacks are not theoretically justified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments span MNIST/CIFAR/TinyImageNet with small CNNs and VGG-16, showing some improvements in warm-start, continual, and standard training. However, key baselines are missing: no comparison to recent weight rescaling methods (e.g., Niehaus et al., 2024), no strong continual learning baselines (e.g., EWC, SI, LwF, replay), and limited evaluation on architectures with residuals/transformers. Ablations on λ/EMA schedules, sensitivity to hyperparameters, and statistical significance tests are absent; number of runs is unclear beyond one figure. Potential weakness: the continual setting uses random data chunks of the same distribution, which may under-stress plasticity vs. realistic non-stationary/task-IL scenarios."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for hyperparameters and an algorithm, but there is no explicit statement of code release, seeds, or full training details in the main text. Without accessible code and exact configurations, reproducing results is uncertain. Per the rubric, missing/unclear information caps this score at 2. Potential weakness: lack of open-source implementation and fully specified training setups limits verification."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites a reasonable body of prior work on weight magnitude, regularization, and reinitialization, including recent rescaling methods. However, empirical comparisons omit closely related rescaling approaches (e.g., Niehaus et al., 2024), and the positioning versus established continual learning methods is limited. Potential weakness: the work’s specific gap relative to prior rescaling/normalization-aware techniques is not compellingly differentiated through experiments."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics/broader impact statement, dataset licensing, or data provenance details are provided in the main text. While the topic is low-risk, conference policies typically require an ethics/broader impacts section; its absence is a concern. Potential weakness: lack of discussion on dataset licenses (e.g., TinyImageNet), model misuse, and reproducibility-related resource disclosures."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "Despite an interesting proportionality perspective and some empirical gains, the paper falls short on technical clarity (reliance on homogeneous activations, unclear handling of normalization/residuals, limited analysis of softmax scaling effects) and empirical rigor (missing key baselines and ablations, limited architectures and settings). Reproducibility is also weak due to missing code and insufficient training details. Per RBCL §2 Fatal-Flaw Logic, technical soundness ≤ 2 and reproducibility ≤ 2 force a Reject regardless of other strengths; we also apply a conservative stance given missing evidence. The work may be promising with stronger theory for modern architectures, comprehensive baselines (including recent rescaling and continual learning methods), robust ablations, and full reproducibility."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper presents a large, automatically-generated benchmark (EXE) using real-world Python code and continuous test-case generation; this is a useful extension beyond synthetic execution tasks and addresses dataset saturation/contamination concerns. However, the core idea (benchmarking execution on code, extracting functions from GitHub, generating inputs) is an incremental advance over prior work (HumanEval, CRUX-Eval, CodeNet variants) rather than a fundamentally new methodology. Potential weaknesses/unverified assumptions: the claim that generated inputs reliably avoid training-set contamination is asserted but not proven (no empirical leakage analysis shown); the novelty score was kept moderate because many components are re-combinations of existing approaches rather than a single new methodological insight."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If EXE is robust and reproducible, it could materially improve understanding of LLM code-execution capabilities and provide a valuable, scalable testbed for developers and researchers; the focus on exception prediction and intermediate-state extensions is practically relevant. Potential weaknesses/unverified assumptions: impact depends on community adoption and on actual accessibility of the benchmark (public release, maintenance); there is limited discussion of how to integrate EXE into standard evaluation pipelines or how to prevent future contamination as models ingest more GitHub code."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The pipeline (AST-based filtering, dependency inlining, deterministic-function selection, executing to obtain ground truth) is reasonable and well-motivated. The paper reports many useful statistics (call depth, identifier counts, CVs) and thoughtful filtering for side effects. Potential weaknesses/unverified assumptions: static AST analyses may miss dynamic side effects or implicit global state leading to incorrect ground-truth extraction; inlining cross-file dependencies can introduce subtle behavioral changes if not thoroughly validated; the method for comparing exception messages relies on an LLM comparison (Appendix A.7) which is circular and may not be rigorous. These risks reduce confidence in correctness of some labeled outputs."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The authors evaluate multiple SOTA models and report pass@1 across ~33k cases and per-package analyses, which is a substantial empirical effort. They also provide per-metric correlations and case-generation scaling plots. Potential weaknesses/unverified assumptions: key experimental details are missing or unclear (no information on number of seeds or repeated runs, limited reporting of variance and statistical tests in main results, unclear whether model prompts and temperature/settings were standardised); ablation studies (e.g., effect of input-generator quality, or inlining errors) are limited or deferred to appendices. Because of these missing specifics the score is capped at 2/5 per guidance for unclear experimental reproducibility/statistics."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper describes the pipeline and refers to appendices for detailed methodology, but there is no explicit statement that code, the dataset artifacts, prompts, seeds, or evaluation scripts are publicly released; costs and token counts are reported but exact prompt templates, generation seeds, and model parameter settings are not fully enumerated in the main text. Potential weaknesses/unverified assumptions: absent an explicit public release (code + data + prompts + seeds + environment specs), reproducing results is difficult and the claim of easy continual generation cannot be verified. Note: per RBCL Fatal-Flaw Logic and the rule that missing/unclear reproducibility caps the score at <=2, this low reproducibility score triggers a mandatory paper-level downgrade (final decision must be 'Reject' or worse). Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL Evidence Severity rules (absence of public release treated as evidence of absence)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself against HumanEval, MBPP, Learning-to-Execute literature, CRUX-Eval, and recent live benchmarks and discusses distinctions (real-world code, continuous generation, exception prediction). This is a generally fair contextualisation. Potential weaknesses/unverified assumptions: discussion misses comparisons to some related datasets and contamination analyses (e.g., The Stack / CodeSearchNet implications for training contamination) and lacks a systematic comparison to the best-available baselines or to other large-scale real-code evaluation efforts (e.g., CodeXGLUE variants), so claims of being the most robust real-world execution benchmark are not fully substantiated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly notes a connection to cybersecurity (vulnerability-finding potential) and filters for permissive licenses, which is positive. Potential weaknesses/unverified assumptions: there is no dedicated ethics or broader impacts section detailing risk mitigation, dual-use considerations (e.g., models that better predict program behavior could be misused), provenance and licensing details are only briefly mentioned (no full license list or steps for handling incompatible licenses), and no concrete safeguards for potential misuse are provided. Due to these omissions the score is capped at 2/5 per the rubric for missing/unclear ethics discussion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: EXE is a valuable and practically-motivated benchmark that scales real-world code execution tasks and offers interesting analyses (diversity, difficulty scaling, exception prediction). Strengths include scale (~33k tasks), a thoughtful pipeline for deterministic function selection, and insightful metric analyses across packages and task statistics. However, the paper has several material weaknesses that prevent acceptance at this time: (1) Reproducibility is insufficiently demonstrated (no explicit public release of code/data/prompts/seeds/environment), which both violates the reproducibility requirement and, per RBCL Fatal-Flaw Logic, mandates rejection; (2) Experimental reporting lacks critical details (seeded trials, statistical significance tests, ablations validating input-generation quality and inlining correctness), reducing confidence in the empirical claims; (3) Technical risks remain (possible undetected dynamic side effects during inlining and circular reliance on LLMs for exception-message comparison) that threaten label correctness; (4) Ethics and dual-use considerations are underdeveloped despite cybersecurity implications. Numerical rationale: per-criterion integer scores sum to 18; applying the Anti-Inflation Safeguard (reducing each initial score by 0.5 before decision-making) yields an adjusted total ~14.5 (reported here as 14 for mapping). Importantly, reproducibility <= 2 triggers the mandatory override per RBCL §2 Fatal-Flaw Logic, so the final decision is set to 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). To be reconsidered, the authors should (a) publicly release the benchmark code, generation scripts, prompts, seeds and evaluation code with environment specifications; (b) provide rigorous contamination/leakage analyses showing generated cases are not present in model training data; (c) add statistical rigor (multiple runs, variance, significance tests) and ablations isolating sources of error (input generation vs. inlining errors vs. model limitations); and (d) include a dedicated ethics/broader-impacts section addressing dual-use risks and license provenance. Given the combination of scale and relevance, the work could be acceptable after major revision and improved reproducibility and risk mitigation."
+  }
+}

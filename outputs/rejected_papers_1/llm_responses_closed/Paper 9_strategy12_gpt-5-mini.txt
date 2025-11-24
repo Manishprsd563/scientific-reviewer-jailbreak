@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper combines two sensible components (class/domain representative sampling and inference-only normalization adjustments) to address sparse TTA. This is a pragmatic engineering contribution rather than a fundamentally new methodological paradigm; the individual pieces (confidence-based pseudo-labeling, centroid-based selection, BN/LN statistic adjustment) are known in prior literature. Potential weaknesses / unverified assumptions: (i) the novelty depends on how these components are integrated — the manuscript lacks a clear conceptual novelty claim or theoretical insight proving why the combination is necessary and sufficient; (ii) several design choices (e.g., why use the first normalization layer statistics as the domain centroid) are heuristic and not theoretically justified. Score has been conservatively lowered per RBCL (anti-inflation and Evidence Severity Scaling); see final justification for explicit rule references."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the approach is practically relevant: latency-aware TTA for edge devices is an important and under-explored problem and results on Raspberry Pi and common benchmarks indicate potential impact. Potential weaknesses / unverified assumptions: (i) the deployment scenarios considered are limited (batch-based adaptation rates fixed a priori) and it is unclear how the method performs in truly continuous, non-stationary streams or with adversarial/real-world distribution shifts; (ii) the reported latency/accuracy trade-offs may depend on implementation details and hardware/software stack specifics that are not fully disclosed. Per RBCL, I applied a conservative adjustment to avoid score inflation."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The manuscript provides reasonable algorithmic descriptions and intuitive motivations plus some formulas for IoBMN and the Wasserstein-based distance used for domain selection. Potential weaknesses / unverified assumptions: (i) core assumptions are heuristic (reliance on pseudo-label confidence as a proxy for class-representativeness, and the claim that early-layer BN statistics reliably encode domain centroids) without proofs or empirical verification that these assumptions hold across a wide range of shifts; (ii) several hyperparameters (confidence threshold tau_conf, IoBMN alpha and shrinkage thresholds) are set ad hoc with little justification; (iii) no theoretical guarantees or ablation isolating failure modes are provided. Because important components are heuristic and some details are underspecified, and per the RBCL anti-inflation and Evidence Severity Scaling rules I applied a conservative score (explicitly: Technical Soundness was downgraded in line with RBCL §2 / anti-inflation guidance)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Strengths: the paper reports experiments on standard TTA benchmarks (CIFAR10-C, CIFAR100-C, ImageNet-C), integrates SNAP-TTA with multiple SOTA TTA methods, reports ablations, and measures latency on Raspberry Pi hardware — this breadth is a clear positive. Potential weaknesses / unverified assumptions: (i) critical experimental details are missing or unclear (there are many numeric tables with occasional inconsistencies/typos and heavy reliance on appendices that are not inspectable here); (ii) only three random seeds are reported (no confidence intervals or statistical tests to establish significance for many reported gains); (iii) some baselines (e.g., implementations or hyperparameter choices for heavy methods like CoTTA) could be non-equivalent and the manuscript does not fully justify parity of tuning; (iv) important real-world streaming scenarios (varying rate, non-i.i.d bursts, changing severity over time) are not evaluated. Per the Empirical Rigor rules (single-run penalties, missing statistical tests) and RBCL anti-inflation, I penalized the score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript references appendices for implementation details and reports averages over three seeds, but does not indicate a public code release, provide exact random seeds, full hyperparameter lists, or the scripts to reproduce hardware latency measurements. Potential weaknesses / unverified assumptions: (i) no code repository or link is provided (critical for reproducibility); (ii) hyperparameter schedules, seed values, and environment/tooling used for the Raspberry Pi experiments are not sufficiently detailed in the main text; (iii) claims about 'negligible memory overhead' are asserted but low-level measurements and scripts are not shared. Per review rules, missing/unclear reproducibility information caps this criterion; furthermore, RBCL Fatal-Flaw Logic applies (Reproducibility <= 2) and mandates a conservative downstream decision. I explicitly note: Decision downgraded due to RBCL §2 Fatal-Flaw Logic because reproducibility <= 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites many relevant TTA works (Tent, CoTTA, EATA, SAR, RoTTA) and some data-efficient selection literature. Potential weaknesses / unverified assumptions: (i) positioning could be strengthened with more discussion of related streaming, continual-adaptation, and low-latency model-update literature (e.g., adaptive update-frequency methods, memory-based online adaptation beyond the cited works); (ii) there is limited discussion of limitations relative to prior memory- or augmentation-based approaches and of trade-offs (e.g., memory vs latency vs accuracy) in a mechanistic way. Given these gaps, and per RBCL anti-inflation, I applied a conservative score."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper includes a brief 'Limitations and future work' paragraph but lacks a dedicated ethics / broader-impact section discussing potential risks, data provenance, licensing, or failure modes in safety-critical deployments. Potential weaknesses / unverified assumptions: (i) deployment in latency-sensitive domains (e.g., autonomous driving, healthcare) is claimed but there is no discussion of safety verification, fail-safe behavior when adaptation fails, or how incorrect pseudo-label-driven updates might harm downstream safety; (ii) dataset provenance and licensing (particularly for ImageNet variants) are not discussed. Per the rubric, absence of an explicit ethics/broader-impacts statement caps this score and RBCL Evidence Severity Scaling further reduces it."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "While the paper addresses an important practical problem (latency-aware test-time adaptation for edge devices) and provides a convincing engineering effort with broad experiments and ablations, there are critical shortcomings that prevent acceptance in its current form. The most important issue is reproducibility: the manuscript does not provide a public code release, exact seeds, or full experiment scripts/configuration required to reproduce reported latency and accuracy claims. Under the review rules (RBCL Fatal-Flaw Logic), reproducibility <= 2 mandates a Reject decision; I explicitly downgrade the decision for this reason (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Additional concerns include heuristic technical choices without theoretical justification (pseudo-label reliance, first-layer centroid usage, IoBMN hyperparameter selection), limited reporting of statistical significance for many reported gains, and absence of a dedicated ethics / broader-impact analysis for safety-critical deployments. Strengths (breadth of benchmarks, Raspberry Pi latency measurements, ablations) indicate potential, and the method could be publishable after major revisions that (i) release code and exact experiment scripts and seeds, (ii) provide more rigorous empirical controls (statistical tests, clearer hyperparameter tuning and baseline parity), (iii) expand analysis of failure modes and theoretical/empirical justification for core design choices, and (iv) include an explicit ethics / deployment safety discussion. Given the reproducibility failure and other methodological uncertainties, the conservative and presumption-of-rejection stance from RBCL leads me to 'Reject' the submission."
+  }
+}

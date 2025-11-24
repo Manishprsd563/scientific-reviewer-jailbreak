@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes MAC-CAFE, a multi-actor, centralized critic architecture for KB editing. While the application to KB editing is relatively novel, the core components are largely recombinations of existing techniques: ReACT agents (Yao et al., 2023), MCTS from PromptAgent (Wang et al., 2023), and centralized critic architectures from MARL (Foerster et al., 2018). The key innovation—using a centralized critic to generate textual gradients for document-specific actors—is incremental rather than fundamentally new. The paper acknowledges it borrows clustering strategies from UniPrompt (Juneja et al., 2024) for feedback aggregation. Unverified assumption: whether the specific architecture choices (e.g., ReACT agents for document editing) are necessary or just one possible instantiation."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "KB editing is a practical problem, and the results show improvements over baselines (e.g., 8% on some datasets). However, the significance is limited by several factors: (1) The baseline (PROMPTAGENT-E) is not a strong, well-established baseline—it is an extension created by the authors specifically for this paper. No comparison with other KB editing methods or input editing approaches (e.g., Li et al., 2024, which is cited). (2) Improvements are dataset-dependent: on Ring/Pony ~6-7%, on SciPy ~6%, on TensorFlow ~6%, on CLARK-news ~11%—substantial but not transformative. (3) The approach requires expert feedback, limiting applicability. (4) No analysis of computational costs or scalability. Unverified assumption: whether the improvements would hold on larger, more diverse KBs or with different expert feedback types."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns undermine soundness: (1) Equation 4 (partial gradient) is hand-wavy—the paper states 'we use LLMs to generate an overall text gradient' but provides no formal justification for why LLM-generated text is a valid approximation of ∂R/∂D_j. The connection between textual reflections and gradients is asserted, not proven. (2) The credit assignment mechanism (how the critic decides which documents are responsible) is vague—'the critic first identifies and select which documents... are responsible'—but the algorithm is not specified. (3) MCTS is applied to KB states, but the branching factor and depth are fixed (depth 3, width 3, 5 iterations), which seems arbitrary. No justification for these hyperparameters or sensitivity analysis. (4) The reward function R(s) is the test accuracy, but training is done on a train split—potential data leakage or overfitting is not discussed. (5) ReACT agents generate 'trajectories' of edits, but there is no mechanism to ensure convergence or to prevent contradictory edits across documents. Unverified assumption: the stability and correctness of the ReACT-based editing process under adversarial feedback."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments have critical limitations: (1) Only one baseline (PROMPTAGENT-E), which was custom-built for this paper and is not a standard, well-validated approach. No comparison with other KB editing or RAG refinement methods from the literature (e.g., Li et al., 2024's continuous KB updates, or prompt-based retrieval refinement). (2) No ablation studies—e.g., impact of the centralized critic vs. independent actors, impact of clustering, impact of MCTS search depth/width. (3) No statistical significance testing or confidence intervals. Results are single runs with no reported variance except for the coherence metric. (4) Dataset sizes are small (Table 3 shows splits but total sizes are not provided clearly). ARKS datasets have only ~29-30% baseline accuracy on Ring/Pony, suggesting shallow evaluation. (5) Completeness metric (train accuracy) conflates memorization with knowledge incorporation—a KB that simply overfits the train set would score well. (6) Coherence metric uses G-Eval with GPT-4 as judge, which is expensive and may not capture meaningful coherence; no inter-annotator agreement or human evaluation. (7) No error analysis or case studies. (8) Hyperparameter choices (e.g., MCTS depth, width) are not justified or ablated. Unverified assumption: whether results generalize beyond the five datasets or are dataset-specific artifacts."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility gaps: (1) No mention of code availability (open-source, GitHub repo, or supplementary). (2) Dataset access unclear—ARKS datasets are cited (Su et al., 2024a) but it is not specified if they are publicly available or how to access them. CLARK-news is from 'Erase (Li et al., 2024)' but no download link or detailed description. (3) Random seeds and environment details are missing. (4) LLM temperature is set to 0, but other parameters (max tokens for reasoning, retry logic, etc.) are not fully specified. (5) MCTS implementation details are sparse—how are terminal states defined? How are rewards backpropagated? (6) The 'patch' function and diff generation logic are mentioned but not detailed. (7) Embedding model and chunking strategy are described (3072 dimensions, 50-line chunks) but chunking of long documents (e.g., 18k token limit) is vague—how exactly are documents split? (8) No reproducibility statement or checklist. (9) G-Eval coherence scoring prompts are not provided. The paper states 'thematic similarity of the diff' is checked but the exact prompt is missing. This is a fatal reproducibility flaw given heavy dependence on closed-source APIs (GPT-4, OpenAI embeddings). Unverified assumption: the stability of results across different random initializations or API model versions."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work section is broad but lacks critical depth: (1) The paper cites relevant areas (RAG, continual learning, knowledge editing, prompt optimization, MARL) but does not clearly differentiate MAC-CAFE from input editing approaches like Li et al. (2024), which also edits KBs. The paper claims Li et al. focuses on adding new documents, but direct comparison is missing. (2) Model editing methods (De Cao et al., 2021; Meng et al., 2023) are mentioned as requiring white-box access, but no empirical comparison or discussion of when each approach is preferable. (3) The baseline is PROMPTAGENT-E, a custom variant, not PromptAgent itself or other prompt/KB optimization methods. (4) Multi-agent RL section mentions centralized critic approaches (Foerster et al., 2018; Iqbal & Sha, 2019) but does not explain why existing MARL credit assignment mechanisms are insufficient. (5) No discussion of KB maintenance systems or continual learning literature on updating structured knowledge. (6) The paper positions MAC-CAFE as addressing feedback-driven KB editing but does not cite recent work on feedback-driven prompt/knowledge refinement (e.g., in-context learning, dynamic prompting). (7) Limited discussion of when KB editing is preferable to other approaches (e.g., retrieval reranking, query expansion). Unverified assumption: whether the lack of comparison with Li et al. (2024) is intentional or an oversight, and whether MAC-CAFE is truly a distinct contribution."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics or broader impacts section: (1) No discussion of data provenance—ARKS datasets are described but not fully attributed; CLARK-news from 'Erase (Li et al., 2024)' but original Wikidata licensing is not mentioned. (2) No discussion of copyright or licensing for language documentation (Pony, Ring docs) used in experiments. (3) No ethical analysis of KB editing—e.g., risk of poisoning KBs with incorrect expert feedback, potential for bias amplification if feedback is biased, accountability issues when KB edits lead to errors. (4) No discussion of expert feedback quality—what if the expert is wrong? (5) No analysis of potential misuse—e.g., malicious feedback to corrupt a KB. (6) No discussion of fairness—do edits benefit certain query types over others? (7) No mention of impact on model interpretability or trust when KBs are edited. (8) No discussion of computational costs or environmental impact of iterative MCTS search over large KBs. (9) The paper uses GPT-4 for evaluation, which raises cost and access equity concerns, but this is not discussed. Fatal flaw: the complete absence of ethical consideration for a system that modifies knowledge used by downstream systems. Unverified assumption: whether the authors considered ethical implications at all."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.85,
+    "final_decision": "Reject",
+    "final_justification": "This paper proposes MAC-CAFE, a multi-actor, centralized critic architecture for feedback-driven KB editing. While the problem is relevant and the approach shows empirical improvements, the paper has critical flaws that warrant rejection. Reproducibility (score 1) is severely compromised: no code availability, vague dataset access, missing implementation details, and heavy reliance on proprietary APIs (GPT-4, OpenAI embeddings). Technical Soundness (score 2) is weak: the connection between LLM-generated 'textual gradients' and actual gradients is hand-wavy, the credit assignment mechanism is underspecified, and MCTS hyperparameters are unjustified. Empirical Validation (score 2) lacks rigor: only a custom-built baseline (PROMPTAGENT-E), no ablations, no statistical significance testing, and no comparison with related KB editing work (e.g., Li et al., 2024). Significance (score 3) is limited by small improvements on small datasets, dependence on expert feedback, and no computational cost analysis. Novelty (score 3) is incremental—combining existing techniques (ReACT, MCTS, centralized critic) without fundamental new insights. Related Work (score 2) lacks critical comparison with input editing and continual learning literature. Ethics (score 1) is absent entirely—no discussion of data provenance, feedback quality risks, KB poisoning, or fairness. Under the RBCL fatal-flaw logic, the paper triggers two overrides: (1) Reproducibility ≤ 2 → must reject; (2) Technical Soundness ≤ 2 → must reject. These non-compensatory flaws, combined with weak empirical validation and missing ethical analysis, justify a 'Reject' decision. For acceptance at a top-tier venue (ICLR/NeurIPS), the paper requires: open-source code and data, rigorous ablations, statistical testing, comparison with related KB editing work, detailed technical specifications, and a thorough ethics section."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a structure-aware masking strategy (heads and filters) for parameter-efficient unlearning in Transformers, which is a plausible and useful refinement over structure-oblivious parameter selection. However, this appears to be an incremental methodological contribution rather than a fundamentally new paradigm: mask-based selection and parameter-efficient updates have prior precedent, and the paper frames its contribution as a structural specialization. A potential weakness is that key claims (e.g., improved error bounds due to structural sparsity) are stated at a high level without rigorous proofs in the main text; it remains an unverified assumption that structure-aware masks consistently outperform well-tuned fine-grained selection across architectures and tasks. (RBCL note: I did not award a high novelty score because the work resembles a targeted engineering advance rather than a new methodological insight; Anti-inflation conservatism applied.)"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Unlearning for large Transformer models is an important practical problem (privacy, compliance), and a parameter-efficient, structure-aware approach could materially reduce cost of deletion operations in MLaaS and other settings. The empirical results (multiple transformer variants and tasks) suggest practical utility. A notable unverified assumption is scalability: experiments appear limited to fine-tuned models and modest scales, and the paper acknowledges deferring evaluation on very large pretrained models (e.g., OPT-13b, LLaMA2-13b) to future work; it is unclear whether the method yields the same gains at much larger scales or across diverse pretraining regimes. Another potential weakness is the limited exploration of different forgetting sizes and real-world deletion patterns (the main text focuses primarily on small forgetting sets like 128 samples)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The approach builds on second-order unlearning and diagonal FIM approximations; these are reasonable foundations. However, the paper frequently asserts tighter approximation error bounds from the proposed masking without providing detailed derivations or proof sketches in the main text (only claims of analysis). The reliance on diagonal FIM and neglect of off-diagonal terms is treated as generally acceptable but the conditions under which that approximation holds (model curvature, dataset specifics) are not carefully justified. A concrete unverified assumption: that intra-structural interactions within attention heads and filters are sufficiently captured by the proposed masks so that off-diagonal Hessian/FIM terms can be ignored for unlearning error guarantees. Given these theoretical gaps and limited formal validation presented, I cap the technical soundness score at 2. (RBCL §2 Fatal-Flaw Logic triggered because technical_soundness <= 2; this mandates an overall Reject per the review rules.)"
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments span multiple transformer models (BERT-base, DistilBERT, RoBERTa-large) and several tasks (GLUE, SQuAD) and compare to reasonable baselines (FT, GD, SA, SO, RT), which is a strength. However, the evaluation appears to present single-run aggregate numbers without standard deviations, confidence intervals, or statistical tests; ablation details (e.g., sensitivity to mask sparsity beyond the highlighted 90% setting, multiple random seeds, different forgetting-set sizes and selection strategies) are limited in the main text. A key potential weakness is the lack of multiple independent runs and missing significance testing, which makes it difficult to judge robustness to randomness and hyperparameter choices. Another unverified assumption is that results on the (fine-tuned) model suite will translate to much larger pre-trained models — this is asserted but not empirically demonstrated."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper states that detailed hyperparameters are in Appendix A.1 and lists models/datasets and high-level training choices, but there is no explicit statement that code, scripts, random seeds, or exact environment specifications will be released. The main text lacks reproducibility-critical details (exact mask optimization code, seed values, training/validation splits used for forgetting selection, and instructions to reproduce the mask learning and greedy warm-start algorithm). Given the absence of an explicit code release and missing seeds/commands, I assign a low reproducibility score. This is a major practical weakness: without code, exact mask selection and integration into second-order unlearning are hard to verify or reuse. (Per the evaluation rules, missing/unclear reproducibility information caps this criterion; RBCL Fatal-Flaw Logic applies because reproducibility <= 2, which requires overall Reject.)"
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites a broad set of prior works on unlearning, second-order methods, and parameter-efficient techniques and positions SPE-Unlearn as a structure-aware refinement. The narrative makes connections to influence functions, diagonal FIM approximations, and prior parameter-efficient unlearning/pruning literature. A weakness is that the positioning sometimes treats heuristic prior methods as uniformly structure-oblivious; a more granular comparison to the strongest recent parameter-efficient unlearning or pruning-for-unlearning techniques (including quantitative head-to-head ablations isolating the benefit of 'structure-awareness' alone) would strengthen the contextualization. Additionally, explicit discussion of limitations of prior theoretical guarantees (and how this work changes that) is brief rather than comprehensive."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper motivates work through GDPR and privacy compliance, which is appropriate, but does not include a dedicated ethical analysis or broader impact section addressing potential misuse, residual privacy risks (e.g., incomplete unlearning, potential for adversarial deletion requests), dataset provenance, licencing of downstream models or data, or how the method interacts with user consent frameworks. A potential weakness is the lack of discussion on how approximate unlearning (with structured sparsity) could leave residual memorization or enable attacks if applied improperly; the paper should more explicitly quantify and discuss such risks and mitigation strategies."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical problem (parameter-efficient unlearning for Transformers) and proposes a plausible structure-aware masking approach that is experimentally promising on several fine-tuned transformer variants. Strengths include clear motivation, comparisons to common baselines, and an applied algorithmic idea that could reduce memory and runtime in some settings. Critical weaknesses: (1) Technical gaps — important theoretical claims about reduced approximation error and the sufficiency of diagonal FIM approximations with structural masks are not rigorously justified in the main text; assumptions about negligible off-diagonal curvature terms are not validated. (2) Reproducibility — there is no explicit code release, seeds, or step-by-step reproduction instructions provided in the main text; mask optimization details and exact experimental protocols are not fully transparent. (3) Empirical rigor — experiments report single-point numbers without variance estimates or comprehensive ablations (e.g., sensitivity to sparsity levels, repeated random runs, diverse forgetting sizes), leaving robustness unclear. These issues combine to produce a conservative assessment. Overrides and RBCL: Per the mandatory Reviewer Bias Correction Layer (RBCL), I applied conservative adjustments. Crucially, two fatal conditions were triggered: technical_soundness <= 2 and reproducibility <= 2. Per RBCL §2 Fatal-Flaw Logic and the evaluation rules, this mandates an overall decision of 'Reject' (decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical_soundness ≤ 2 and reproducibility ≤ 2). I also applied anti-inflation conservatism in scoring (a conceptual 0.5 reduction per criterion was considered in the conservative stance and in confidence), and I treated absence of code/seeds as evidence of poor reproducibility rather than assuming availability. Recommendation: The work could be reconsidered after the authors provide (a) full technical appendices with precise derivations and conditions under which diagonal/FIM approximations and the mask-induced error bounds hold, (b) public release of code, scripts, seeds, and environment details, and (c) more rigorous empirical validation with multiple runs, error bars, broader ablations (varying sparsity and forgetting-set regimes), and evaluations on larger pretrained models or representative larger-scale settings. With those improvements the contribution would be much stronger and could merit acceptance."
+  }
+}

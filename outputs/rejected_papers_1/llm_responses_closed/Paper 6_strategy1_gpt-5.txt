@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "Maintaining per-client local models (BMT) and training disjoint sub-FL models arranged in a tree (MMT) to provide unlearning-friendly initialization is an interesting combination and the Huffman/Shannon-Fano-based tree construction is a neat twist. However, the core ideas resemble ensemble/sharded training (e.g., SISA-style partitioning) and client-specific auxiliary models, which tempers the originality. Potential weakness: The claim of exact unlearning hinges on re-initializing from models that exclude the target client, but the paper does not offer a formal proof that the resulting training trajectory is equivalent to retraining from scratch nor that aggregation of independently trained local models yields an initialization untainted by cross-client influences under all FL variants."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Improving post-unlearning performance while preserving exact unlearning would be practically valuable in FL deployments where downtime matters, and the approach could be adopted in privacy- or safety-critical settings. However, the approach appears to introduce nontrivial storage, training, and communication overheads (e.g., maintaining per-client models and multiple sub-FL models) and the paper provides limited analysis of system costs, scalability to many clients, and privacy/communication implications of uploading local models to the server at unlearning time. Potential weakness: The assumption that the additional compute/storage/communication overhead is acceptable in typical FL deployments is unverified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper repeatedly claims exact federated unlearning \"by design\" but does not provide a formal proof or definition that matches standard exact unlearning guarantees (e.g., equivalence to retraining under the same randomness and optimizer state). The aggregation of independently trained local models (BMT) and selection/aggregation of sub-FL models (MMT) as initialization may be free of the target client’s data, yet it is not shown that the subsequent training is provably equivalent to retraining without the target client (or that exactness holds under typical stochasticity). MMT’s selection of the \"best\" sub-FL models at unlearning time is under-specified; if any selected sub-model includes the target client, exactness would be violated. Potential weakness: The paper lacks formal guarantees or verifiable certificates of exactness and does not clarify optimizer state/randomness requirements for equivalence."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The range of datasets (vision and language) and several ablations are positives. However, results are given only as figures without visible numeric tables, confidence intervals, or repeated trials; there is no statistical analysis, and computational overhead (compute/storage/communication), wall-clock time, and memory footprint are not quantified. Some details are ambiguous (e.g., MMT selection criterion for \"best\" sub-FL models, and a statement that something is infeasible for CIFAR-100 is unclear). Potential weakness: Single-run-looking curves without variance, missing cost analysis, and incomplete specification of MMT construction/evaluation undermine the empirical support."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Some hyperparameters and hardware are listed, but there is no code link, no random seeds, and insufficient procedural detail to reproduce sub-FL tree construction, the \"best sub-FL\" selection rule, or the full training/unlearning schedules. Missing information on exact client counts, partition seeds, and how the combined test set is constructed per scenario. Per scoring rules, missing code/clear reproducibility details cap this score. Potential weakness: Absence of released code and exact protocols prevents faithful replication."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites relevant FL, MU, and FU work (including FedEraser, Exact-Fun, FATS, FedCIO, SISA-style partitioning). Positioning is reasonable, but a deeper contrast with ensemble/sharded retraining approaches and formal exact-unlearning frameworks is needed, along with clearer discussion of when BMT/MMT reduce to known schemes. Potential weakness: Lacks a rigorous comparative analysis of guarantees and costs versus closest exact FU methods, and fairness of baselines (e.g., matched compute/rounds) is not established."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper mentions GDPR/CCPA and motivation for unlearning but lacks a dedicated ethics/safety section. It does not discuss privacy implications of uploading full local models during unlearning, data/model licenses for LLMs and datasets, or potential risks of storing per-client models at scale. Potential weakness: Ethical and privacy trade-offs introduced by the proposed protocols are not analyzed, and data/model licensing and provenance details are missing."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.74,
+    "final_decision": "Reject",
+    "final_justification": "While the idea of maintaining auxiliary models to speed recovery after unlearning is practically appealing and the empirical scope is broad, the paper lacks formal guarantees for its central claim of exact federated unlearning and omits critical reproducibility elements. Experiments do not include statistical rigor or cost analyses, and several methodological details (e.g., MMT selection/aggregation rules) remain under-specified. In accordance with RBCL §2 Fatal-Flaw Logic and the Anti-Inflation Safeguard, the low Technical Soundness (≤2) and Reproducibility limitations warrant rejection regardless of strengths elsewhere. The decision is downgraded to Reject under RBCL §2 (Fatal-Flaw Logic) and §6 (Error Asymmetry Principle)."
+  }
+}

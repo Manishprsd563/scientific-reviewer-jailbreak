@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "ToolGen applies generative retrieval to tool invocation by introducing virtual per-tool tokens and end-to-end agent tuning — a meaningful and reasonably novel application and scale-up of generative retrieval ideas. However, this is largely an engineering and scaling advance rather than a fundamentally new algorithmic principle (risk of being a clever composition of existing ideas). A key unverified assumption is that an LLM can robustly memorize and disambiguate tens of thousands of atomic tool tokens without catastrophic interference or performance degradation; the paper lacks a rigorous analysis of long-term interference, token capacity limits, or failure modes when tokens overlap in embedding space."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If the approach scales reliably, unifying retrieval and invocation inside an LLM would materially simplify agent stacks and reduce latency and engineering complexity, which is significant for deployed LLM agents. Potential weaknesses include deployment practicality: expanding vocabularies by tens of thousands of tokens and re-finetuning large models may be too costly for many users, and the paper understates engineering/serving tradeoffs. An unverified assumption is that organizations can feasibly and securely fine-tune and serve such expanded models in production without introducing new attack surfaces or unacceptable resource costs."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The high-level method is plausible and the paper provides loss formulations and training stages, but important technical details are missing or under-justified: there is no formal analysis of token-embedding initialization effects, training dynamics when adding ~47k tokens, or theoretical guarantees about selection probability among very large vocabularies. The constrained beam search mechanism is described at a high level without full algorithmic detail or complexity analysis. Additionally, the manuscript contains fragmented/garbled text (e.g., stray user-like sentence insertions) suggesting possible editing/data contamination; this raises questions about correctness of presented descriptions. Due to these gaps and unclear/missing technical specifics, I limit the score to 2 and note: Decision downgraded due to RBCL §2 Fatal-Flaw Logic (technical_soundness <= 2 triggers Reject)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports experiments on a large ToolBench dataset and provides multiple baselines and ablations, which is a strength. However, several empirical weaknesses reduce confidence: many numeric table entries are inconsistent/missing or copied (starred) from other works without full explanation, there are no reported random seeds or run-to-run variability/statistical significance, and compute/cost comparisons are incomplete. Single-run metrics appear to be reported without uncertainty estimates. An unverified assumption is that the reported gains generalize beyond the reported runs; absence of multiple seeds/variance measures and partial/incomplete tables prevents robust assessment."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility information is insufficient: the submission references appendices for implementation details and dataset conversion but the appendices are not available in the provided content, and there is no statement about releasing code or trained checkpoints. Hyperparameter information is partial (some LR, optimizer, epochs) but lacks critical details (random seeds, exact data preprocessing scripts, full training logs, tokenization scripts, constrained-beam-search implementation specifics). The absence of code/data and missing appendices is a severe reproducibility gap. Per the evaluation logic, missing/unclear information caps this criterion at 2/5; I give 1/5 to reflect the serious lack of reproducibility evidence. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2 triggers Reject)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys relevant lines (generative retrieval, tool-using agents, prior token/action-as-token work) and positions ToolGen relative to ToolkenGPT and retrieval-based pipelines. It also conducts empirical comparisons to several baselines. Weaknesses include selectively emphasizing differences without deeply analyzing prior limitations (e.g., other generative retrieval work) and occasional claims that lack citation support; some baseline numbers are copied from other papers without clear experimental parity, which makes fair comparison harder. An unverified assumption is that the experimental setups for baselines are strictly comparable; details are insufficient to fully confirm fairness."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The manuscript provides no ethics statement, discussion of potential misuse, or data provenance/license information for the ToolBench dataset and the 47k APIs. Scaling an agent to call many external tools raises safety and privacy concerns (e.g., enabling automated exploitation, data exfiltration, or unauthorized actions). There is no discussion of mitigations, access controls, or adherence to API licenses. Given the absence of any ethical analysis or provenance details, I assign a low score. Missing ethics treatment caps this criterion at 2/5; I give 1/5 to reflect the complete lack of discussion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "ToolGen presents an interesting and practically relevant idea—treating tools as virtual tokens and unifying retrieval and calling via generation—and demonstrates empirical promise on a large tool collection with ablations and baselines. However, the submission has critical shortcomings that, per the RBCL rules, mandate rejection. The reproducibility evidence is insufficient (no code, missing appendices, incomplete hyperparameter and seed reporting), and technical soundness has important unaddressed risks and missing details (training dynamics with 47k token additions, constrained decoding implementation, and fragmented/garbled manuscript text). Both reproducibility <= 2 and technical_soundness <= 2 trigger the fatal-flaw override (RBCL §2 Fatal-Flaw Logic), so the overall decision is Reject regardless of strengths in other areas. Major issues to address before resubmission: (1) release code + data conversion scripts or provide full, reproducible training/inference recipes including seeds and tokenization scripts; (2) clarify and formalize constrained decoding and provide complexity/latency analyses and ablations for token vocabulary growth and catastrophic interference; (3) supply full appendices and rectify manuscript errors/garbled text; (4) add an ethics/broader-impacts section describing data provenance, API licensing, access controls, and misuse mitigations. Until these are resolved, acceptance is not warranted."
+  }
+}

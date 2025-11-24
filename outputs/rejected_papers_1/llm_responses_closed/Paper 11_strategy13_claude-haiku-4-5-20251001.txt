@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "SRMT extends existing memory transformer architectures (RMT, ATM, RATE) to multi-agent settings by pooling and broadcasting individual memories via cross-attention. While the application to multi-agent pathfinding is novel, the core technical contribution is relatively incremental: applying established memory mechanisms (self-attention + cross-attention) to a multi-agent context with shared pooling. The paper does not introduce fundamentally new attention mechanisms or theoretical insights into multi-agent coordination. The motivation from global workspace theory is intuitive but not formalized. The main novelty lies in the engineering choice to broadcast pooled memories rather than in a genuinely new algorithmic insight. Potential weakness: The paper lacks ablation studies isolating the contribution of shared memory pooling versus shared memory broadcasting versus other design choices."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "SRMT is evaluated only on multi-agent pathfinding, a relatively narrow problem domain within MARL. While pathfinding is important in robotics and simulation, the paper does not demonstrate applicability to broader multi-agent coordination problems (swarm control, traffic management, game-playing, etc.). The method is decentralized and does not require explicit communication, which is practically useful, but the paper does not articulate why shared implicit memory is fundamentally better than existing explicit communication or centralized training approaches for real-world deployment. The improvements over baselines on POGEMA are competitive but not dominant—RHCR outperforms SRMT on multiple metrics. Potential weakness: The significance is limited to a single application domain; claims about generalizability to 'complex multi-agent systems' are not substantiated beyond pathfinding tasks."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper presents SRMT as an extension of memory transformers but lacks formal derivation or theoretical justification. The architecture description (Section 3) is informal and relies on intuition rather than principled design. Critical issues: (1) The claim that memory initialization matters (RATE vs. RATE_gen in Figure 4) is presented post-hoc without principled analysis of why this occurs or how to generalize the fix. (2) The paper does not justify why pooling individual memories into a shared, ordered sequence is the correct design choice—no ablation compares pooling strategies (mean, max, concatenation, attention-weighted). (3) The observation function O is defined in the problem formulation but the actual encoding (ResNet + MLP) is not rigorously connected to the theory. (4) The claim that SRMT enables 'implicit coordination' is not formally defined or theoretically grounded. Potential weakness: The lack of ablation studies on key design decisions (memory pooling method, cross-attention vs. alternatives, sequence ordering) raises concerns about whether the improvements come from shared memory or from other architectural choices."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments reveal significant methodological concerns: (1) Bottleneck task (Section 4.1) is oversimplified—a 2-agent corridor coordination task is too toy-like to validate multi-agent algorithms; generalization to 1000-cell corridors is interesting but still a 1D problem. (2) POGEMA evaluation (Section 4.2) reports average throughput across maps but does not provide per-map statistical significance tests or confidence intervals for most comparisons. Error bars in Figures 3 and 4 are present, but Figure 5 and 6 lack error bars entirely, making it impossible to assess if differences are significant. (3) Missing critical ablations: No systematic ablation isolates shared memory pooling from other architectural choices. RMT (without sharing) sometimes outperforms SRMT (Sparse reward, 400+ cell corridors), undermining the core claim. (4) Training procedure details are incomplete: Appendix A.1 references hyperparameters but core details like optimizer, learning rate schedule, and convergence criteria are not described in the main text. (5) Comparison fairness: RATE_gen is introduced post-hoc to explain poor baseline performance, suggesting potential bias in baseline implementations. (6) Single training runs: No mention of multiple seeds or statistical analysis. Potential weakness: Without per-map significance tests and proper ablations, it is unclear whether differences are due to shared memory or confounding factors."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility failures: (1) No code or supplementary materials mentioned; no GitHub link or code availability statement. (2) Hyperparameters are referenced as 'detailed in Appendix A.1 Table 1' but appendix is not provided in the review version. (3) Random seeds are not mentioned anywhere in the paper. (4) Training duration is given in 'environment steps' (1B, 400M, 600M) but wall-clock time and computational resources are not reported. (5) The ResNet configuration (depth, width, specifics) is not fully specified. (6) Memory size (vector dimension) and cross-attention head count are not mentioned. (7) The paper uses POGEMA framework but does not clarify exact version or configuration. (8) Baselines (MAMBA, QPLEX, ATM, RATE, RRNN) are referenced but it is unclear if the authors reimplemented these or used official implementations; if reimplemented, the risk of unfair comparison increases. (9) No discussion of computational complexity or runtime comparisons. Potential weakness: The paper is essentially non-reproducible without access to code and complete hyperparameter specifications. The missing appendix in the review version is a major red flag."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work section is reasonably comprehensive, covering shared memory in MARL (Section 2.1) and memory transformers (Section 2.2). However, there are gaps and positioning issues: (1) The distinction between SRMT and ATM is unclear—both use transformer-based memory for multi-agent settings; the paper claims SRMT shares memory while ATM maintains individual memories, but this distinction is not clearly validated experimentally. (2) The paper positions SRMT as decentralized with networking, similar to DCC, MAMBA, and SCRIMP, but the actual advantage over these methods is not clearly articulated. SCRIMP also uses transformers for multi-agent coordination; the comparison is minimal. (3) RHCR (centralized planning) consistently outperforms SRMT on several metrics but the paper does not adequately discuss the tradeoff between decentralization and performance. (4) The paper claims SRMT maintains decentralization during training and execution, unlike methods using centralized Q-functions, but many baselines (VDN, QMIX) also achieve decentralized execution; this claim is overstate. Potential weakness: Fair comparison to SCRIMP and other transformer-based multi-agent methods is missing. The positioning of SRMT as a clear improvement over related work is not substantiated given that RHCR outperforms it on several metrics."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics section or discussion of broader impacts. The paper applies multi-agent pathfinding to robotics and autonomous systems but does not discuss: (1) Safety implications of decentralized control in real-world robotic swarms; (2) Potential for adversarial manipulation of shared memory; (3) Scalability limits and behavior under resource constraints; (4) Data provenance—POGEMA and MovingAI datasets are used but no discussion of licensing or data privacy; (5) Potential misuse in surveillance or autonomous weapon systems; (6) Fairness considerations in multi-agent resource allocation; (7) No statement on code/data availability or licensing. The paper treats MAPF as a purely technical problem without acknowledging societal context. Potential weakness: Complete absence of ethics discussion is a significant oversight for a multi-agent system paper; this violates standard expectations for venue submissions."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "SRMT proposes a reasonable but incremental extension of memory transformers to multi-agent pathfinding via shared memory pooling and broadcasting. However, the paper exhibits critical weaknesses that prevent acceptance: (1) **Reproducibility Failure (RBCL §3)**: Code and critical hyperparameters are not provided; appendix is missing. This is a fatal flaw for a paper claiming novel empirical results. Score capped at 1/5. (2) **Insufficient Technical Soundness (RBCL §2)**: The core design choices (pooling strategy, cross-attention architecture, memory initialization) lack theoretical justification and proper ablation studies. The fact that RMT sometimes outperforms SRMT undermines the core claim about shared memory benefits. Score of 2/5. (3) **Limited Experimental Rigor**: The bottleneck task is oversimplified; POGEMA evaluation lacks per-map significance tests; baselines appear to be reimplemented without confirmation of fairness (RATE_gen post-hoc fix raises concerns). Multiple runs and statistical testing are not reported. Score of 2/5. (4) **Narrow Novelty**: The contribution is primarily an engineering choice to extend existing memory transformers via shared pooling—this is incremental relative to prior memory-based MARL methods. Score of 3/5. (5) **Competitive but Not Dominant Results**: RHCR outperforms SRMT on multiple POGEMA metrics; improvements over MARL baselines are modest and lack statistical validation. Claims about significance are overstated. Score of 3/5. (6) **Complete Absence of Ethics Discussion**: No discussion of safety, societal impacts, or licensing. Score of 1/5. **RBCL Application**: Given Reproducibility ≤ 2 and Technical Soundness ≤ 2, the final decision must be 'Reject' per RBCL §2 Fatal-Flaw Logic. The missing code and hyperparameters are non-compensable. Confidence is 0.75 because the core idea (shared memory for coordination) has merit, but execution and validation are insufficient for acceptance at a top venue."
+  }
+}
+```

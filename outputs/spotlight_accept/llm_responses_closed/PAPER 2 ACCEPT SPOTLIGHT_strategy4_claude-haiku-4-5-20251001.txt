@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "UNICBE proposes a unified framework that combines three existing optimization objectives (accuracy, convergence, scalability) through a probabilistic matrix integration approach. While the unified perspective is useful, the individual components (uniform sampling for accuracy, uncertainty-driven allocation for convergence, new-model prioritization for scalability) are largely extensions of known concepts. The core novelty lies in the systematic combination rather than fundamental methodological innovation. The three probability matrices (Equations 10, 11, 12) use relatively standard techniques (exponential weighting, variance-based allocation, element-wise multiplication). A potential weakness: the paper does not clearly establish whether the theoretical insights in Section 3 are novel or re-derive known results. The proof that uniform sampling minimizes bias (referenced to Appendix A) is not included, making verification impossible."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem of efficient comparing-based evaluation (CBE) for LLMs is practically relevant and timely. Saving 17% of evaluation budget on AlpacaEval and 50% in dynamic scenarios is meaningful. However, the significance is somewhat limited: (1) The improvements over random sampling are modest (17%) when compared to a simple baseline; improvements over ARENA are marginal and inconsistent across judges. (2) The paper primarily targets benchmark evaluation of LLMs, a narrow application domain. (3) The claimed Pearson correlation >0.995 suggests diminishing returns—very high accuracy may not be necessary for ranking LLMs. A potential weakness: the paper does not discuss whether these budget savings translate to practical deployment benefits or cost reductions in real-world evaluation scenarios."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several critical issues undermine technical soundness: (1) Equations 1 and 2 define sampling bias ($\\eta$) but lack formal justification for why these specific definitions capture 'bias.' The paper assumes that $\\eta$ behaves independently across samples/models without rigorous statistical justification. (2) The proof in Appendix A (referenced but not provided) that uniform sampling minimizes bias cannot be verified. The transformation from minimizing Equation 3 subject to Equation 4 is stated without derivation. (3) Equation 13 integrates three matrices via element-wise multiplication ($\\circ$), but the theoretical rationale for this operation is never justified. Why multiplication rather than addition or other combinations? (4) The variance calculation in Equations 6-8 assumes that reducing variance uniformly across pairs leads to faster convergence globally, but this claim lacks formal proof. (5) Section 3.4's argument that uniform allocation across models reduces 'updating uncertainty' is intuitive but not rigorously derived. A fatal flaw: the paper provides insufficient detail in the main text and relies on unverified appendices for critical derivations, violating standards of technical transparency."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover multiple judges (GPT-4o, GPT-3.5-turbo, Qwen-Plus, humans), two benchmarks (AlpacaEval, MT-Bench), and various settings (M, N). Ablations on budget allocation objectives and tuple sampling/aggregation strategies are provided. However, critical weaknesses: (1) The paper reports results as averages over 10,000 random seeds but provides no confidence intervals, error bars, or statistical significance tests. This makes it impossible to assess whether observed differences are statistically meaningful. (2) Figure 2 uses only 20 randomly selected LLMs for bias analysis; generalizability to other model sets is unclear. (3) The ground truth for AlpacaEval is obtained by exhaustively comparing all M(M-1)/2 pairs, but with only 20 models, this is relatively small-scale. (4) MT-Bench results (Figure 6 lower) show 'relatively larger fluctuations,' suggesting instability, but this is not investigated. (5) The 'cosine similarity to uniform vectors' metrics ($\\beta_{acc}, \\beta_{con}, \\beta_{sca}$) in Table 2 are not standard evaluation metrics and their interpretation is unclear. How do these correlate with actual performance? (6) No statistical significance testing is provided to confirm that UNICBE's improvements are not due to noise. A potential weakness: the paper does not report the statistical significance of the claimed budget savings."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility failures: (1) No mention of code release or availability (GitHub, supplementary materials, etc.). (2) The full proofs referenced in Appendix A are not provided in the paper or accessible. (3) Hyperparameter selection for $\\alpha$ (set to 2) is justified only by preliminary experiments mentioned but not shown; sensitivity analysis in Appendix F.1 is not included in the review. (4) The judge prompts are mentioned to be in 'Appendix D' but are not provided here. (5) Random seeds are mentioned (10,000 seeds reported) but no specific seed values or reproduction procedure is given. (6) The paper uses 'randomly chosen 20 LLMs' from AlpacaEval but does not specify which models or provide a seed for reproducible selection. (7) No discussion of computational costs, memory requirements, or runtime comparisons. (8) The comparison with Chatbot Arena (1.7 million pairwise preferences) is mentioned but the exact data source and access method are not specified. This is a fatal flaw: without code, data, and full methodological details, the work cannot be independently reproduced."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper discusses three main CBE baselines (RANDOM, ARENA, ALPACAEVAL) and three preference aggregation methods (average win rate, Elo, Bradley-Terry). This is reasonably comprehensive for the specific domain. However, weaknesses: (1) The positioning of UNICBE as 'unified' is somewhat overstated—it primarily combines existing objectives (accuracy via uniform sampling, convergence via variance-based allocation, scalability via new-model prioritization) that have been discussed separately in prior work. The novelty over prior work is not clearly articulated. (2) No discussion of related work in active learning, sequential sampling, or experimental design, which address similar problems of budget-efficient exploration. (3) Limited engagement with theoretical work on sampling bias and statistical inference. (4) The paper claims baselines are 'widely applied' but provides limited justification for why these three were chosen. Other CBE methods may exist. A potential weakness: the paper does not clearly distinguish its theoretical contributions from prior work, making it difficult to assess the true originality of the framework."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no discussion of ethical considerations, broader impacts, or safety concerns. Specific issues: (1) No statement on data provenance, licensing, or usage rights for AlpacaEval and MT-Bench. (2) No discussion of potential biases introduced by the choice of judges (GPT-4o, GPT-3.5-turbo, Qwen-Plus) or how these may reflect specific ideologies. (3) No consideration of how evaluation budget savings might be misused (e.g., deploying harmful models with lower evaluation cost). (4) No discussion of the implications of ranking LLMs, which could influence which models are deployed and affect downstream users. (5) No mention of transparency regarding how the method might introduce or mitigate unfairness in model evaluation. (6) No statement on whether human evaluation data (MT-Bench) was ethically collected and consented. This is a major deficiency for a conference that prioritizes responsible AI research."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "UNICBE addresses a practically relevant problem and proposes a systematic framework combining three optimization objectives. However, the paper suffers from multiple fatal flaws that prevent acceptance: (1) **Reproducibility Failure (Score 1):** No code, data, or complete proofs are provided. This violates basic standards for scientific reproducibility and triggers the RBCL Fatal-Flaw Logic override. (2) **Technical Soundness Issues (Score 2):** Critical theoretical derivations (Appendix A proof, rationale for matrix multiplication in Eq. 13) are missing or unverified. Assumptions about bias independence are unjustified. (3) **Insufficient Empirical Rigor (Score 3):** No confidence intervals, error bars, or statistical significance tests are reported despite 10,000 random seeds. The improvements (17% budget savings) are modest and lack formal significance testing. (4) **Limited Novelty (Score 3):** The contributions are primarily a combination of known techniques (uniform sampling, variance-based allocation, new-model prioritization) rather than fundamental innovations. The unified perspective is useful but incremental. (5) **Ethics Completely Absent (Score 1):** No discussion of data provenance, judge biases, ethical implications, or responsible AI considerations. Per RBCL § Fatal-Flaw Logic, when Reproducibility ≤ 2, the decision must be Reject. Additionally, the total_score (16) falls in the 'Borderline / Major Revision' range (16-20), but ICLR calibration treats this as functionally equivalent to Reject unless an exceptional breakthrough is present. UNICBE lacks such a breakthrough. **Recommendation:** Reject. Authors should (1) release code and complete proofs, (2) add statistical significance testing, (3) provide detailed theoretical justification for design choices, and (4) address ethical considerations."
+  }
+}
+```

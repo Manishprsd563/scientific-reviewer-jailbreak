@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a concrete combination of two mechanisms (Class-and-Domain Representative Memory (CnDRM) and Inference-only Batch-aware Memory Normalization (IoBMN)) to enable sparse test-time adaptation for latency-sensitive devices. This combination and the specific IoBMN soft-shrinkage formulation appear to be a useful refinement beyond straightforward application of prior BN-statistics tricks and representative sampling. However, the contribution reads largely as an engineering combination of existing ideas (representative sampling, BN/LN-statistics adjustment, pseudo-label filtering) rather than a fundamental new methodological paradigm. Potential weaknesses/unverified assumptions: (1) it is unclear whether IoBMN provides theoretical guarantees (e.g., stability under high pseudo-label noise) or whether the shrinkage thresholds are robust across datasets; (2) the novelty claim relies on empirical effectiveness rather than formal analysis, so the approach may be an incremental systems-level improvement rather than a deep conceptual advance. Note: I applied conservative RBCL judgement (Anti-Inflation Safeguard) in scoring and did not award high novelty absent stronger theoretical or demonstrable conceptual novelty."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing latency and resource constraints for test-time adaptation on edge devices is practically important; demonstrating Raspberry Pi measurements and sizable latency reductions indicates potential real-world impact. Integration that is orthogonal to many existing TTA algorithms increases applicability. Potential weaknesses/unverified assumptions: (1) evaluation uses primarily synthetic corruption benchmarks (CIFAR-C / ImageNet-C), which may not reflect real-world non-stationary domain shifts (e.g., camera changes, lighting, occlusions) — thus the claimed practical impact could be overestimated; (2) it is assumed that selection of class/domain representatives generalizes across streams and class distributions (e.g., long-tail classes), but robustness to imbalanced classes and adversarial/rare shifts is not demonstrated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The mathematical description (memory statistics, Wasserstein distance on mean/variance, soft-shrinkage IoBMN) is plausible and implementable, and the approach to use early-layer statistics is reasonable. However, several critical implementation/derivation details are unclear or missing in the provided manuscript: (1) algorithmic pseudocode referred to (Algorithm 1) and many appendix details are referenced but not present here, hindering verification of update rules and memory management; (2) treatment of pseudo-label errors and how often memory is refreshed (timing/complexity guarantees) are not rigorously justified; (3) some formulae and notational typos reduce confidence in correctness (for example, variance equations and the description of the soft shrinkage parameters lack clear derivation or rationale for chosen hyperparameters). Because crucial methodological details and theoretical justification are incomplete/unclear in the submission, the score is capped per the rubric. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical_soundness <= 2 triggers a Reject requirement."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experimental suite covers multiple standard TTA benchmarks (CIFAR10-C, CIFAR100-C, ImageNet-C), several strong TTA baselines (Tent, CoTTA, EATA, SAR, RoTTA), ablations, and latency measurements on a Raspberry Pi testbed. They report multiple adaptation rates, some multi-seed averages, and ablations that isolate CnDRM and IoBMN. Potential weaknesses/unverified assumptions: (1) the datasets are synthetic corruption benchmarks and do not fully capture many realistic online domain shifts; (2) while three random seeds are reported, the paper lacks formal statistical tests/confidence intervals for many reported improvements and some tables are hard to parse; (3) some implementation details (batch sizes, exact augmentation/backprop frequency for baselines, and hyperparameters) are only referenced to appendices, so independent assessment of fairness of baselines is difficult. These gaps reduce empirical credibility despite generally promising results."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The manuscript frequently references appendices for implementation details and states measurements were taken on Raspberry Pi 4, but there is no explicit statement in the provided text that code, scripts, or full hyperparameter lists and seeds will be publicly released. Per the rubric, missing or unclear release of code/hyperparameters caps this criterion. Potential weaknesses/unverified assumptions: (1) no public code repository URL or explicit reproducibility package is provided in the submission text; (2) Algorithm 1 and detailed memory-management pseudocode are referenced but not included here (appendix not available), making exact replication difficult; (3) environmental details (e.g., OS, exact Torch/CUDA versions, Pi configuration) and full hyperparameter sweeps are not fully specified in the main text. Decision implication: per RBCL §2 Fatal-Flaw Logic, reproducibility <= 2 contributes to required Reject."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a range of recent TTA works and positions SNAP-TTA as an orthogonal, latency-oriented framework. The authors discuss sampling methods and normalization-based adaptation and provide comparison to several recent algorithms. Potential weaknesses/unverified assumptions: (1) references to Appendix A suggest more extensive discussion exists but is not visible here — some relevant recent works on lightweight on-device adaptation, continual/adaptive sampling strategies, and privacy-preserving TTA may not be fully compared; (2) the paper does not deeply discuss potential trade-offs with methods that explicitly optimize for memory or energy (beyond latency) nor alternative lightweight adaptation strategies; (3) fairness of baseline implementations is asserted but dependent on appendix-level hyperparameter details that are not available in the provided text."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes a brief 'Limitations and future work' section, but it does not present an explicit ethics or broader impacts statement. For edge-deployed adaptive systems, there are concrete safety and privacy concerns (e.g., on-device adaptation could amplify biases, degrade model behavior in safety-critical settings, or have privacy implications when storing representative samples). Potential weaknesses/unverified assumptions: (1) no explicit treatment of data provenance, licensing, or consent for any real-world datasets or streams that might be used in deployment; (2) no discussion of failure modes (e.g., catastrophic adaptation, adversarial manipulation of representative samples) or mitigation; (3) absent an explicit risk analysis, deployment in safety-critical applications (autonomous driving, health monitoring) may be premature. Per rubric, missing ethics discussion caps this score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: SNAP-TTA targets an important and practical problem — reducing TTA latency for resource-constrained devices — and presents an applied solution (CnDRM sampling + IoBMN normalization) that is experimentally promising on standard corruption benchmarks and on-device latency measurements. Strengths include practical motivation, integration with multiple SOTA TTA methods, ablations showing contributions of sampling and inference normalization, and latency gains measured on real hardware. Critical weaknesses: (1) Technical soundness: key algorithmic and derivational details are unclear or incomplete in the provided submission (Algorithm 1 and appendix material are referenced but not present here), and there is limited theoretical justification for stability under noisy pseudo-labels and for chosen hyperparameters — technical_soundness is therefore capped at 2. (2) Reproducibility: no explicit public release of code/hyperparameters/environment is provided in the text; reproducibility is capped at 2. (3) Evaluation limitations: reliance on synthetic corruption benchmarks and limited statistical reporting reduce confidence about deployment in realistic, non-synthetic domain shifts. Because technical_soundness <= 2 and reproducibility <= 2, RBCL Fatal-Flaw Logic requires a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). The total score (18) falls into the 'Borderline / Major Revision' numeric band per the rubric, but RBCL and the explicit low scores on soundness and reproducibility make acceptance inappropriate. Recommendation to authors: (a) include full algorithm pseudocode and rigorous specification of memory updates, data structures, and hyperparameters; (b) release code and exact experimental configs to enable reproducibility; (c) strengthen theoretical/robustness analysis of IoBMN under noisy pseudo-labels and skewed class distributions; (d) evaluate on more realistic streaming/continual shift scenarios (real sensor streams, non-synthetic domain changes) and report statistical significance across more seeds. Addressing these points could move the work toward acceptance in a future revision."
+  }
+}

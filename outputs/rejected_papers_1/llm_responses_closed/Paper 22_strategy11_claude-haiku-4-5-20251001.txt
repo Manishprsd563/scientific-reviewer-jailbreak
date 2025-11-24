@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes learning fine-grained image-level visual-semantic relationships via a two-stage dictionary learning approach (visual-attribute, then visual-semantic embedding). However, the core components are not novel: (1) dictionary learning for ZSL is well-established (e.g., CDL by Jiang et al. 2018); (2) using attributes to constrain feature learning is standard practice; (3) coupling dictionaries across domains is incremental. The main claim—moving from class-level to image-level relationships—is presented as significant but is achieved through straightforward application of existing techniques (sparse coding, alignment losses). The paper provides no theoretical insight, no novel loss formulation, and no algorithmic breakthrough. The contribution amounts to a careful engineering choice rather than a conceptually novel advance. Potential weakness: The paper does not justify why image-level dictionaries fundamentally solve the problem better than well-tuned class-level embeddings or modern approaches like CLIP-based methods."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "The empirical improvements are marginal: on aPY, CF-ZIR achieves 48.0% vs. 50.6% for IAAC-net (a recent embedding method); on AwA1, 71.5% vs. 71.8% for TransZero; on AwA2, 72.0% vs. 72.0% for TransZero. These are not statistically significant gains and fall within noise margins, especially given no error bars or significance tests are reported. The method is positioned as an embedding-based approach, yet compares unfavorably to many recent works (TransZero, MSDN, RSR achieve similar or better results). The paper dismisses generative methods as computationally expensive, but offers no timing comparisons or wall-clock efficiency analysis. For practitioners, this method offers no clear advantage over existing embedding-based or modern vision-language methods. Potential weakness: The paper provides no analysis of why these marginal improvements matter or under what conditions CF-ZIR would be preferred over simpler alternatives."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Critical issues: (1) Section 3.3 and 3.4 are entirely missing the mathematical formulations. The paper references 'training of common feature learning' and 'recognition of unseen image' but provides no equations, loss functions, or optimization procedures. This is a fatal omission—the core method cannot be understood or verified. (2) The claim that 'sparsity coefficients obtained from reconstruction... describe the degree to which each attribute is included' is stated without proof. Why should sparse coding coefficients align with attribute presence? This assumption is unjustified. (3) The visual-semantic alignment (Eq. or description missing) is never formally defined. How are embeddings constrained to be 'the same expression'? (4) No justification for why a two-stage pipeline (visual-attribute, then visual-semantic) is superior to joint optimization. (5) The paper lacks any convergence analysis, theoretical guarantees, or even convergence curves during training. Potential weakness: Without Section 3.3 and 3.4 mathematical details, the technical soundness cannot be fully assessed; the paper appears incomplete as submitted."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Significant weaknesses: (1) Only three datasets (aPY, AwA1, AwA2) are used, all with the same attribute structure. No evaluation on modern benchmarks (CelebA, SUN, miniImageNet variants, or CZSL). (2) No error bars, confidence intervals, or statistical significance tests. Reported results are point estimates; differences of 0.5–1% could be noise. (3) Ablation studies (Table 3) only remove two components (DL, VSA). No ablation of: visual-attribute dictionary stage, hyperparameter sensitivity, or different embedding space choices (paper claims visual, embedding, or semantic space can be used, but only semantic space results shown). (4) Comparison table (Table 2) is malformed and difficult to parse; many cells contain '=' or missing values, making it impossible to verify claimed improvements. (5) No analysis of failure cases. (6) Figure 2 (t-SNE visualization) is qualitative only; no quantitative metrics (silhouette score, Davies-Bouldin index) to measure clustering quality. (7) No runtime comparison despite criticizing generative methods for computational cost. (8) Hyperparameter selection limited to grid search over 6 parameters—no sensitivity analysis. Potential weakness: The experiments are insufficient to convince a top-tier venue that CF-ZIR offers a genuine advance over existing methods."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is critically compromised: (1) No code is provided or mentioned as forthcoming. (2) Hyperparameters λ, α, β, γ, μ, η are stated to be selected from {0.001, 0.01, 0.1, 1, 10}, but no final values are reported. For a paper with multiple loss terms, this is unacceptable. (3) Random seeds are not mentioned. (4) No details on the neural network architecture (ResNet101 is used for feature extraction, but are fine-tuning, initialization, or other settings specified?). (5) Training procedures are absent (Section 3.3). (6) No number of runs, cross-validation, or train/test split specifics beyond 'using data splits from Xian et al. (2017)'. (7) Implementation details for dictionary learning (convergence criteria, number of iterations, optimization method) are missing. (8) The paper claims to use 'image features extracted by 101-layered ResNet' but does not specify which layer's output, whether pre-trained on ImageNet, or if fine-tuned. (9) Computing environment (hardware, framework, PyTorch/TensorFlow version) not mentioned. (10) No supplementary material, appendix, or promise of reproducibility statement. Per the RBCL fatal-flaw logic, this score triggers a hard 'Reject' decision."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work section (Section 2) is superficial and problematic: (1) It provides categorical overviews (generative vs. embedding) but lacks depth. For example, generative methods are dismissed as 'computationally intensive' without citing supporting evidence or timing data. (2) The paper claims embedding-based methods 'concentrate on leveraging images and class semantic vectors or class names' and 'construct relationships at a class-level,' but does not acknowledge recent work on fine-grained embeddings (e.g., regional features in MSDN, pixel-level embeddings in ERPCNet). The novelty claim ('image-level' relationships) is not positioned against these prior attempts. (3) Modern vision-language models (CLIP) are mentioned in passing but not compared experimentally. Given that CLIP-based ZSL methods have shown strong results, this is a major omission. (4) The comparison table (Table 2) is poorly formatted, making it hard to assess whether CF-ZIR is truly competitive. Red/blue highlighting is inconsistent with table content. (5) No discussion of why CF-ZIR's image-level dictionary learning should outperform attribute-based reasoning or ensemble methods. (6) The paper does not clearly distinguish its contribution from CDL (Jiang et al. 2018), which also uses coupled dictionaries. Potential weakness: The positioning is unclear, and the related work section does not convincingly argue why CF-ZIR addresses a gap left by prior embedding-based approaches."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics statement is provided. The paper: (1) does not address potential misuse (e.g., zero-shot learning for surveillance, biometric identification). (2) does not discuss data provenance or licensing (aPY uses Yahoo and Pascal VOC; AwA uses web-sourced images—are these ethically sourced?). (3) does not acknowledge fairness concerns (e.g., are unseen classes representative of real-world class distributions? Are there demographic biases in attributes?). (4) does not mention responsible release practices or dual-use considerations. (5) provides no discussion of environmental impact (training/inference costs, carbon footprint). (6) does not address limitations in generalization or failure modes that could harm downstream applications. Per RBCL guidance, absence of an ethics statement caps this score at 1–2. This is a secondary concern compared to technical/reproducibility issues but reinforces the overall lack of rigor."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 12,
+    "confidence": 0.95,
+    "final_decision": "Reject",
+    "final_justification": "This paper proposes CF-ZIR, a dictionary learning-based method for zero-shot image recognition that aims to learn fine-grained image-level visual-semantic relationships. However, it suffers from fatal flaws that warrant rejection: (1) **Missing Core Technical Content**: Sections 3.3 and 3.4, which should contain the mathematical formulation of the method, are entirely absent. Without these equations, the method cannot be understood, verified, or reproduced. This is a critical failure. (2) **Non-Reproducibility**: No code is provided, hyperparameters are not specified, random seeds are missing, and implementation details are absent. Per RBCL fatal-flaw logic (Reproducibility ≤ 2), this alone triggers a mandatory 'Reject' decision. (3) **Insufficient Novelty**: The contribution is engineering-focused (applying existing dictionary learning to image-level ZSL) rather than conceptually novel. No new algorithms, theory, or insights are introduced. (4) **Marginal Empirical Gains**: Results are not statistically significant (no error bars, significance tests). CF-ZIR achieves 48.0% on aPY vs. 50.6% for IAAC-net, 71.5% on AwA1 vs. 71.8% for TransZero. These differences are within noise. (5) **Limited and Malformed Experiments**: Only three datasets; comparison table is corrupted with missing/inconsistent values; no ablation of the visual-attribute stage; no timing/efficiency analysis despite criticizing generative methods. (6) **Incomplete Related Work**: Missing fair comparison with recent fine-grained embedding methods and modern vision-language approaches (CLIP). The novelty claim is not well-positioned. (7) **No Ethics Consideration**: Entirely absent. By RBCL standards, this is a paper with fatal reproducibility and technical soundness flaws. The combination of missing mathematical formulation (Section 3.3, 3.4), lack of code/hyperparameters, and marginal experimental results makes it unsuitable for publication at a top-tier venue. The paper appears incomplete and requires major revisions (full method formulation, reproducibility materials, significant empirical validation) before resubmission."
+  }
+}
+```

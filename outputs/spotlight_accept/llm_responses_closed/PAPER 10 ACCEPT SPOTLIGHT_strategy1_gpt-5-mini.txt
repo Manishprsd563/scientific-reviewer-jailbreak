@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper proposes a distinct formulation — process advantage verifiers (PAVs) — that measures per-step 'progress' under a separate prover policy and uses that signal for both test-time search and dense RL rewards. This is more than a trivial combination of existing PRMs and ORMs: the theoretical characterization of 'good' provers and the practical workflows for training PAVs support novelty. Potential weakness / unverified assumption: the theoretical results appear to rely on assumptions about alignment and distinguishability between prover and base policies (e.g., ‘not too misaligned’), which may be strong or hard to verify in practice. Also, novelty is demonstrated primarily in the math-reasoning domain (MATH) and with specific model families; generality to other tasks is not fully demonstrated."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "If PAVs reliably deliver the reported gains (compute and sample efficiency, improved Pass@N), this would be a meaningful advancement for automated verifier usage in reasoning and RL with LLMs. The potential to reduce compute for search and to accelerate RL training is practically valuable. Potential weakness / unverified assumption: the empirical demonstrations are on the MATH dataset and Gemma families; applicability to broader reasoning tasks, non-math settings, or different model families is not established. The approach also relies on acquiring suitable provers (BoK choices), which may not be straightforward in all settings."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper provides a clear formal framing (advantages as reward shaping, effective reward, gradient expression) and claims proofs in Appendix F. The argument about too-strong or too-weak provers making A^mu ≈ 0 is plausible and supported by examples. Potential weakness / unverified assumption: the appendices and proofs are not available here for verification; key theoretical claims depend on assumptions about the prover/base policy distributions and on approximation quality of PAVs (fitting error) that are not deeply quantified in the main text. There is limited formal analysis of how PAV estimation error impacts policy learning stability; this could be a critical unverified assumption."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper reports a broad suite of experiments: multiple model sizes (2B/9B/27B), beam-search comparisons, ablations over prover BoK, and RL training showing sample-efficiency gains. Comparisons to ORMs, Q-value PRMs, and several baselines are included, and there are plausible task-specific ablations (prover strength). Potential weaknesses / unverified assumptions: the writeup does not make clear the number of random seeds, confidence intervals, or statistical significance testing (single-run risk). Reproducibility of hyperparameters and training variability are unclear; some baselines (e.g., diverse decoding strategies, stronger public baselines) might be missing or insufficiently detailed. It is unclear whether gains persist across multiple random seeds or under different problem distributions."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper includes a Reproducibility Statement that points to appendices for experimental details and cites public model checkpoints and the public MATH dataset. However, there is no explicit statement that code, training scripts, hyperparameter files, random seeds, or environment configs will be released. Per the scoring rules, missing or unclear information (e.g., no release of code and explicit hyperparameters/seeds) caps this criterion at 2/5. Potential weakness / unverified assumption: the appendices could contain sufficient details, but absent an explicit code release and clear hyperparameter/seed disclosure, independent reproduction is unlikely; this triggers the RBCL downgrade condition (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites ORMs, PRMs, Q-value based approaches, and recent work on process labels and imitation/expert iteration. It situates its contributions relative to these and highlights differences (advantages under different prover, analysis of prover strength). Potential weakness / unverified assumption: while the discussion is broad, some relevant alternatives (e.g., rich decoding/diversity techniques, other exploration bonuses, or certain recent RLHF-type verifier strategies) could be explored or compared in more depth. Additionally, deeper discussion of limitations and boundary cases (where PAVs fail) would strengthen positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly references public data and pretrained checkpoints and mentions reproducibility, but it lacks an explicit ethics / broader impacts section discussing societal risks, misuse, model biases, or downstream harms. Per scoring rules, missing or unclear ethics considerations cap this criterion at 2/5. Potential weakness / unverified assumption: there is no discussion of potential misuse, risks from improved automated reasoning (e.g., overtrust in model outputs), or license/usage constraints associated with model checkpoints and third-party data."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents a compelling and well-motivated idea — using process advantage verifiers (PAVs) that measure per-step progress under a separate prover policy — and supports it with theoretical arguments and an extensive set of experiments showing improved compute and sample efficiency on math reasoning tasks. Strengths include a clear formalization of advantages-as-reward-shaping, practical training workflows for PAVs, ablations over prover strength, and results across multiple model sizes showing notable gains in test-time search and RL sample efficiency.\n\nCritical issues driving the decision: The reproducibility and transparency of the work are insufficiently established (score = 2). The paper's Reproducibility Statement points to appendices and public model/data resources but does not commit to releasing code, training scripts, hyperparameters, or random seeds; per the rubric this missing information caps the reproducibility score and triggers a mandatory override. According to the RBCL Fatal-Flaw Logic and the Evaluation Logic Overrides, reproducibility ≤ 2 requires the overall decision to be 'Reject' (and caps the reported total score at 20). I therefore must issue a Reject decision. This downgrade is explicit and required by RBCL §2: \"If Reproducibility / Transparency ≤ 2, the final_decision MUST be 'Reject' or worse\" — Decision downgraded due to RBCL §2 Fatal-Flaw Logic.\n\nOther concerns: Technical claims rely on proofs and assumptions in appendices and on the quality of PAV estimators; the impact of PAV estimation error on learning stability and generalization is not fully quantified. Empirically, it is unclear whether results are robust across multiple random seeds or across domains beyond MATH; statistical significance and variance information are not provided. The ethics/broader-impacts discussion is also missing, which is an independent shortcoming (ethics score = 2).\n\nRecommendation to authors: To make this work acceptable for a top-tier venue, (1) publicly release code, data-generation scripts, training configs, hyperparameters, and seeds; (2) include clear instructions and compute accounting to enable independent reproduction; (3) provide statistical analyses (multiple seeds, confidence intervals) and, if possible, experiments on at least one other reasoning domain to demonstrate generality; (4) expand the theory section or appendices to explicitly quantify how PAV estimation error affects policy updates and stability; and (5) add an explicit Ethics / Broader Impacts section discussing potential misuse, dataset provenance, and licensing. With these changes and clearer reproducibility, the technical and empirical contributions could justify acceptance."
+  }
+}

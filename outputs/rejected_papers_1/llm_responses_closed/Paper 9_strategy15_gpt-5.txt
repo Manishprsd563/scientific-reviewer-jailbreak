@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper targets sparse test-time adaptation with two components: (i) a class- and domain-representative memory (CnDRM) using confidence-based pseudo-labeling and proximity to a domain centroid derived from early-layer stats, and (ii) an inference-only batch-aware memory normalization (IoBMN) that soft-shrinks between memory and current-batch statistics. While the combination is thoughtfully motivated for latency-sensitive settings and the IoBMN shrinkage rule is a neat twist, the ideas build heavily on established BN-stat adaptation and confidence/centroid sampling paradigms. A potential weakness is that the domain-representativeness criterion assumes early-layer normalization statistics sufficiently capture domain shift, which is not theoretically justified and may be unreliable across architectures or shifts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing TTA latency for edge devices is a practically important problem. Demonstrating large reductions in adaptation frequency and on-device latency with limited accuracy loss could be valuable for deployment. However, the evaluation is limited to corruption benchmarks (CIFAR/Imagenet-C) and classification; there is no real-world continuous streaming or safety-critical evaluation (e.g., driving cameras), and it is unclear how benefits translate to diverse tasks or more complex shifts. A potential weakness is that the chosen adaptation rates and sampling thresholds may be hand-tuned to these datasets, limiting generality."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The approach is plausible and largely heuristic. IoBMN’s soft-shrinkage between memory and current-batch statistics is intuitive, but the statistical assumptions (e.g., feature-statistic distributions, reliance on early-layer stats as domain proxies) are not rigorously justified. Notation and equations contain inconsistencies/typos, making it difficult to fully verify derivations. A potential weakness is the reliance on pseudo-label confidence and prediction balancing, which may propagate bias and errors under severe shift without a stability or convergence analysis."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Strengths: multiple TTA baselines (Tent, EATA, SAR, CoTTA, RoTTA), several datasets (CIFAR10/100-C, ImageNet-C), ablations (CRM, CnDRM, IoBMN), ViT-based evaluation, and real-device latency on Raspberry Pi 4. Weaknesses: tables are partially garbled, many results lack statistical tests or variance reporting beyond a few mentions, sensitivity analyses for key hyperparameters (adaptation rate, confidence threshold, α, memory size) are limited, and fairness of STTA tuning for baselines is not fully established. Only three seeds are used and there is no robust significance testing. These gaps weaken the strength of the empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for implementation details and reports hardware (Raspberry Pi 4) and multiple baselines. However, no public code/artifacts link is provided, several equations/notations are unclear, and specific hyperparameters (e.g., thresholds, α, memory management policy details) are not fully specified in a way that guarantees faithful reproduction. Per the rubric, missing code and unclear details cap this criterion at 2. Potential weakness: lack of release of code and exact configs (including seeds and environment specs) makes independent verification difficult."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper discusses core TTA baselines (Tent, CoTTA, EATA, SAR, RoTTA), BN-stat adaptation, and data-efficient sampling literature, and mentions a recent latency-aware protocol. Positioning as a sparse TTA approach aimed at edge latency is generally clear. A potential weakness is limited coverage of recent low-latency or streaming/online adaptation methods and broader on-device efficiency literature, which could sharpen the positioning and clarify what is genuinely new relative to efficiency-focused TTA lines."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper notes potential applications in safety-critical domains (e.g., autonomous driving) but does not include a dedicated ethics/broader impacts section in the provided text. There is no discussion of data licensing/provenance, privacy, or failure modes/risk mitigation in real-time settings. Per the rubric, missing or unclear ethics information should be penalized. A potential weakness is the lack of analysis of harm from degraded performance under severe shifts in safety-critical deployments."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.6,
+    "final_decision": "Reject",
+    "final_justification": "The paper tackles an important practical gap—reducing TTA latency on edge devices—and proposes a reasonable sparse adaptation framework (CnDRM + IoBMN) with promising empirical trends across several baselines and datasets, including on-device latency measurements. However, technical justifications are largely heuristic with unclear derivations/notations, the evaluation has inconsistencies and lacks strong statistical rigor and sensitivity analyses, and code/artifacts are not provided. Under RBCL §2 Fatal-Flaw Logic and the Scoring Rules, Reproducibility ≤ 2 triggers a mandatory rejection, and we also treat missing ethics/broader-impacts discussion conservatively. Given these issues, and applying the presumption of rejection and anti-inflation safeguards, I recommend Reject."
+  }
+}

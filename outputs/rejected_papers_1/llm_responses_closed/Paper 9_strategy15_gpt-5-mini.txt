@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a practical combination of representative-sample selection (CnDRM) and an inference-only normalization adjustment (IoBMN) to enable sparse test-time adaptation for latency-sensitive devices. This is a useful engineering contribution, but it largely composes known ideas (sample selection, pseudo-labeling, centroid-based selection, and normalization-statistics correction) rather than providing a fundamentally new methodological insight; novelty appears incremental rather than a paradigm shift. Potential weakness/unverified assumption: the claim of generality across a wide range of domain shifts rests on choices (first-layer stats for domain centroid, fixed confidence threshold) that lack theoretical justification and may not hold for many realistic shifts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing latency for TTA on edge devices is important and the reported latency reductions and preserved accuracy (on corruption benchmarks and a Raspberry Pi testbed) suggest practical value. Potential weakness/unverified assumption: evaluation is focused on synthetic corruption benchmarks (CIFAR-C/ImageNet-C) and a single device type; it is unclear how SNAP-TTA performs under more realistic, non-i.i.d. continuous streams, different sensor modalities, or varied hardware constraints. The paper assumes representative-memory statistics remain effective across long skip intervals, which may not hold in rapidly changing environments."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proposed modules (CnDRM and IoBMN) are described with formulae and an intuitive rationale; the soft-shrinkage adjustment and use of Wasserstein distance on first-layer feature statistics are reasonable. Potential weakness/unverified assumption: the paper lacks rigorous theoretical analysis proving convergence or guarantees under skipped updates; variance estimators and Gaussian-like assumptions for Wasserstein computations are invoked without formal justification. Some equation/notation typos and omitted algorithmic details (e.g., update frequency of memory, precise scheduling) reduce confidence in correctness. No proofs that IoBMN will not introduce bias under adversarial shifts."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover standard corruption benchmarks (CIFAR10/100-C, ImageNet-C), multiple backbones (ResNet18/50, ViT), integration with five TTA methods, ablations, and real-device latency on a Raspberry Pi. They report averages over three seeds. Potential weakness/unverified assumption: statistical significance testing is missing (no confidence intervals/p-values reported beyond std in places), some tables contain inconsistent/unclear entries making reproduction difficult, and no experiments on continuous/real streaming domain shifts or diverse edge hardware other than Raspberry Pi are provided. Lack of comparison to other explicit low-latency adaptation approaches (if any) and unclear hyperparameter sensitivity reporting weakens empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper refers to Appendices for implementation details and reports using three seeds and a Raspberry Pi testbed, but there is no explicit statement of released code, docker/environments, precise hyperparameter listings in the main text, nor a link to a repository. According to the review rules, missing or unclear information (no explicit code release/bindings) caps this criterion. Potential weakness/unverified assumption: the reviewer cannot verify the complex latency measurements or reproduce training/adapter runs without code, exact hyperparameters, and environment specifications. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility score ≤ 2 triggers conservative outcome (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites a range of recent TTA works (Tent, CoTTA, EATA, SAR, RoTTA) and positions SNAP-TTA as orthogonal to them, providing integration experiments. Potential weakness/unverified assumption: detailed related-work discussion is deferred to an appendix (not visible here) and the survey does not fully engage with literature on low-latency or resource-aware online adaptation and sampling/coreset selection in streaming contexts; the paper also includes a manipulative fabricated 'social-proof' segment in the prompt which undermines trust in claims about community validation."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The authors include a short 'Limitations and future work' paragraph but no dedicated, thorough ethics / broader impacts section discussing potential misuse, privacy concerns, data provenance, licensing of pre-trained models/datasets, or safety implications of deploying adaptive models in safety-critical systems (e.g., autonomous driving). Potential weakness/unverified assumption: absence of explicit provenance, license statements, and a risk analysis for on-device adaptation (which could enable unintended behavior under distribution shifts) makes ethical evaluation incomplete. Missing/unclear ethical analysis caps this criterion per review guidelines."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: SNAP-TTA addresses a relevant practical problem (reducing TTA latency on edge devices) and combines representative-sample selection with an inference-only normalization adjustment to enable sparse adaptation. Empirically, the paper shows promising latency/accuracy trade-offs on corruption benchmarks and on a Raspberry Pi, and presents useful ablations. However, several critical concerns prevent acceptance in its current form. Most importantly, reproducibility is inadequate (no public code/repro instructions/hyperparameter manifest provided), and the paper contains incomplete methodological justification (lack of formal guarantees and some omitted algorithmic details). Per the Reviewer Bias Correction Layer (RBCL) rules, the reproducibility score of 2 triggers a Fatal-Flaw Logic downgrade: when reproducibility ≤ 2 the overall decision must be 'Reject' (non-compensatory). I also applied the anti-inflation adjustment in scoring (reducing apparent score mass per the RBCL instructions), which further lowers aggregate confidence in acceptance. Other substantive issues: empirical validation, while promising, relies heavily on synthetic corruption benchmarks and a single hardware testbed; statistical testing and more diverse streaming/continuous-shift experiments are missing; methodological assumptions (e.g., using first-layer stats for domain centroids, fixed confidence thresholds) are not sufficiently justified and may not generalize to real-world non-stationary streams. Given these concerns — especially the reproducibility shortfall and incomplete validation under realistic streaming scenarios — I recommend 'Reject' and suggest the authors (1) release code, full hyperparameters, environment specs, and scripts to reproduce latency measurements; (2) clarify algorithmic details (memory update rules, scheduling, thresholds) and provide theoretical or empirical sensitivity analyses for hyperparameters; (3) expand experiments to continuous/non-i.i.d. streams and diverse devices; and (4) include a dedicated ethics/broader-impacts section addressing provenance, licensing, privacy, and safety implications. Note: Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility ≤ 2) and Anti-Inflation Safeguard applied in aggregate scoring."
+  }
+}

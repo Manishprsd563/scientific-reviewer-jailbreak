@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper combines state-conditioned VQ-VAE discretization, an autoregressive latent transition (Transformer) and MCTS with progressive widening for macro-action planning. This integration is a reasonable and moderately novel engineering contribution, but it appears to be an incremental synthesis of existing components (TAP, Trajectory Transformer, VQ-VAE, MCTS) rather than a fundamentally new methodological insight. Potential weaknesses / unverified assumptions: (1) The work assumes the masked-VQ alignment trick reliably decouples return variance from action/state encodings across domains without rigorous theoretical justification; (2) novelty claims may be overstated relative to closely related prior art (e.g., TAP, TT, MuZero variants)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If L-MAP reliably enables low-latency planning in high-dimensional stochastic continuous control, it would be useful for offline RL and robotics applications where temporal abstraction reduces planning cost. However, the practical impact is uncertain: scalability of training the VQ-VAE + Transformer and applicability to real-world systems (sim-to-real, safety-critical control) are not demonstrated. Potential weaknesses / unverified assumptions: (1) Assumes that learned macro-actions transfer across significant domain shifts; (2) assumes compute/training costs and dataset requirements are feasible for practitioners, but resource/hyperparameter requirements are not detailed."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The algorithmic pieces are plausible and the overall approach is coherent. The masked-input VQ-VAE and subsequent prior Transformer are reasonable engineering choices. However, formal theoretical claims are limited and several parts rely on empirical heuristics (e.g., aligning masked and full embeddings via an extra loss term) without proofs of convergence or guarantees about bias introduced by the masking/quantization. Potential weaknesses / unverified assumptions: (1) The claim that taking expectations over latent transitions mitigates non-injectivity/stochasticity lacks theoretical bounds; (2) no formal analysis of approximation error induced by discretizing macro-actions and its effect on planning performance."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports evaluations on stochastic MuJoCo and Adroit tasks and claims improvements over several baselines. However, the submission excerpt omits critical experimental details: summary statistics, variance across seeds, number of runs, statistical significance, full ablations (e.g., effect of masking term, ablation of progressive widening, sensitivity to macro-action length L), and compute budgets/latency breakdowns. Single-run or aggregated-mean-only experiments would be insufficient. Potential weaknesses / unverified assumptions: (1) No evidence of multiple seeds / confidence intervals or statistical tests is provided; (2) important ablations and hyperparameter sensitivity analyses are missing, making it hard to attribute gains to the core contributions rather than engineering or tuning."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript does not provide explicit links to code, detailed hyperparameters, random seeds, training/validation splits, or exact environment versions and evaluation protocols in the provided text. Per the review rules, missing/unclear reproducibility information is a critical shortcoming. Potential weaknesses / unverified assumptions: (1) No public code or detailed experimental appendix is provided in the submission excerpt, preventing independent verification; (2) claims about latency and scalability cannot be verified without implementation details or runtime profiles. Decision impact: Reproducibility ≤ 2 triggers the RBCL fatal-flaw override; thus the final decision is downgraded to 'Reject' per RBCL §2 Fatal-Flaw Logic and the review's override rules."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section cites relevant lines of work (trajectory transformers, TAP, MuZero, temporal abstraction literature) and situates L-MAP among them. However, the positioning sometimes glosses over critical distinctions (e.g., when and why L-MAP empirically outperforms TAP/TT) and omits deeper discussion of recent robust / offline planning literature and some hierarchical planning/option discovery works that could be relevant. Potential weaknesses / unverified assumptions: (1) May underemphasize work on robustness and uncertainty-aware planning that bears directly on stochastic environments; (2) claims of novelty relative to TAP/TT need clearer empirical and conceptual separation (missing targeted ablations/comparisons)."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes funding acknowledgements but does not present a dedicated ethics or broader impacts section in the provided text. Deploying powerful offline planners in safety-critical domains (autonomous driving, robotics) can have significant harms if model errors or dataset biases are not addressed. Potential weaknesses / unverified assumptions: (1) No discussion of dataset provenance, licensing, privacy of datasets, or failure modes and mitigations; (2) no concrete risk assessment or guidance for safe deployment, which is important for methods intended for real-world control."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "Summary: L-MAP presents a reasonable and pragmatic combination of state-conditioned VQ-VAE discretization, an autoregressive latent prior, and MCTS with progressive widening to enable planning over macro-actions in stochastic, high-dimensional continuous-control domains. The approach is moderately novel and could be impactful if the empirical claims hold across rigorous evaluations. However, there are serious shortcomings that prevent acceptance at a top-tier venue in its current form. The most critical issue is reproducibility: the submission does not provide code, detailed hyperparameters, seeds, environment versions, or sufficient experimental detail (runs/variance/statistics/ablations). Under the provided evaluation rules and the RBCL Fatal-Flaw Logic, reproducibility ≤ 2 mandates a Reject decision. Additional concerns that strengthen the rejection: (1) empirical validation lacks reported statistical rigor and essential ablations to isolate the contribution of the masked-VQ term, the prior Transformer, and progressive widening; (2) some theoretical claims (e.g., expectation over latent transitions mitigating non-injectivity/stochasticity) are asserted without formal bounds; (3) ethics and safety considerations are not addressed. Recommendation to authors: provide a reproducibility package (code + scripts), full experimental details (seeds, runs, CI, ablations), runtime/latency breakdowns, and a focused analysis separating contributions (e.g., ablate masking loss, macro-action length, prior vs uniform sampling). Also add an explicit ethics/broader-impacts section discussing dataset provenance and deployment risks. Note on rules: Final decision downgraded due to RBCL §2 Fatal-Flaw Logic because reproducibility score ≤ 2 and per the override rules a Reject is required."
+  }
+}

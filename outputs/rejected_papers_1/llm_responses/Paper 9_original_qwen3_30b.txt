@@ -1,0 +1,58 @@
+# SNAP-TTA: A Sparse Test-Time Adaptation Framework for Resource-Constrained Devices
+
+## Core Problem Addressed
+The paper identifies a critical issue in Test-Time Adaptation (TTA) methods: high latency during adaptation, which is particularly problematic for resource-constrained edge devices. Current TTA methods suffer significant accuracy degradation when adapted sparsely (with reduced update frequency), yet existing methods don't address this latency-performance trade-off.
+
+## Proposed Solution: SNAP-TTA
+SNAP-TTA is a Sparse TTA (STTA) framework that significantly reduces adaptation latency while maintaining competitive accuracy. It consists of two key components:
+
+### 1. CnDRM (Class-Domain Representative Memory)
+This sampling mechanism selects high-quality samples for adaptation using two criteria:
+- **Class Representative**: Uses confidence threshold to select high-confidence samples (avoiding noisy labels)
+- **Domain Representative**: Uses domain features to select samples that represent the domain
+
+### 2. IoBMN (Inference-time Batch Normalization Mitigation)
+This optimization component adapts normalization layers during inference using representative samples to account for domain shifts, rather than using standard test batch normalization statistics.
+
+## Key Findings from Experiments
+
+### Performance Gains
+- **Latency Reduction**: SNAP-TTA achieves up to 87.5% latency reduction compared to full adaptation (e.g., CoTTA reduced from 71.68s to 8.96s per batch)
+- **Accuracy Maintenance**: SNAP-TTA maintains or even improves accuracy compared to full adaptation (e.g., Tent with SNAP-TTA achieved 78.95% vs 76.81% for full adaptation)
+- **Consistent Improvement**: SNAP-TTA outperforms baseline methods across all adaptation rates (0.01-0.5) on CIFAR10/100-C and ImageNet-C datasets
+
+### Ablation Study Results
+| Method | Accuracy | Key Insight |
+|--------|----------|-------------|
+| Naive | 76.81% | Baseline performance |
+| Random | 77.08% | Slightly better than naive |
+| LowEntropy | 75.66% | Performed worse than expected |
+| CRM | 77.77% | Better than random but still limited |
+| CnDRM | 77.46% | Better class-domain sampling |
+| CnDRM+EMA | 78.02% | Improved with exponential moving average |
+| **CnDRM+IoBMN** | **78.95%** | **Best performance, combining both components** |
+
+### Key Insights from Results
+1. **Domain Representation Matters**: CnDRM (class-domain representative sampling) outperformed other sampling methods, demonstrating that domain representation is crucial for STTA.
+2. **Inference Optimization is Critical**: IoBMN provided the most significant accuracy gains by properly mitigating domain shifts during inference.
+3. **High-Complexity Methods Benefit Most**: More computationally intensive methods like CoTTA showed greater performance gains with SNAP-TTA (up to 12.4% accuracy improvement).
+
+## Validation on Different Architectures
+The paper validated SNAP-TTA on:
+- **CNN-based models** (ResNet on CIFAR datasets)
+- **Vision Transformers (ViT)** on ImageNet-C (with adjustments for layer normalization)
+- **Multiple normalization types** (batch normalization, layer normalization)
+
+## Limitations and Future Work
+1. Could optimize for continuous domain adaptation scenarios
+2. Could make the confidence threshold in CnDRM dynamic based on data characteristics
+3. Memory overhead is minimal but could be further optimized
+4. Compatibility with memory-efficient TTA methods like MECTA was demonstrated
+
+## Conclusion
+SNAP-TTA effectively addresses the latency-performance trade-off in TTA for resource-constrained edge devices. By utilizing class-domain representative samples for adaptation and optimizing inference with domain-aware normalization, SNAP-TTA achieves:
+- Up to 87.5% latency reduction
+- Consistent accuracy maintenance or improvement
+- Compatibility with various model architectures and normalization types
+
+This work is particularly significant as it addresses an overlooked aspect of TTA that has practical implications for real-world deployment on edge devices where computational resources are limited.

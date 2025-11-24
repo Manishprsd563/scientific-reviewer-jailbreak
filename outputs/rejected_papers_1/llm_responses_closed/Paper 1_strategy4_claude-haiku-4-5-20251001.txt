@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core contribution—hybrid batch sampling with probability α for monolingual and β=(1−α) for cross-lingual batches—is a straightforward combination of two existing approaches (X-X-mono and X-Y batching). The paper explicitly acknowledges that X-X and X-Y batching are from Roy et al. (2020). While combining them is sensible, this represents an incremental engineering choice rather than a novel methodological insight. The authors propose setting α=0.5 based on grid search, but this is a simple hyperparameter selection, not a principled technique. The machine translation pipeline for data augmentation is standard practice and not novel. Unverified assumption: The paper assumes that simple batch-level mixing will automatically produce language-agnostic representations, but no theoretical justification or mechanistic explanation is provided for why this should occur."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem addressed—simultaneously optimizing monolingual, cross-lingual, and multilingual retrieval—is relevant and practically important. If the method were more novel, the impact would be higher. However, the improvements shown in Table 1 are marginal: for XLM-R on XQuAD-R, hybrid achieves 0.798 monolingual MAP vs. 0.792 for X-X-mono (+0.6%), and 0.705 cross-lingual vs. 0.700 for X-Y (+0.7%). These are within noise margins and lack statistical significance testing. The practical utility is limited because practitioners can still use X-X-mono for monolingual tasks and X-Y for cross-lingual tasks, obtaining better performance in each setting separately. Potential weakness: The paper does not demonstrate when one would prefer the hybrid approach over task-specific models in real deployments."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The use of standard contrastive learning (InfoNCE loss) and dual-encoder architecture is correctly applied. The batch sampling procedure is straightforward and correctly described. However, critical weaknesses exist: (1) No theoretical analysis of why hybrid sampling should reduce language bias or improve multilingual performance. The claim that 'hybrid batch training encourages learning of language-agnostic representations' is unsupported by theory or mechanistic analysis. (2) The language bias metric (maximum rank distance) is adopted from prior work but its validity for measuring bias is not established in this paper. (3) Early stopping is performed on an English-only validation set (SQuADShifts), which may introduce English bias into the final model. This methodological choice is not justified and potentially undermines claims about language-agnostic learning. (4) No analysis of why α=0.5 is optimal beyond empirical grid search results on held-out validation."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Major empirical weaknesses: (1) No statistical significance testing (e.g., confidence intervals, t-tests) reported for any results. Differences of 0.3–1% in MAP could be within noise. (2) Single random seed appears to be used; no error bars or multiple runs reported. (3) Incomplete baseline comparisons: The paper compares only against X-X-mono and X-Y batching. Missing comparisons to recent methods mentioned in related work: contrastive loss approaches (Hu et al., 2023), knowledge distillation (Huang et al., 2023a), or Aggretriever (Lin et al., 2023b). These omissions undermine the significance of the results. (4) Ablation studies are limited—no systematic study of α values is presented in the main paper (only grid search claim without detailed results). (5) The MIRACL results are relegated to appendix without main-paper discussion. (6) Zero-shot generalization claims (Greek, Vietnamese) are not thoroughly validated—these languages appear in only limited evaluation settings. Critical assumption: The paper assumes that mAP and rank distance are sufficient metrics; other aspects like query-specific performance variation or failure modes are not analyzed."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Severe reproducibility issues: (1) No code is mentioned or provided (stated in anonymous submission context, but no commitment to release). (2) The in-house machine translation pipeline used to create parallel QA pairs is not publicly available and not described in sufficient detail to reproduce. This is critical data that others cannot access. (3) Random seed(s) not specified. (4) Batch sampling implementation details are vague (e.g., how exactly are negatives sampled in the hybrid batches?). (5) Early stopping procedure is underspecified—how many validation examples? How is the validation set constructed? (6) Grid search over α is mentioned as 'ranging from 0 to 1' but no detailed results or confidence intervals are shown. (7) Model checkpoint selection depends on unreleased validation data (SQuADShifts English subset). The inability to access or reproduce the machine-translated training data is a fatal reproducibility flaw. Per RBCL guidelines, this caps the score at 1–2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The related work section (Section 1) provides a reasonable overview of multilingual IR approaches (mBERT, XLM-R, LaREQA, InfoXLM, LaBSE, etc.). However, critical gaps exist: (1) No experimental comparison to the recent methods cited: contrastive loss methods (Hu et al., 2023), knowledge distillation (Huang et al., 2023a), or translate-train (Lawrie et al., 2023). The paper mentions these but only compares empirically to two baselines from 2020 (Roy et al.). (2) The claim that prior work 'compromises performance in monolingual retrieval tasks' (referring to Roy et al., 2020) is stated without direct evidence from this paper's experiments. (3) Limited discussion of why simpler batch-mixing should be better than explicit alignment losses or knowledge distillation. The paper does not convincingly position its contribution relative to the state-of-the-art beyond the two narrow baselines. Unverified assumption: The implicit assumption that batch-level modifications are sufficient without architectural or loss-function innovations is not well-justified against cited alternatives."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The ethics/limitations section (Section 6) is minimal and acknowledges only two concerns: (1) lack of diversity, fairness, and transparency analysis, and (2) limited dataset coverage. However, critical ethical issues are unaddressed: (1) The in-house machine translation pipeline—its training data, quality, and potential biases—are not disclosed. Machine translation can introduce systematic errors or biases, which could propagate into the training data and model. (2) Data provenance is unclear: DuoRC, EntityQuestions, Google NQ, MFAQ, Mr. Tydi, NewsQA, WikiQA, and Yahoo QA are used; are all licenses compatible? Is permission obtained for Yahoo Answers mining? (3) No discussion of how the model might reflect or amplify societal biases in underlying datasets. (4) The authors acknowledge that results 'may reflect societal biases present in the training data' but provide no mitigation strategy or bias analysis. (5) No discussion of potential harmful applications (e.g., surveillance, discrimination in cross-lingual information access). The ethics section is insufficient for a top-tier venue."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.92,
+    "final_decision": "Reject",
+    "final_justification": "This paper proposes a simple hybrid batch sampling strategy (mixing monolingual and cross-lingual batches with α=0.5) for multilingual information retrieval. While the problem is relevant, the contribution is incremental—combining two existing baselines via straightforward hyperparameter selection. Critical deficiencies trigger rejection: (1) **Reproducibility (score 1)**: The in-house machine translation pipeline is not accessible, preventing reproduction of the core training data. This is a fatal flaw per RBCL §2. (2) **Technical Soundness (score 3)**: No theoretical justification for why hybrid sampling should work. Early stopping on English-only validation may introduce bias. Mechanisms are not explained. (3) **Empirical Validation (score 2)**: No statistical significance testing; single random seed; marginal improvements (~0.6–1% MAP); missing comparisons to recent methods (Hu et al., 2023; Huang et al., 2023a; Lawrie et al., 2023). (4) **Novelty (score 2)**: Straightforward combination of existing approaches, not a methodological advance. (5) **Ethics (score 1)**: Data provenance unclear, bias risks unaddressed, machine translation quality undisclosed. The paper exhibits over-claimed contributions ('synergistic approach,' 'substantially reduces language bias') unsupported by rigorous evidence. Per RBCL principles (Fatal-Flaw Logic, Error Asymmetry Principle, Evidence Severity Scaling), missing code, inaccessible training data, and lack of statistical rigor mandate rejection regardless of numerical total score. The work would benefit from: reproducible code release, proper significance testing, comparison to recent baselines, theoretical analysis of why the approach works, and comprehensive ethics evaluation."
+  }
+}
+```

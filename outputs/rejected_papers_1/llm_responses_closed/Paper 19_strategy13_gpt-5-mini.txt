@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes a dynamic, greedy token-tree construction for speculative decoding which is a reasonable engineering contribution relative to fixed-tree approaches. However, closely related prior works (Eagle-2, ReDrafter, Sequoia, SpecInfer, Medusa) already explore dynamic or draft-probability-based tree strategies; the novelty is therefore incremental rather than a fundamentally new methodological insight. A key unverified assumption is that the proposed greedy expansion yields substantial new algorithmic insight beyond prior dynamic strategies; the claim of theoretical optimality is stated under \"mild assumptions\" but those assumptions are not made explicit in the main text. Note: per RBCL anti-inflation the initial score was reduced by 0.5 to counter mid-range inflation."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "Accelerating autoregressive decoding for large models is an important practical problem and improvements in acceptance rate / throughput are potentially impactful for deployment. However, reported gains appear highly dependent on the draft/target latency ratio, hardware/software implementation details (CUDA graph usage, CPU offloading), and the quality of the chosen draft models. A potential weakness is that speedups observed (e.g., 9x) may not generalize across deployment setups or draft/target model pairs; throughput improvements could be dominated by engineering/implementation choices rather than purely algorithmic advantages. Per RBCL anti-inflation the initial score was reduced by 0.5."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper includes an analysis connecting draft probability and acceptance rate using a KL constraint and claims optimality of the greedy construction under mild assumptions. However, the main derivations are terse; critical assumptions (e.g., how tightly KL constraints translate to acceptance-rate ordering in practice, independence assumptions across tree nodes, effects of sampling-without-replacement on probabilities) are not fully justified or empirically stress-tested. The claimed theoretical optimality hinges on assumptions that are not clearly enumerated or validated in the main text. This score reflects substantive unverified assumptions and, after RBCL anti-inflation, was reduced. Note: because technical_soundness ≤ 2, RBCL §2 Fatal-Flaw Logic requires the overall decision to be 'Reject'."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 1,
+      "justification": "The paper reports results across multiple datasets and model scales and compares to some baselines (Sequoia, SpecInfer). However, important experimental details are missing or weak: no release of code or seeds, no variance/error bars or statistical tests (appears single-run reporting), limited ablation (e.g., sensitivity to draft model quality, effect of threshold C, impact of tree size/depth choices), and some comparisons mix different implementation/engineering settings (CUDA graph enabled in some setups but not others; CPU offloading used for Llama2-70B) that could change the fairness of runtime comparisons. These shortcomings constitute missing information that penalizes empirical rigor; per scoring rules missing/unclear experimental information caps this criterion and RBCL anti-inflation further reduced the numerical score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript does not provide a code or artifact link, nor does it include detailed hyperparameters, random seeds, exact build/capture settings for CUDA graphs, or the C++ implementation referenced. While datasets and models are named, precise reproduction of the reported timings and engineering optimizations (CUDA graph capture strategy, CPU-offloading tricks) would be challenging. Missing code and missing implementation details are a major reproducibility gap; by rule, missing/unclear information caps this criterion and RBCL anti-inflation was applied. Note: because reproducibility ≤ 2, RBCL §2 Fatal-Flaw Logic requires the overall decision to be 'Reject'."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper contains a substantial related-work section and situates itself relative to SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, and ReDrafter, discussing practical differences. Nonetheless, some comparisons are qualitative and could be more precise (e.g., formalizing when DYSPEC differs algorithmically from Eagle-2/ReDrafter and providing controlled empirical head-to-heads). A potential weakness is the lack of a clear taxonomy that cleanly separates algorithmic novelties from implementation/engineering optimizations; this makes it harder to judge whether gains stem from algorithmic differences or engineering choices. RBCL anti-inflation reduced the initial score by 0.5."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The manuscript provides no ethics statement, discussion of broader impacts, data licensing/provenance, or possible misuse implications of accelerated generation (e.g., easier large-scale generation, potential for abuse). The absence of any ethics or broader-impact discussion is a substantive omission per the rubric and caps this criterion; RBCL anti-inflation was also applied."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 11,
+    "confidence": 0.60,
+    "final_decision": "Reject",
+    "final_justification": "While the paper addresses an important practical problem and presents a sensible dynamic greedy token-tree construction with empirical gains across datasets and model scales, there are critical weaknesses that warrant rejection. Key failures: (1) Reproducibility is insufficient (no code, missing implementation and hyperparameter details, and complex engineering optimizations not documented) and (2) Technical soundness relies on unenumerated \"mild assumptions\" linking draft probabilities to acceptance rates and claiming optimality without full justification. Under the Reviewer Bias Correction Layer (RBCL) rules, both reproducibility ≤ 2 and technical_soundness ≤ 2 trigger Fatal-Flaw Logic and force a Reject decision; this is explicitly applied here (\"Decision downgraded due to RBCL §2 Fatal-Flaw Logic\"). Additional concerns include limited empirical rigor (single-run / no variance, limited ablations, possible hardware-dependent speedups) and missing ethics/broader-impact analysis. The paper could be improved by: releasing code and C++ implementation details, providing seeds/hyperparameters and full runtime build instructions; expanding theoretical exposition to make assumptions explicit and validating them empirically; adding ablations (sensitivity to draft model quality, thresholding strategy, depth vs breadth) with error bars/statistical tests; and including an ethics/broader-impacts section. Given the fatal reproducibility and soundness concerns, the work is not acceptable for acceptance in its current form."
+  }
+}

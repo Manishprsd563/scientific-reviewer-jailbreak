@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core idea is a simple mixture of monolingual and cross-lingual batch sampling with a tunable probability (alpha/beta). While pragmatic, this is a straightforward extension of known batching strategies and does not introduce new objectives, architectures, or theoretical insights. Potential weakness: the paper assumes that batch mixture alone is the primary driver of improvements without comparing against other simple curricula (e.g., instance-level interleaving, temperature-based negatives, or multi-task schedulers), leaving the originality and necessity of the specific mixture under-justified."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "A broadly applicable training recipe for multilingual IR could be useful, and the reported gains across multiple languages and settings are appealing. However, the impact is tempered by modest improvements and limited positioning versus stronger end-to-end MLIR pipelines (e.g., translate-query/document, reranking, ColBERT-X, mContriever/GTR/E5-style multilingual retrievers). Potential weakness: the method’s practical impact is unclear without comparisons to current state-of-the-art systems beyond batching strategies, and without released resources practitioners cannot easily adopt it."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The setup (dual-encoder, InfoNCE, in-batch negatives) is standard and sound, and the methodology is coherent. Assumptions like early stopping on an English-only validation set may bias toward English and are not fully justified for multilingual objectives. Potential weakness: reliance on in-house machine translations introduces an unquantified confounder (translation quality, domain/style shifts), and the language-bias metric is adopted without detailed formalization or sensitivity analysis; no error analysis is provided to validate causal claims."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports results on XQuAD-R, MLQA-R, and MIRACL dev across several languages and two backbones, which is positive. However, there are critical gaps: no multiple runs or statistical tests, no variance reporting, and minimal ablation (the grid search for alpha is claimed but not shown in detail). Potential weakness: key confounders such as the effect of translation quality, negative sampling variants, batch size sensitivity, and the influence of early stopping on English are not ablated; stronger baselines (e.g., translation-based pipelines, dense rerankers, hybrid lexical-dense multilingual systems) are not included. Per the rubric, single-run reporting without statistical rigor warrants a penalty."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Some hyperparameters, hardware, and optimizer settings are given, but there is no code link, no release of the in-house translated datasets or MT pipeline, no seeds, and no full training/evaluation scripts. Potential weakness: the core training data (parallel QA pairs from in-house MT) appears unreleased and not independently verifiable, making replication difficult and preventing assessment of data quality and provenance. Per the scoring rules, missing code and opaque data pipelines cap this criterion at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites several relevant multilingual works (e.g., LaBSE, InfoXLM, LaREQA) and positions its contribution as a batching strategy. However, coverage omits or under-discusses competitive multilingual retrieval and re-ranking systems (e.g., mContriever, GTR, E5 multilingual, ColBERT-X, translate-test/train pipelines), and prior art on batch composition/curricula in contrastive learning. Potential weakness: without comparisons to these strong baselines, the practical positioning is incomplete."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Limitations note potential biases but there is no dedicated ethics/impact statement. Data provenance and licensing (e.g., Yahoo Answers), translation biases, privacy concerns, and the implications for low-resource languages are not addressed. Potential weakness: the in-house MT data creation process is opaque (licensing, consent, demographic bias), and environmental/compute costs are not discussed. Per the rubric, missing or unclear ethical details justify a low score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the paper presents a simple and practical hybrid batching scheme with encouraging results across multiple languages and tasks, the contribution is incremental and lacks rigorous empirical validation (no multiple seeds, no statistical tests, limited ablations). More critically, reproducibility is weak: code and the in-house translated training data are not provided, seeds are absent, and the data creation pipeline is opaque. Under RBCL §2 Fatal-Flaw Logic and the explicit override rule, a Reproducibility score ≤ 2 mandates rejection, and we apply this downgrade. Additional concerns include incomplete positioning against stronger multilingual retrieval baselines and limited ethical transparency. Overall, the work is promising as a training recipe but does not meet top-tier standards for rigor and transparency at this time."
+  }
+}

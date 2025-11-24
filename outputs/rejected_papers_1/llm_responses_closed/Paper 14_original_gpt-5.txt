@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes structure-aware masks over heads and filters to constrain second-order unlearning updates, which is a reasonably fresh angle within the unlearning context and differs from purely parameter-level sparsity. The categorization of successive unlearning into memory-free vs. memory-aided is tidy but not conceptually groundbreaking. Potential weakness: the idea resembles known structure-level importance/pruning for Transformers (e.g., head/filter importance) adapted to unlearning; the mask-learning via greedy search and diagonal FIM scoring is an incremental combination of known components rather than a fundamentally new technique."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If robust, reducing unlearning cost while maintaining fidelity on Transformers is valuable. The reported gains (memory/time reductions and modest improvements over SO) are promising but comparatively small and evaluated on relatively small models and limited unlearning sizes, limiting practical impact claims. Potential weakness: unclear scalability to large LLMs and enterprise-scale unlearning workloads; improvements in MIA/unlearning accuracy are modest and may not translate to stronger privacy guarantees."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The method relies on a diagonal empirical FIM and asserts off-diagonal insignificance and tighter approximation error bounds with sparsity; these claims are not rigorously justified for Transformer attention blocks and are presented without clear, verifiable proofs. The greedy mask optimization over discrete structures lacks convergence guarantees or analysis of suboptimality. Potential weakness: the claimed error reduction 'proportional to sparsity' and the head/filter-level importance derivation are insufficiently substantiated; dependence on diagonal FIM can be fragile when parameters are strongly coupled, especially in attention mechanisms."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments span several tasks and models and compare against common baselines (FT, GD, SA, SO, RT). However, there are no multiple seeds, no error bars or statistical tests, and the forgetting set size is fixed at 128 with limited sensitivity analyses. Details for successive unlearning are light in the main text, and ablations on mask design (heads vs. filters, sparsity levels beyond the quoted 90%, search warm-start efficacy) are limited. Potential weakness: lack of variance reporting and comprehensive ablations undermines robustness of conclusions; MIA setup is simplistic and may not reflect stronger attacks."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references standard datasets/models and mentions hyperparameters in an appendix, but there is no explicit code release, no random seeds, environment details, or precise algorithmic settings for the greedy mask search in the main text. Potential weakness: without code or detailed, step-by-step instructions, reproducing mask selection and the full SPE-SO pipeline is uncertain; exact FIM computation details (data split, batching, numerical stability) are under-specified."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites several relevant unlearning and parameter-efficiency works and situates its approach among SO-based methods and sparsity/pruning ideas. Potential weakness: misses or under-emphasizes recent LLM-scale unlearning approaches, certified removal lines, and structural importance literature (e.g., head importance studies) that could sharpen positioning; LoRA/adapter-based unlearning comparisons are absent."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The motivation references GDPR and right to be forgotten, and MIA is used as a privacy proxy. However, there is no dedicated ethics/broader impacts section, no discussion of data licensing, potential misuse (e.g., selective forgetting bias), or harms from incomplete unlearning. Potential weakness: ethical considerations, data provenance, and privacy guarantees are not systematically addressed; no analysis of residual leakage or fairness implications."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the structure-aware masking of heads/filters for second-order unlearning is a reasonable idea with some empirical promise, the submission lacks rigorous theoretical backing for its key claims (e.g., error reduction proportional to sparsity, diagonal FIM adequacy in Transformers) and presents limited experimental rigor (no multiple seeds/statistics, sparse ablations, small-scale evaluations). Reproducibility is constrained by the absence of code and under-specified algorithmic details. Per RBCL §2 Fatal-Flaw Logic, technical soundness ≤ 2 and reproducibility ≤ 2 constitute non-compensatory weaknesses; thus, the decision is downgraded to Reject despite some positive indications."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes integrating three uniformity-driven objectives (accuracy, convergence, scalability) via decoupled probability matrices and a greedy sampling scheme. While the unification is neat, each component (uniform sampling to reduce bias, uncertainty-guided pair selection, prioritizing new models) is known in related literatures (pairwise evaluation, active/uncertainty sampling, cold-start handling). The Hadamard-product integration and uniformity framing feel incremental rather than a genuinely new methodological insight. Potential weakness: the claim that uniformity simultaneously optimizes all three goals relies on unverified assumptions and lacks a formal optimality guarantee for the combined objective."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If valid, reducing evaluation budgets by ~17% (static) and >50% (dynamic) could be useful for practical LLM evaluation. However, the absolute gains over stronger active-ranking/dueling-bandit baselines are not demonstrated, limiting perceived impact. Results are largely simulated with LLM-as-judge and a self-defined ‘ground truth’ (full traversal under the same judge), so generality to human preference aggregation remains uncertain. Potential weakness: the improvements may not hold against state-of-the-art adaptive sampling/ranking algorithms not evaluated here."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "A critical concern is the unbiased win-rate estimator in §3.3 uses importance weighting by 1/P_{i,j}^l, but the default sampling policy is greedy (deterministic argmax), for which the actual selection probability is 1 for the chosen tuple. Using P from the normalized scoring matrix rather than the true selection probability leads to bias and potentially inflated variance, undermining the estimator and the uncertainty calculations that drive the method. Additional weaknesses: (1) The claim that fully uniform sampling minimizes bias depends on strong assumptions (e.g., zero-sum/independence of per-tuple biases) not rigorously justified for adaptive CBE; (2) No theoretical analysis for optimality or stability of the Hadamard-product integration and greedy policy; (3) Importance weighting can be high-variance when probabilities are small, exacerbated by greedy selection. These issues raise doubts about correctness of both estimation and convergence claims."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports extensive simulations, ablations, multiple judges (LLMs and limited human), and dynamic scenarios. However: (1) Key baselines from active ranking/dueling bandits (e.g., Thompson sampling, KL-LUCB, RUCB, TrueSkill/Glicko, optimal experimental design) are missing; (2) No statistical tests/confidence intervals are provided despite multiple seeds; (3) Results hinge on a ‘ground truth’ derived by full traversal under the same (LLM) judge, which may not reflect human preferences; (4) Potential estimator bias under greedy selection is not validated against a ground-truth-independent method. Potential weakness: empirical conclusions may not generalize beyond the specific simulation protocol and baseline choices."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper mentions prompts (Appendix) and some hyperparameters (alpha), but there is no code, no released pairwise-judgment datasets for the full traversals, and no detailed environment/seed configuration to replicate the 10,000-seed simulations. Reliance on closed LLM judges further impedes exact reproduction. Potential weakness: absent artifacts and detailed instructions make it hard to verify the estimator implementation (especially under greedy sampling), triggering the cap per scoring rules."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper discusses Random, Arena, AlpacaEval, and aggregation methods (Elo/Bradley–Terry). It omits substantial related areas: dueling bandits/active ranking (e.g., RUCB/KL-RUCB, Thompson/TopRank), optimal design for pairwise comparisons, Bayesian rating systems (TrueSkill/Glicko), and tournament scheduling. Without these, positioning and baseline coverage are incomplete. Potential weakness: conclusions about superiority may not hold when compared to these established approaches."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No substantive ethics/broader impacts discussion is provided. The work relies on human labels (MT-Bench) and extensive LLM-judge use, yet it does not discuss licensing, annotator consent, bias/fairness of judges, or potential misuse of automated preference evaluation. Potential weakness: absence of an ethics statement and risk analysis."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "Despite an intuitively appealing unification of three objectives, the paper suffers from a likely estimator-policy mismatch: the unbiased estimator requires correct selection probabilities, yet the default greedy sampling is deterministic. Using 1/P from a normalized scoring matrix rather than the actual selection probability introduces bias and undermines the uncertainty estimates that drive the method. Missing key baselines from dueling bandits/active ranking and lack of reproducibility (no code/data) further weaken the case. Per RBCL §2 Fatal-Flaw Logic, technical soundness ≤ 2 and reproducibility ≤ 2 mandate a Reject, and we explicitly apply this override."
+  }
+}

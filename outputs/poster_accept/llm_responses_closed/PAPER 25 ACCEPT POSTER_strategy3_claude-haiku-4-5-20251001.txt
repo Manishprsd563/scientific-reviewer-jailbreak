@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper introduces In-Distribution Interventions (IDI), a genuinely novel approach to root cause diagnosis that shifts from counterfactual estimation (which requires abduction and OOD model evaluation) to interventional estimation constrained to in-distribution inputs. This is a meaningful methodological innovation with clear theoretical motivation. However, the approach builds on well-established causal inference foundations (SCMs, interventions, Shapley values), so the core originality is somewhat incremental within the causal inference literature. The key insight—that abduction errors in counterfactual estimation are problematic for anomaly diagnosis—is valuable but not groundbreaking. The potential weakness is that interventional approaches in causal inference are not themselves novel; the novelty lies primarily in their application to RCD and the motivation for preferring them over counterfactuals in this specific domain."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "Root cause diagnosis in cloud systems is a practically important problem with clear real-world applications. The paper addresses a genuine pain point: existing RCD methods either ignore the fix condition or employ it via counterfactuals, which are unreliable for out-of-distribution anomalies. IDI offers a practical improvement for a deployed system domain (cloud microservices). However, the significance is somewhat limited by the restrictive assumptions required (Assumption 1: at most one root cause per path), which may not hold in complex real-world systems with multiple simultaneous failures. Additionally, the scope is limited to RCD; the insights do not generalize to other domains. The paper would have higher impact if the method were demonstrated on real-world cloud traces rather than relying on synthetic benchmarks and a single curated dataset (PetShop)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 4,
+      "justification": "The theoretical analysis in Section 4 is well-motivated: bounding the error of interventional estimates by the standard deviation of exogenous variables (Equation 1) versus bounding counterfactual errors by total variation distance between distributions (Equation 2) is a sound comparison. The two-condition framework (Anomaly and Fix) is well-defined and theoretically grounded. However, critical assumptions warrant scrutiny: (1) Assumption 1 (at most one root cause per path) is restrictive and acknowledged only informally in Figure 3—no formal treatment of violation consequences; (2) the paper assumes a known, acyclic causal graph, which is a strong assumption for real systems; (3) the definition of root cause distribution Q_X^RC(j) assumes access to conditional distributions P(ε_j | ε_{-j}, φ_j(x_j)=1, φ_n(x_n)=1), which may be intractable to estimate; (4) for multiple root causes, the reliance on Shapley values introduces computational complexity (exponential in the number of candidates) not discussed in detail. The theoretical proofs are deferred to appendices, limiting verification in the main paper."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper includes three experimental settings: (1) toy experiments on a 4-variable graph with controlled variance, (2) PetShop dataset (cloud microservices benchmark), and (3) synthetic datasets with systematic SCM complexity variation. Strengths: IDI consistently outperforms baselines on PetShop (Table 1, achieving 0.90 Recall@1 on low/high latency and 1.00 on temporal). Comparison includes 9 baselines across three categories. Weaknesses: (1) PetShop is the only real-world dataset; the paper claims 'systematic variation' of SCM complexity in synthetic experiments but provides no results table—this is deferred to appendices, making it impossible to verify claims in the main text; (2) no statistical significance testing, confidence intervals, or error bars; (3) no ablation studies on key design choices (e.g., which anomaly detector to use, sensitivity to fix value sampling); (4) the toy experiment uses only 100 test samples per configuration and does not isolate IDI's performance from anomaly detection quality; (5) missing details on how synthetic datasets are constructed and whether they reflect realistic cloud topologies; (6) no analysis of failure cases or when IDI underperforms (e.g., the 'high latency, Recall@3' setting where CIRCA outperforms IDI is mentioned but not analyzed)."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility gaps: (1) Code is promised ('Code will be released at https://github.com/nlokeshiisc/IDI_release') but not provided at submission time—this is a major red flag for conference review; (2) PetShop is publicly available and IDI was implemented in the PetShop library, which aids reproducibility for that dataset, but synthetic dataset construction details are missing or relegated to appendices; (3) hyperparameter specifications for SCM learning (e.g., MLP architecture for non-linear models: '10 hidden nodes, ReLU activations'—mentioned only for toy experiments) are not systematized across all experiments; (4) no mention of random seeds, number of runs, or variance across seeds; (5) fix value sampling strategy ('sampled from P(X_j | Pa_{x_j})') is mentioned but not detailed—how are parents' values set during inference? (6) anomaly threshold selection (τ_i) is not discussed—are these tuned on validation sets? (7) pseudocode for the multi-root-cause algorithm is deferred to appendices; (8) the appendix contains critical experimental results ('systematic variation' results, detailed toy setup) that are not summarized in the main paper, making independent verification difficult. Per RBCL guidelines, missing code caps reproducibility at 2/5."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper structures related work into three clear categories (Correlation, Causal Anomaly, Causal Fix) and positions IDI within the Causal Fix category as addressing OOD issues in counterfactual estimation. Strengths: comprehensive baseline inclusion (9 baselines), clear distinction between methods (e.g., TOCA vs. CF Attribution), and fair implementation (all methods tested in PetShop's unified library). Weaknesses: (1) Limited engagement with recent causal inference literature on robustness to distribution shift—papers on domain adaptation, causal invariance, or out-of-distribution generalization are not cited; (2) the connection to importance weighting and covariate shift correction (which could provide alternative solutions to OOD evaluation) is not discussed; (3) SAGE (Gan et al., 2021) is mentioned as using encoder-based counterfactual estimation but dismissed without detailed comparison—why not compare empirically against SAGE?; (4) the paper does not compare against simple baselines like 'fix-if-anomalous' (fixing all anomalous nodes) or ablations of IDI itself (e.g., IDI with counterfactuals instead of interventions); (5) positioning relative to causal discovery methods is weak—the paper assumes a known graph but does not compare against approaches that jointly learn the graph and perform RCD; (6) the statement that call graphs are 'easily available' for cloud systems is not universally true and limits applicability."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no ethics statement, discussion of broader impacts, or acknowledgment of potential harms. Critical gaps: (1) no discussion of false positives/negatives in root cause diagnosis—incorrectly identifying a root cause could lead operators to shut down critical services or apply harmful fixes; (2) no mention of dataset licensing or data provenance; (3) PetShop is used but no discussion of whether it contains proprietary or sensitive cloud service data; (4) no acknowledgment of potential misuse (e.g., an adversary could plant false root causes to evade diagnosis); (5) no discussion of fairness—does the method perform differently for different types of failures or system configurations?; (6) no mention of limitations in real-world deployment (e.g., what happens if the causal graph is incorrect, which is likely in practice?). Per RBCL guidelines, complete absence of ethics discussion caps this criterion at 1/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 21,
+    "confidence": 0.72,
+    "final_decision": "Weak Accept",
+    "final_justification": "IDI presents a novel and theoretically motivated approach to root cause diagnosis by shifting from counterfactual to interventional estimation, addressing a genuine problem in cloud system diagnostics. The core insight—that abduction errors in counterfactual estimation degrade RCD robustness—is valuable, and the theoretical comparison of interventional vs. counterfactual error bounds is sound. Empirically, IDI achieves competitive performance on PetShop, outperforming most baselines. However, several significant weaknesses limit the contribution: (1) Critical reproducibility issues—code is promised but not provided, synthetic experiments are underspecified, and key results are relegated to appendices; (2) Restrictive assumptions (Assumption 1, known acyclic graph) limit practical applicability; (3) Experimental validation relies primarily on a single real-world dataset (PetShop); no statistical significance testing or ablation studies; (4) Complete absence of ethics statement and discussion of deployment risks; (5) Limited engagement with recent causal inference literature on distribution shift. The paper makes a solid incremental contribution but falls short of strong acceptance due to reproducibility concerns (capped at 2/5) and limited scope. Per RBCL §3 (Practical ICLR Calibration), the total score of 21 maps to 'Weak Accept' as a borderline decision. The work would benefit from: (i) providing reproducible code and detailed hyperparameter specifications, (ii) experiments on real-world cloud traces, (iii) ablation studies and failure case analysis, (iv) formal treatment of Assumption 1 violations, and (v) an ethics statement addressing deployment risks."
+  }
+}
+```

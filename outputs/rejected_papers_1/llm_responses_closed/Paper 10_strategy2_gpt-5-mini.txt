@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a simple per-layer rescaling toward initialization with an EMA and frames proportionality in a theorem. While the proportionality observation is useful, the core idea is largely an incremental combination of prior rescaling/initialization-anchoring approaches (e.g., L2-init, layerwise rescaling, recent Weight Rescaling). It does not present a clear, fundamentally new methodological mechanism or surprising theoretical insight beyond formalizing proportional scaling under standard assumptions. Potential weakness/unverified assumption: the novelty claim depends on the importance of the specific EMA rescaling schedule and bias adjustments, but it is not shown whether this is fundamentally different from prior initialization-anchoring penalties in non-trivial settings (e.g., architectures beyond simple convnets). Also the claim that infinitely many proportional networks are useful in practice assumes homogeneous activations and that proportional outputs preserve all downstream performance needs (limited when losses/metrics or normalization layers break scale equivalence). Note: per RBCL Anti-Inflation Safeguard, scores were conservatively lowered (−0.5 applied) and this justification reflects the presumption of rejection unless strong, clear novelty evidence is provided."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If robust and general, a low-cost method that recovers plasticity and prevents unbounded weight growth could be broadly useful for warm-starting and continual learning workflows. The empirical claims (improvements on warm-start, continual learning, and standard generalization) suggest potential utility. Potential weakness/unverified assumption: experiments are limited to image-classification benchmarks and a small set of architectures (no transformers or large-scale models), so the broader impact on modern large-scale pretraining/finetuning pipelines is unproven. The paper assumes that gains observed on VGG-16 / TinyImageNet and small CNNs will extend to other architectures and tasks, which is not demonstrated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Theorem 1 (constructing proportional networks via layerwise scaling with bias adjustments) is plausible and aligned with standard homogeneity arguments; the paper claims proofs in appendices. However, key assumptions restrict applicability (homogeneous activations, explicit bias rescaling) and the treatment of normalization layers is hand-wavy: claiming proportionality can be maintained by adjusting final normalization parameters overlooks complex interactions in practice (e.g., learnable BN affine params, running statistics). There is limited theoretical analysis of how SWR affects optimization dynamics, convergence, or generalization beyond bounding norms. Potential weakness/unverified assumption: the proofs are not shown in the main text here and rely on appendices; interactions with non-homogeneous components (e.g., layer-specific nonlinearities, attention modules) are not rigorously justified. Due to the conservative RBCL stance and Anti-Inflation Safeguard (−0.5), the technical score is modest."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper presents experiments across warm-start, continual learning, and standard supervised settings on MNIST, CIFAR variants, and TinyImageNet and reports means and standard deviations. This breadth is a strength. Potential weaknesses/unverified assumptions: (1) important recent baselines in continual learning and plasticity literature are missing or not clearly compared (no modern SOTA continual-learning baselines or explicit comparisons to other recent rescaling/regularization methods), (2) ablation studies are limited in the main text (e.g., sensitivity to λ, EMA decay, frequency of rescaling, interaction with optimizers and schedulers), (3) statistical testing is not presented and some plots/tables hint at small numbers of seeds (averages over 5 runs mentioned in a figure but not consistently documented), and (4) no large-scale or transformer experiments to demonstrate scalability. The empirical evidence is suggestive but not definitive. Also, appendices with detailed settings are referenced but not present here, which limits evaluation."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript references Appendix D for detailed experimental settings, but no code, seed lists, exact hyperparameters, or runtime/environment details are provided in the submission text available for review. There is no public code link, no explicit random seeds, and no concrete instructions to reproduce the results. Potential weakness/unverified assumption: without released code or full experimental detail, claims (especially of empirical gains on VGG-16 / TinyImageNet) are not verifiable. Per Review Rules: missing/unclear reproducibility information mandates capping this criterion and triggers a fatal concern. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2) — this forces the overall decision to be 'Reject' or worse. Also, Anti-Inflation Safeguard (−0.5) was applied to overall scoring."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites a broad set of prior work on unbounded weight growth, weight regularization, and re-initialization, and positions SWR as a middle ground between penalties and re-initialization. Potential weakness/unverified assumption: the comparisons are somewhat high-level and lack a rigorous empirical head-to-head against the most relevant and recent rescaling/initialization anchoring approaches (e.g., more details on how SWR differs from Niehaus et al. 2024's Weight Rescaling or other init-distance penalties). The paper would benefit from clearer taxonomy and an explicit discussion of limitations and contexts where SWR may fail. Also, claims that SWR avoids optimization conflicts with normalization require fuller citations/empirical evidence."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics or broader-impact statement is provided in the available text; there is no discussion of data provenance, licensing for datasets/code, potential misuse, environmental/training costs, or fairness/robustness implications. Potential weakness/unverified assumption: the authors assume the method is benign; however, changes to training dynamics and weight norms can affect model robustness and fairness in non-obvious ways. The absence of an ethics statement or provenance details caps this score and contributes to conservatively downgrading the submission."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 12,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes Soft Weight Rescaling (SWR), an intuitively appealing and lightweight method to prevent unbounded weight growth by softly rescaling layer norms toward initialization using an EMA and bias adjustments to preserve proportionality. Strengths include a clear, implementable algorithm, a plausible theorem formalizing proportional scaling under standard assumptions, and empirical evaluations across warm-starting, continual learning, and supervised settings showing some consistent gains (notably on VGG-16 / TinyImageNet). Critical weaknesses: (1) Reproducibility — the submission lacks released code, explicit seeds, and full experimental details in the provided materials; appendices are referenced but not available for verification. This missing information is a fatal practical flaw because empirical claims cannot be independently verified. (2) Limited empirical rigor — important baselines and ablations are missing from the main text (sensitivity to key hyperparameters, interactions with optimizers/BN/schedulers), and scalability to modern large-scale architectures (transformers, large convnets) is untested. (3) Theoretical limitations — the formal results rely on restrictive assumptions (homogeneous activations, simplified treatment of normalization layers) and do not fully characterize optimization or generalization effects. Decision logic (RBCL & overrides): Under the prescribed RBCL rules, the reproducibility score is <= 2, which triggers a mandatory 'Reject' outcome (RBCL §2 Fatal-Flaw Logic). Additionally, the Anti-Inflation Safeguard was applied (−0.5 to each criterion before aggregation) to avoid score inflation. Given the unverifiable empirical claims and missing reproducibility artifacts, acceptance is not warranted despite some promising aspects. Recommendation to authors: release code, seeds, full hyperparameter tables and exact experimental recipes; add comprehensive ablations (λ, EMA decay, rescale frequency), more comparisons against recent rescaling/continual-learning baselines, and evaluate on at least one larger-scale architecture (or provide convincing theory for scaling). Addressing these points could change the assessment on resubmission."
+  }
+}

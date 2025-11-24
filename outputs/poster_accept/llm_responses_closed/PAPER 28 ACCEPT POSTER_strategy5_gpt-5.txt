@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes integrating an LLM as a PUCT prior with a dynamic memory mechanism (in-trial and cross-trial reflections) to adapt action priors during Monte Carlo planning for text-based games. While the combination is thoughtfully designed and goes beyond a straightforward application of LLM-MCTS, it still largely composes existing components (MCTS/PUCT, reflection prompting, Jericho admissible actions) rather than introducing a fundamentally new algorithmic principle. Potential weakness: the mechanism by which reflections influence future action probabilities is described at a high level without a rigorous analysis, and it assumes that textual reflections consistently and correctly reshape priors across varied states, which is unverified."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Results show notable gains on multiple Jericho games, including overcoming bottlenecks and outperforming strong baselines at the initial planning phase, which is promising for language-grounded planning. However, the impact is limited by the niche domain (text-based games), reliance on a closed LLM (GPT-3.5) with potentially high costs/latency, and unclear generalization to other partially observable interactive tasks or to open-source LLMs. Potential weakness: claims of efficiency and adaptability are not substantiated with cost analyses, wall-clock timing, or broader environment diversity."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The high-level algorithmic integration is plausible: using LLM priors in PUCT and updating with reflections from failed trajectories. Yet the presentation contains notational inconsistencies/typos, lacks convergence or bias analysis, and provides limited detail on how reflection content is transformed into calibrated action probabilities. The reliance on GPT-3.5 token log-probabilities (not always consistently exposed across APIs) and normalization introduces assumptions about probability quality and calibration. Potential weakness: hyperparameters like CPuct and the scaling between Q and LLM scores are critical but under-specified; the uniform rollout policy may yield high variance, and dynamic pruning details are brief, limiting confidence in correctness and stability."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover 9 Jericho games with comparisons to RL and MCTS/LLM baselines and a set of ablations showing the value of memory components. This breadth is positive. However, results are averaged over only 3 runs, with no statistical tests or confidence intervals beyond simple mean ± std in a few tables, and there is limited detail on compute budgets, number of simulations per decision, horizon settings, and cost/latency with the LLM. Potential weakness: prompt templates, temperatures, seeds, and exact API settings are missing; fairness of baseline tuning and training budgets is not fully established; some tables include N/A and limited iteration details."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Key details—code availability, prompts, seeds, full hyperparameters (e.g., CPuct, planning horizon H, number of simulations per step), DP specifics, and API configuration (temperature, top-p, logprob settings) are not provided. The method relies on GPT-3.5, and while alternatives are mentioned (self-consistency/verbalized methods), exact implementations and settings are not reported. Per rubric, missing or unclear reproducibility information caps this score at 2. Potential weakness: absence of code and instructions makes replication difficult and results unverifiable across different LLM API versions."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself against LLM-MCTS and MC-LAVE-RL, and surveys RL, MCTS, and LLM planning literature relevant to text-based games. The positioning is coherent and highlights limitations of fixed priors and semantic-sharing approaches. Potential weakness: it is unclear whether the most recent LLM planning-with-memory and search methods beyond 2024 are comprehensively covered; fairness of comparisons depends on baseline tuning and compute parity, which are not detailed."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics/broader impact discussion is included. Use of a proprietary LLM (GPT-3.5) raises concerns about accessibility, licensing, and environmental cost that are not addressed. Data/game licenses and any content safety considerations are not discussed. Per rubric, missing ethics information caps the score at 2. Potential weakness: absence of cost, privacy, and licensing considerations for the LLM API and any risk of prompt leakage or reproducibility constraints."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper presents a thoughtful integration of LLM priors with MCTS and a reflection-based memory mechanism, yielding promising improvements on Jericho games with ablations that support the role of memory. However, key reproducibility details (code, prompts, seeds, hyperparameters, API settings) are missing; ethics/broader impact considerations are absent; and technical clarity is weakened by notational inconsistencies and limited analysis of how reflections quantitatively reshape action priors. Empirical rigor is limited by only 3 runs, lack of statistical tests, and incomplete reporting of compute and search budgets. Per RBCL §2 Fatal-Flaw Logic and Decision & Overrides, reproducibility ≤ 2 mandates a Reject, and the total score is capped at 20. In line with the presumption of rejection, anti-inflation safeguards, and ICLR calibration (borderline treated as reject), I recommend Reject. Strengthening transparency (public code/prompts/settings), adding statistical rigor and cost/latency analyses, and clarifying the reflection-to-prior mapping could make this a compelling resubmission."
+  }
+}

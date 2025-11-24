@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper combines existing components (ESM2 fine-tuning, regression heads, LoRA) without substantial methodological innovation. The main contribution is systematic ablation of known techniques and introduction of the rBME metric. However, the ablations largely confirm expected behaviors (fine-tuning > static embeddings, LoRA ≈ full fine-tuning). The rBME metric, while potentially useful, is a relatively straightforward binning-based error metric without theoretical novelty. The core claim—that fine-tuning ESM2 outperforms static embeddings—is neither surprising nor novel. Potential weakness: The paper does not present fundamentally new architectural insights or training paradigms; it primarily optimizes existing approaches."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "While functional effect prediction is an important problem, the practical impact of ESM-Effect is limited. The paper acknowledges significant transferability failures: the model performs poorly on unseen sequence intervals (Spearman rho: -0.02 in disordered regions; Section 5.4) and fails catastrophically across different proteins in the same family (GCK → SRC, Spearman rho: 0.03; Section 7.3). The marginal improvement over PreMode (0.59 vs. unspecified PreMode baseline) does not justify the practical utility given these generalization failures. The benchmarking framework contribution is useful but secondary. Potential weakness: The authors themselves conclude that the field 'has a long way to go' before being applicable to real-world treatments, suggesting their own method is not yet practically impactful. The very poor cross-protein generalization severely limits clinical applicability."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns undermine soundness. (1) The rBME metric is presented without theoretical justification or comparison to alternative binned metrics. Why equal-width bins? Why is this superior to quantile-based binning? (2) The layer probing analysis (Section 7.2) claims that 'fine-tuning performance is invariant to layer position,' but Figure 9 shows non-trivial variation across components, contradicting this claim. (3) The test-time training (TTT) experiments (Section 7.3) show ad-hoc hyperparameter selection ('1e-5 as optimal') without statistical testing or cross-validation, and the authors acknowledge 'no significant benefit' was found, yet still propose it. (4) The paper conflates mean embedding instability (Section 7.7) with experimental limitations rather than investigating root causes; comparisons involving PTEN full fine-tuning are missing due to 'limited compute resources,' creating incomplete ablations. (5) The assumption that frozen top layers suffice is not theoretically grounded. Potential weakness: The claims about scaling laws and LoRA equivalence are based on limited empirical evidence without rigorous statistical testing or multiple random seeds across all experiments."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Empirical validation is insufficient in multiple ways. (1) The paper trains on only 9 DMS datasets, all from PreMode; no independent dataset collection or cross-dataset evaluation is performed. (2) Ablation studies use only 3 random seeds for SNCA (acknowledged in Figure 9), which is minimal for statistical rigor. No confidence intervals, error bars, or significance tests (e.g., t-tests) are provided for any comparisons. (3) The comparison to PreMode is indirect—exact PreMode performance numbers are not reported, making it impossible to verify claimed improvements. (4) Critical experiments are incomplete: PTEN enzyme activity full fine-tuning results are missing (Section 7.7) due to computational constraints, yet conclusions are drawn from partial data. (5) The cross-protein generalization experiment (GCK → SRC) is presented post-hoc as a limitation, not as a systematic evaluation framework. (6) No statistical significance testing for metric differences (e.g., rBME vs. Spearman). Potential weakness: The paper acknowledges in Section 7.7 that 'PTEN enzyme activity comparison in Figure 2 is lacking given our limited compute resources'—this is a fatal gap for reproducible, complete ablations."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "Partial transparency is provided. Strengths: Code is promised on GitHub (https://github.com/lovelacecode/ESM-Effect); hyperparameters are detailed (Section 7.8.1: learning rates 1e-5 for ESM2, 1e-4 for head, batch size 4, 10 epochs, one-cycle scheduler). The authors use the same datasets and splits as PreMode. Weaknesses: (1) The GitHub link is in the anonymized submission, creating a potential de-anonymization issue. (2) No explicit random seeds are reported for most experiments; Section 7.2 mentions 'three SNCA seeds' but other experiments lack seed reporting. (3) Critical hyperparameter choices are not justified (why 10 frozen layers? why 1e-5 vs. 1e-4?). (4) The rBME metric lacks code or pseudocode. (5) No specification of Python version, PyTorch version, or hardware beyond 'NVIDIA L4 GPU.' (6) The data mapping table (Table 2) is helpful, but the exact preprocessing pipeline (normalization, filtering failed mutagenesis) is not fully documented. (7) No pre-registration or protocol document. Potential weakness: The incomplete compute budget (Section 7.7) means full reproducibility of PTEN experiments is not currently possible, and the GitHub repository status at review time is unknown."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is reasonable but incomplete. Strengths: The paper surveys pathogenicity predictors (AlphaMissense, EVE, ESM-1v) and functional effect models (PreMode, LoGoFunc, Saadat & Fellay 2024), positioning ESM-Effect as a simpler alternative to multimodal approaches. The distinction between pathogenicity and functional effect prediction is well articulated. Weaknesses: (1) No direct comparison to recent functional effect predictors beyond PreMode—LoGoFunc and other methods are cited but not empirically compared. (2) The comparison to pathogenicity predictors (Section 7.1) is somewhat unfair: these models were designed for a different task (pathogenicity, not functional effects), yet the paper uses this to argue against them without proper task-specific evaluation. (3) Limited discussion of why multimodal features (structure, MSA) are 'redundant' as claimed: the paper shows ESM-Effect slightly outperforms PreMode but does not provide ablation evidence that multimodal features provide no benefit. (4) No comparison to simpler baselines (e.g., single-layer linear regression on frozen ESM2 embeddings) or domain-specific biological methods. (5) The paper cites Schmirler et al. (2024) on LoRA benefits but does not compare to that work's specific setup. Potential weakness: The lack of head-to-head comparison with other functional effect predictors (beyond PreMode) limits the strength of the SOTA claim."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper entirely lacks an ethics section, broader impacts statement, or discussion of potential harms. (1) No discussion of the risk of deploying mutation effect predictors for clinical decision-making given the acknowledged poor generalization and transferability failures. (2) The paper mentions that models 'cannot guide treatments' (Section 6) due to poor real-world performance, yet does not discuss the ethical implications of releasing a tool that practitioners might misuse. (3) No data provenance statement: DMS datasets may contain proprietary or sensitive information, yet the paper does not address data licensing or ethical use. (4) The focus on rare gain-of-function mutations is biologically motivated but may have unforeseen consequences (e.g., enabling unintended mutations in functional studies). (5) No discussion of how the model might exacerbate biases in protein engineering or personalized medicine. (6) No mention of limitations when applied to human genes or clinical contexts. Potential weakness: Given the paper's own conclusion that the method is not yet suitable for real-world clinical application, the absence of an ethics statement and discussion of failure modes is a significant omission. The work lacks any safeguards or recommendations for responsible use."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.92,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses a relevant problem in computational biology and proposes ESM-Effect, a fine-tuned ESM2 model for functional effect prediction. However, it falls short of publication standards for a top-tier venue due to multiple critical weaknesses. The novelty is limited—the work is primarily a systematic ablation of known techniques (fine-tuning, LoRA, regression heads) without substantial methodological innovation. The rBME metric, while potentially useful, is a straightforward binning-based approach without theoretical grounding. Empirical validation is insufficient: experiments use only 3 random seeds, lack statistical significance testing, and critical ablations (PTEN enzyme activity full fine-tuning) are admittedly incomplete due to computational constraints. Most critically, the paper demonstrates severe generalization failures—the model fails across different proteins in the same family (Spearman rho: 0.03) and on unseen sequence intervals (rho: -0.02 in disordered regions), which fundamentally undermines the significance and practical impact of the work. The authors acknowledge these limitations and conclude the field 'has a long way to go,' yet this is presented post-hoc rather than as a motivating framework for the research. Reproducibility is hampered by incomplete reporting of random seeds, unclear hyperparameter justification, and missing comparisons to PreMode baselines. Lastly, the complete absence of an ethics or broader impacts discussion is concerning for a paper proposing a tool for clinical mutation prediction. The paper makes incremental contributions to benchmarking but lacks the novelty, rigor, and significance required for acceptance at a top venue like NeurIPS, ICML, or ICLR. The work would benefit from: (1) complete ablations with sufficient compute, (2) statistical testing of all comparisons, (3) investigation of root causes for poor generalization rather than merely documenting it, (4) fair comparisons to other functional effect predictors, and (5) an ethics statement addressing deployment risks."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes training a conditional recourse likelihood model (GenRe) and using forward sampling rather than optimization at inference, which is a useful and moderately novel formulation in the recourse literature. However, the approach composes known components (importance-weighted pairing, transformer encoder-decoder, kernelized output) rather than introducing a fundamentally new methodology; thus it is not a breakthrough (Novelty score not 4/5). A potential weakness is the reliance on the pairing estimator Q which assumes access to a sufficiently large, representative positive set and a classifier h that aligns with P(Y|X); this assumption may not hold in practice and is not fully validated. I applied the RBCL Anti-Inflation Safeguard in reasoning (reduction of optimism) when judging novelty."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If GenRe reliably balances validity, proximity and plausibility it would be practically useful for algorithmic recourse and reduce brittle, optimization-heavy inference; the empirical gains on benchmarks and the promise of simple forward sampling make the work potentially impactful. A major unverified assumption is that the pre-trained classifier h (used for pairing and validity) is an adequate proxy for the true P(Y|X); dependence on h's quality and on labeled positive data limits applicability in settings with biased or misspecified classifiers. I applied conservative RBCL reasoning when assessing impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper provides intuitive derivations and two theorems showing consistency of the pairing estimator Q under the assumption that h matches P(Y|X), and gives an estimator variance rate. The proofs are plausible high-level importance-sampling arguments. However, the theoretical guarantees rely on strong assumptions (e.g., h equals true conditional, V(x+) expressible via h, adequate positive support) and some steps are sketchy (self-normalized importance-sampling variance bounds given without full conditions). A potential weakness is that practical conditions (finite data, classifier misspecification, binning choices for kernel means) may invalidate asymptotic claims; these assumptions are not empirically stress-tested. I employed RBCL's skeptical stance in scoring technical soundness."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates on multiple synthetic and three real-world benchmark datasets and compares against many baselines and ablations, showing consistent advantage in combined metrics. However, the experimental section omits important reproducibility/rigor details: no reporting of multiple random seeds or confidence intervals, limited description of hyperparameter search and tuning for baselines, and unclear whether comparisons used identical classifiers/label noise controls. Single-run results and lack of statistical testing are present, which penalizes empirical rigor. Per the evaluation rules, missing statistical robustness details and single-run reporting warrant a conservative score (capped)."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Authors provide a GitHub link in the abstract, which is positive, but within the paper many essential reproducibility details are absent or unclear in the manuscript excerpt: no explicit list of hyperparameters and random seeds, limited experimental protocol, and no clear instructions for reproducing baseline runs or environment specifications. According to the rubric, missing/unclear information caps this criterion; therefore I score conservatively. This low reproducibility score triggers RBCL Fatal-Flaw Logic and forces aReject decision (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself relative to optimization-based recourse, methods that use generative models, and recent verifier-guided approaches; it cites and empirically compares to a broad set of baselines including recent diffusion-based sampling. This is reasonably thorough. A potential weakness is that some very recent conditional-generation guidance methods and fairness-aware recourse approaches could be discussed in more depth (the treatment of possible limitations in related methods is somewhat brief), and it is not fully clear that all baselines were re-implemented and tuned identically, which affects fairness of comparisons."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper motivates recourse in high-stakes domains and mentions immutability constraints, which is relevant. However, it lacks an explicit ethics or broader-impact statement, does not discuss potential harms (e.g., gaming systems, differential access to recourse, amplification of biases), dataset provenance or licensing, nor mitigation strategies for misuse. Missing explicit ethical analysis and provenance discussion is an important omission and thus the score is conservatively capped."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents a practically-motivated and moderately novel approach (GenRe) that trains a conditional recourse likelihood and generates recourse via forward sampling. The idea is promising and the empirical results indicate consistent gains on benchmarks. However, several critical concerns prevent acceptance at a top-tier venue in its current form. The most important issues are (1) reproducibility and transparency: the manuscript lacks detailed experimental protocols, seeds, hyperparameter lists and environment specifications (even though a code link is provided), and per the review rules this missing information caps reproducibility and triggers a fatal flaw; (2) empirical rigor: results appear to be reported without statistical measures (no error bars or multiple seeds), and baseline tuning/implementation details are insufficiently specified; (3) strong theoretical assumptions: the consistency proofs depend on the classifier h matching the true conditional P(Y|X) and sufficient positive support, which are strong and not convincingly relaxed or empirically stressed. According to the mandatory RBCL / override rules: because reproducibility score <= 2, the overall decision must be 'Reject' (RBCL §2 Fatal-Flaw Logic), and the total score is capped as specified. I applied the RBCL Anti-Inflation Safeguard and conservative presumption of rejection throughout. Recommendation: the authors should (a) provide full reproducibility artifacts (complete code with env, seeds, hyperparameters, data splits, instructions to reproduce baselines and aggregate results over multiple runs), (b) add statistical significance analysis and ablations showing sensitivity to classifier misspecification and limited positive data, and (c) clarify and tighten theoretical conditions or empirically demonstrate robustness when h diverges from P(Y|X). Addressing these would substantially raise confidence and could move the paper to acceptability."
+  }
+}

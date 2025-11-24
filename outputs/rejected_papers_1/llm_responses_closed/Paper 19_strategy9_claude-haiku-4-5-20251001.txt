@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes dynamic token tree construction based on draft distribution, which is a reasonable refinement over fixed tree methods. However, the core insight—that higher draft probability correlates with higher acceptance rate—is intuitive and well-known in the speculative decoding literature. The greedy expansion strategy is a straightforward application of this observation. While the threshold-based variant (Section 5.4) offers some novelty, the overall methodological contribution is primarily engineering-focused rather than conceptually novel. The paper lacks a genuinely new algorithmic or theoretical insight that distinguishes it from prior work like Sequoia, which also uses dynamic tree optimization. Potential weakness: The claim of 'optimality' in Section 5.1 is not rigorously proven in the main text, and the proof is deferred to the appendix, raising concerns about the theoretical rigor of the novelty claim."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses a practically important problem—accelerating LLM inference—and demonstrates meaningful improvements in throughput (up to 9.1×) and latency (up to 9.4×) on Llama2-70B. These improvements are substantial and have clear real-world applicability. The method is generalizable across multiple datasets and temperatures, making it practically useful. However, the significance is somewhat limited by the incremental nature of the improvement over Sequoia and the fact that the method requires careful tuning of the threshold parameter. Additionally, the reliance on a specific draft model (Llama2-7B for Llama2-70B) limits the generalizability. Potential weakness: The paper does not discuss how the method scales to even larger models (e.g., 300B+) or how sensitive the approach is to the choice of draft model, which could impact its broader applicability."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper contains several technical concerns that undermine confidence in its soundness. First, the core theoretical claim relies on Hypothesis 1 (higher draft probability implies higher acceptance rate), which is justified only through empirical observation and a loose KL-divergence argument. The KL-divergence analysis in Section 4 is informal and does not rigorously establish the claimed relationship. Second, the approximation SD[t_i] ≈ p_d[t_i] (Section 5.1) is critical to the method but lacks theoretical justification—why should draft probability equal acceptance probability? This is a dangerous assumption that could fail in many scenarios. Third, the claimed 'optimality' of the greedy algorithm is unverified in the main text. Fourth, Algorithm 1 has notational inconsistencies and unclear steps (e.g., line 11 defines R' but line 12 uses R without clear definition). The residual distribution handling and its normalization are not explained clearly. Potential weakness: The derivation in Section 5.1 makes the assumption that draft and target distributions are 'close' without formally defining closeness or proving that this holds in practice. The 'proof' of optimality is relegated to an appendix that is not provided for review, making it impossible to verify the correctness of this critical claim."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover multiple datasets (C4, OpenWebText, CNN DailyMail, GSM8k, MT-Bench) and temperatures, which is commendable. Comparisons are made against Sequoia and SpecInfer. However, there are significant gaps in the empirical validation: (1) No ablation studies are provided to validate key design choices, such as the impact of threshold selection (Section 5.4) or the approximation SD[t_i] ≈ p_d[t_i]. (2) Missing comparisons with EAGLE-2 and ReDrafter, which are mentioned in related work but not included in experiments, making it unclear how DYSPEC compares to these dynamic tree methods. (3) The overhead analysis (Section 6.2) claims construction overhead is 'negligible' when implemented in C++, but no actual timing measurements are provided to quantify this claim. (4) Statistical significance testing is absent—all results are reported as single averages with no confidence intervals or significance tests. (5) The experiments use only Llama models; generalization to other architectures (e.g., GPT, Mistral) is unexplored. Potential weakness: The paper lacks ablation studies to isolate the contribution of dynamic tree expansion versus threshold selection, and the choice of threshold (mentioned as 'typically around 1/n') is not justified or systematically evaluated."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper provides limited reproducibility information. While it specifies the models used (Llama2-7B, Llama2-13B, Llama2-70B), the hardware setup (A100 GPU), and datasets, critical details are missing: (1) No code or repository link is provided, despite claims of C++ implementation for efficiency. (2) Hyperparameter details are sparse—the draft temperature is 0.6, but the threshold parameter C mentioned in Section 5.4 is only vaguely defined as 'typically around 1/n'. How is n chosen? What is the sensitivity to C? (3) No random seeds or initialization procedures are reported, making it unclear how deterministic the results are. (4) The CUDA graph optimization for variable-length sequences is mentioned but not detailed. (5) The paper does not specify which version of the Llama models was used (e.g., base vs. instruction-tuned), which could affect results. (6) The CPU-offloading tricks mentioned for Llama2-70B are not detailed, making reproduction impossible. Potential weakness: The absence of released code or a reproducibility checklist is a major concern; the paper claims to be under double-blind review but provides no mechanism for reviewers or future researchers to verify or reproduce the results."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper provides a comprehensive overview of related work in Section 3, covering SpecTr, SpecInfer, Medusa, Sequoia, EAGLE-2, ReDrafter, and Dynamic Depth Decoding. The positioning of DYSPEC relative to these methods is discussed. However, there are issues with the comparison: (1) The paper acknowledges that EAGLE-2 also uses dynamic tree construction but dismisses it based on a distinction about sampling vs. selection (Section 3). However, this distinction is not deeply analyzed, and it remains unclear how significant this difference is empirically. (2) The comparison with Sequoia is the most detailed, but the paper does not clearly explain why Sequoia's dynamic programming approach is inferior to DYSPEC's greedy approach—they seem to solve related but different optimization objectives, and this is not rigorously discussed. (3) The paper claims DYSPEC solves the problem of 'diverse query distributions' better than fixed trees, but this claim is not validated experimentally—no specific evaluation is done on out-of-distribution data or adversarial queries. Potential weakness: The paper does not provide a comprehensive head-to-head comparison with EAGLE-2 and ReDrafter, which are the most closely related dynamic tree methods. The theoretical advantages of DYSPEC's greedy approach over Sequoia's dynamic programming approach are not clearly articulated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no ethics statement, discussion of broader impacts, or consideration of societal implications. This is a critical gap for a paper on LLM acceleration: (1) No discussion of how faster inference might enable broader deployment of LLMs, potentially amplifying risks of misinformation, bias, or misuse. (2) No consideration of environmental impacts—while the paper claims to reduce latency, there is no discussion of energy consumption or carbon footprint. (3) No mention of data provenance or licensing for the datasets used (C4, OpenWebText, CNN DailyMail, GSM8k, MT-Bench). (4) No discussion of potential misuses enabled by faster inference. (5) No acknowledgment of limitations or failure cases. This omission is particularly concerning given the paper's focus on practical deployment and the significant speedups claimed. Potential weakness: The complete absence of any ethics discussion is a major oversight that violates standard practices at top-tier venues like ICLR. The paper does not address whether the use of these datasets and the proposed method raise any ethical concerns."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "DYSPEC addresses a practically important problem in LLM inference and demonstrates empirical improvements over baselines. However, the paper has significant weaknesses that prevent acceptance at a top-tier venue. The core theoretical contribution is weak—the approximation SD[t_i] ≈ p_d[t_i] lacks rigorous justification, and the 'optimality' claim cannot be verified from the main text. The technical soundness is undermined by informal derivations and unverified assumptions, triggering RBCL fatal-flaw logic for Technical Soundness (score ≤ 2 threshold narrowly avoided at 2, but the argument is marginal). Most critically, reproducibility is severely limited by the absence of released code, unexplained hyperparameter choices (threshold C), and missing experimental details (CUDA graphs, CPU-offloading tricks). The empirical validation lacks ablation studies, statistical significance testing, and comparisons with closely related dynamic tree methods (EAGLE-2, ReDrafter). Additionally, the paper contains no ethics statement whatsoever, which is a red flag. The improvements over Sequoia, while consistent, are incremental (typically 15-30% better latency), and it is unclear whether these gains are statistically significant or due to implementation differences. The greedy expansion strategy is straightforward and not particularly novel given the existing literature on dynamic tree construction. While the engineering contribution has merit, the combination of weak theory, limited reproducibility, incomplete experiments, and total absence of ethics discussion makes this a borderline-to-weak rejection. The paper would benefit from: (1) rigorous theoretical justification for the core approximation, (2) released code and detailed reproducibility information, (3) comprehensive ablation studies and comparison with EAGLE-2/ReDrafter, (4) statistical significance testing, and (5) an ethics statement. Per RBCL guidelines, the missing reproducibility information (score 2) and weak technical soundness (score 2) push the decision toward rejection despite reasonable empirical results."
+  }
+}
+```

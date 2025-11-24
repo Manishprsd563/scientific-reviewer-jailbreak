@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper addresses a practically relevant problem (latency in TTA for edge devices) and proposes two main components: CnDRM (class and domain representative memory) and IoBMN (inference-only batch-aware memory normalization). However, the novelty is limited. CnDRM combines existing ideas (confidence-based filtering, class balancing, and domain centroid proximity via Wasserstein distance) without substantial new insight. The motivation for combining class-representative and domain-representative samples is intuitive but lacks theoretical justification beyond empirical observation. IoBMN applies soft shrinkage to mixture of memory and batch statistics, which is an incremental refinement of batch normalization. While the sparse TTA framework is practical, the core technical contributions are relatively straightforward applications of existing techniques. The paper would benefit from deeper theoretical analysis of why this specific combination is optimal."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The problem of TTA latency on edge devices is practically significant and underexplored. The paper demonstrates substantial latency reductions (44–87.5% on Raspberry Pi 4) while maintaining competitive accuracy, which is valuable for real-world deployment. The orthogonal design allowing integration with multiple TTA methods increases applicability. However, limitations reduce impact: (1) evaluation is restricted to image corruption benchmarks (CIFAR-C, ImageNet-C) which may not represent realistic deployment scenarios; (2) the assumption of fixed adaptation rates is somewhat artificial—dynamic adaptation based on actual distribution shift would be more realistic (acknowledged in limitations); (3) the comparison against naive STTA is weak; stronger baselines such as other sparse sampling strategies are missing. The work would have greater impact if demonstrated on real-world deployment scenarios and data streams."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical approach has several concerns: (1) The Wasserstein distance calculation (Equation 1) uses only mean and variance from a single normalization layer, but the justification for why early-layer statistics sufficiently capture domain shift is weak. The claim that 'domain discrepancies are substantially reduced after passing through a single normalization layer' contradicts the motivation for using domain-representative samples. (2) The variance calculation in Equation 3 assumes sampling distributions without rigorous derivation. The assumption that $\\mu_m$ and $\\sigma_m^2$ follow the sampling distribution of $L$ and $M$ lacks theoretical grounding. (3) The soft shrinkage function (Equation 5) is applied element-wise but the paper does not justify why this specific form is optimal compared to alternatives. (4) The choice of $\\alpha = 4$ appears arbitrary with minimal ablation. (5) Memory management (Algorithm 1) is mentioned but not detailed in the main paper, making it difficult to verify correctness. While the approach is technically reasonable, critical assumptions lack rigorous justification."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Strengths: (1) Comprehensive evaluation across three datasets and five TTA algorithms; (2) multiple adaptation rates tested; (3) ablation studies (Table 4) demonstrate individual component contributions; (4) real hardware latency measurement on Raspberry Pi 4. Weaknesses: (1) All evaluations use synthetic corruptions (CIFAR-C, ImageNet-C) with deterministic, controlled shifts—results may not generalize to real-world continuous domain drift; (2) No statistical significance testing or confidence intervals despite reporting standard deviations; (3) Comparison against naive STTA is the primary baseline, but stronger alternatives (e.g., coreset selection methods, adversarial sample detection) are not compared; (4) Figure 3's preliminary experiment on domain centroid selection uses only Gaussian noise on ImageNet-C—broader validation needed; (5) Limited analysis of failure cases: when does CnDRM+IoBMN underperform? (6) Hyperparameter sensitivity (e.g., $\\alpha$, $\\tau_{conf}$, memory size) is under-explored. The ablation in Table 4 is useful but limited to CIFAR10-C at adaptation rate 0.1."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility issues: (1) No mention of code release or availability—this is a significant gap for a method intended for practical deployment; (2) Algorithm 1 (memory management) is referenced but not fully described in the main text; (3) Hyperparameter details are scattered: $\\alpha = 4$ is stated but justification and sensitivity analysis are minimal; confidence threshold $\\tau_{conf}$ is mentioned but no value provided; (4) The paper reports 'three random seeds' but does not specify which seeds or how variance is computed; (5) Details on preprocessing, data augmentation (if any), and exact model checkpoints are unclear; (6) ViT experiments (Table 5) mention adjustment to use layer normalization but implementation details are relegated to appendix; (7) No discussion of computational overhead for CnDRM (feature extraction, Wasserstein distance computation, memory updates). While Appendix references exist, critical details are missing from the main paper, limiting immediate reproducibility. The absence of code availability is a major concern for edge deployment scenarios where practitioners need to verify implementation."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Appendix A) is mentioned but not detailed in the main paper. Within the main text, the paper acknowledges existing TTA algorithms and cites relevant work on data-efficient learning and domain adaptation. However, positioning has gaps: (1) The connection to data-efficient learning methods (Choi et al., 2024; Xia et al., 2022) is acknowledged but not deeply explored—how exactly does SNAP-TTA differ from or improve upon existing coreset selection? (2) Sparse/efficient adaptation strategies in other domains (e.g., continual learning, online learning) are not discussed; (3) The paper distinguishes itself from sampling-based TTA (EATA, SAR, etc.) but the novelty over these is incremental—they already use sample selection; (4) Recent work on efficient TTA (e.g., batch normalization updates) is covered, but the comparison against BN stats baseline is limited; (5) The latency-aware evaluation protocol from Alfarra et al. (2024) is mentioned but not deeply engaged with—why not directly compare against their approach? The paper could better position SNAP-TTA as either a generalization of existing methods or a fundamentally different approach."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Minimal ethical discussion: (1) No explicit ethics statement or discussion of potential harms; (2) The paper mentions autonomous driving as a motivation but does not discuss safety-critical implications or validation requirements for such deployment; (3) No discussion of data provenance—CIFAR-10/100 and ImageNet sources are standard but licensing should be explicitly stated; (4) No analysis of bias or fairness implications: does SNAP-TTA's sample selection introduce class imbalance or bias against minority classes? (5) The use of pseudo-labels in an unsupervised setting could propagate errors—no discussion of how this affects model fairness or robustness; (6) No code licensing statement, limiting reproducibility and broader adoption; (7) The paper does not discuss limitations of deploying on edge devices with potential privacy/security implications. While the work is not overtly unethical, the lack of consideration for broader impacts—especially given the emphasis on safety-critical applications—is a notable oversight. At minimum, a dedicated section discussing safety validation, fairness, and responsible deployment would strengthen the paper."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.72,
+    "final_decision": "Weak Reject",
+    "final_justification": "SNAP-TTA addresses a practically important problem (TTA latency on edge devices) and demonstrates solid experimental results across multiple datasets and algorithms. However, the paper has several critical weaknesses that prevent acceptance at a top venue: (1) **Limited Technical Novelty**: CnDRM combines existing sampling strategies (confidence filtering, class balancing, Wasserstein distance) without significant theoretical innovation. IoBMN is an incremental refinement of batch normalization. The core insight—combining class-representative and domain-representative samples—is intuitive but lacks rigorous justification. (2) **Insufficient Reproducibility**: No code release mentioned, Algorithm 1 incomplete, critical hyperparameters (e.g., $\\tau_{conf}$) not specified, and hyperparameter sensitivity under-explored. This is particularly problematic for a paper targeting practical edge deployment. (3) **Weak Experimental Validation**: Evaluations limited to synthetic corruption benchmarks; no statistical significance testing; weak baselines (only naive STTA); limited analysis of failure modes or generalization to realistic domain drift. (4) **Unjustified Technical Assumptions**: The use of single-layer normalization statistics to capture domain shift contradicts the motivation. Variance calculations lack theoretical grounding. The choice of soft shrinkage function and $\\alpha = 4$ appear arbitrary. (5) **Missing Ethical Considerations**: No discussion of safety-critical implications despite mentioning autonomous driving; no analysis of fairness or bias in sample selection; no licensing/provenance statements. (6) **Presentation Issues**: Key technical details relegated to appendix; related work not discussed in main text; memory management algorithm incomplete. While the practical motivation is valuable and empirical results show promise, these limitations collectively suggest the work is not yet ready for publication at a top-tier venue. The paper would benefit from: deeper theoretical analysis, code release with reproducibility checklist, more challenging and realistic evaluation settings, statistical significance testing, and explicit discussion of ethical implications. With these revisions, this could become a solid practical contribution. However, in its current form, the limited novelty combined with reproducibility concerns and weak experimental validation justify rejection."
+  }
+}
+```

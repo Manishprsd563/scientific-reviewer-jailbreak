@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The proposed 'hybrid batch training' is a straightforward probabilistic combination of two existing and well-known sampling strategies (X-X-mono and X-Y) from prior work. The paper itself frames the contribution as a 'straightforward approach' that avoids new loss functions or architectures. While the systematic study is useful, the core idea is highly incremental and lacks methodological innovation, bordering on a detailed ablation study of training data composition. There is no new theoretical insight or model architecture. Explicitly state at least one potential weakness or unverified assumption. Weakness: The novelty is minimal, as it is a linear combination of existing methods. The unverified assumption is that a simple, static probabilistic mix (alpha=0.5) is a sufficient or optimal way to combine these strategies, as opposed to a more dynamic curriculum or scheduling."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper addresses a real and important problem: the trade-off between monolingual, cross-lingual, and multilingual retrieval performance. A simple, effective training recipe that improves performance across the board without architectural changes is practically useful for practitioners. The finding that this simple mix reduces language bias and improves multilingual results is a valuable data point for the community. Explicitly state at least one potential weakness or unverified assumption. Weakness: The impact is limited by the lack of comparison to other modern techniques. While useful, it's unclear if this simple method offers a significant advantage over more complex but potentially much higher-performing SOTA methods. The unverified assumption is that the simplicity of the approach is a significant enough benefit to warrant forgoing potentially large performance gains from other methods."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The underlying dense retrieval framework (dual-encoder with InfoNCE loss) is standard and correctly described. The proposed sampling method is simple and technically sound in its implementation. However, there is a significant methodological flaw in the experimental design. The paper states that model checkpoint selection via early stopping is performed using a validation set that 'consists solely of English examples'. For a paper focused on multilingual performance and language bias mitigation, using a single, high-resource language for model selection fundamentally undermines its claims and introduces a strong potential bias. Explicitly state at least one potential weakness or unverified assumption. Weakness: Using an English-only validation set to select the best model for a multilingual task is a major flaw. The unverified assumption is that peak performance on English QA pairs correlates with optimal multilingual and cross-lingual performance, which is highly unlikely and contradicts the paper's goal of learning language-agnostic representations."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper presents extensive internal comparisons on standard datasets, showing the hybrid model outperforms its constituent parts (X-X and X-Y). However, the evaluation is critically insufficient for a top-tier publication. The baselines are limited *only* to the two methods being combined. The paper cites several contemporary SOTA methods in the introduction (e.g., Hu et al., 2023; Huang et al., 2023a; Lin et al., 2023a) but fails to include any of them in the experimental comparison. This makes it impossible to know if the proposed method is actually competitive. Furthermore, no statistical significance testing or reporting of results over multiple random seeds is mentioned, weakening the claims of improvement. Explicitly state at least one potential weakness or unverified assumption. Weakness: The complete absence of state-of-the-art baselines is a fatal empirical flaw. The unverified assumption is that demonstrating superiority over the components of the mixture is a sufficient condition for contribution, without situating the performance in the context of the current research landscape."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper suffers from critical reproducibility issues. It explicitly states that a significant portion of the training data was created using an 'in-house machine translation pipeline,' which is proprietary and not available. This prevents reproduction of the core experimental asset. Additionally, the paper does not include a link to the source code, model checkpoints, or the exact final training dataset. This violates the norms of top-tier ML conferences. Explicitly state at least one potential weakness or unverified assumption. Weakness: The reliance on a private, 'in-house' MT pipeline and the absence of a code release make the experiments completely non-reproducible. The unverified assumption is that a publicly available translator would yield similar results, which is not guaranteed as the quality and artifacts of translation can be a major confounding factor."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper does a reasonable job of citing relevant recent work in multilingual dense retrieval and correctly identifies the gap for a simpler approach that balances different retrieval settings. It positions its contribution clearly. However, the related work section is not supported by the empirical validation. While aware of the SOTA, the paper makes no effort to compare against it, which is a major disconnect. The positioning is therefore more of a justification for avoiding comparison than for contextualizing its performance. Explicitly state at least one potential weakness or unverified assumption. Weakness: There is a major disconnect between the works cited and the works used as experimental baselines. The unverified assumption is that positioning the work as 'simpler' absolves the authors of the responsibility to empirically demonstrate how it performs relative to more complex, but standard, contemporary methods."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes a brief limitations section that acknowledges potential societal biases in the training data, which is a minimal requirement. However, it fails to provide any discussion on data provenance or licensing for the multitude of datasets it aggregates and uses for training, including scraped data from 'Yahoo Answers'. The use of such data without discussing potential PII, copyright, or user consent issues is a notable oversight. Explicitly state at least one potential weakness or unverified assumption. Weakness: The paper lacks a proper discussion of data provenance and licensing. The unverified assumption is that all the aggregated datasets, particularly those scraped from public forums, are ethically permissible to use for model training without any filtering or consideration for user privacy."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.9,
+    "final_decision": "Reject",
+    "final_justification": "The paper proposes a simple and intuitive hybrid batching strategy to balance monolingual and cross-lingual performance in multilingual retrieval. The extensive internal experiments convincingly show that this method outperforms the individual strategies it combines. However, the paper has multiple critical flaws that warrant rejection. \n\nMost importantly, the work is fundamentally not reproducible (Score: 1/5). The reliance on a non-public, 'in-house machine translation pipeline' to generate training data, coupled with the lack of released code, makes it impossible for the community to verify or build upon the results. This is a disqualifying flaw for a top-tier conference. \n\nSecondly, the empirical validation is critically weak (Score: 2/5). The experiments fail to compare the proposed method against any of the relevant state-of-the-art baselines cited in the paper's own related work section. This makes it impossible to assess if this simple approach is competitive or just a minor improvement over its direct components. \n\nA third major issue is the use of an English-only validation set for a multilingual modeling task, which undermines the core claims of the paper.\n\nDue to the fatal flaw in reproducibility and the insufficient empirical evaluation, the paper is not suitable for publication. The decision is set to 'Reject' in accordance with RBCL §2 Fatal-Flaw Logic, triggered by a Reproducibility score below 2."
+  }
+}
+```

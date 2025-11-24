@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes SEAL, a method to scale attention heads/channels to improve long-context retrieval. While the core observation that certain heads contribute differently to retrieval is interesting, the novelty is limited. Scaling attention outputs via learnable parameters is a well-established technique. The paper positions this as attention 'emphasizing' via scaling, but this is essentially parameter-efficient fine-tuning applied selectively. The distinction from LoRA (SEAL-L) is marginal—SEAL-H/SEAL-C are simply LoRA with rank-1-like constraints on specific components. The motivation experiments (Section 3) are useful but observational; the leap to the proposed method is incremental. Critical weakness: The paper does not convincingly demonstrate that the identified heads are *causally* responsible for retrieval vs. incidentally correlated. The pruning experiments (Fig 2) show correlation, not causation, and the interpretation remains speculative."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The method achieves improvements on specific tasks (LongEval line retrieval, Needle-in-a-Haystack) and shows some generalization to LongBench QA tasks. However, the significance is moderate. Improvements on line retrieval are substantial (32% → 56%), but this task is relatively artificial. On Needle-in-a-Haystack, gains are notable but the task is also a synthetic benchmark. On real LongBench QA tasks (Table 3), out-of-domain improvements are marginal (e.g., 23.29% → 23.53% avg), and in-domain improvements (tuning on line retrieval) are modest. The method requires task-specific training data generation, limiting its applicability as a general-purpose technique. Critical weakness: The practical impact is unclear—the method does not extend context windows beyond their learned limits for most models (acknowledged in Section 6.2), reducing real-world utility. Comparison to other PEFT methods for retrieval is absent."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The technical content is largely sound but has significant gaps and unverified assumptions. The direct effect analysis (Section 5) uses a simplified formula (Eq. without normalization) without proper justification; the paper acknowledges it excludes normalization but does not explain why or validate that this omission is appropriate. The claim that SEAL merely adjusts head importance without altering 'learned behavior' is unsubstantiated—scaling attention outputs fundamentally changes model computation. Section 3 proposes that certain heads are 'specialized' for retrieval, but the evidence is correlational pruning results, not mechanistic proof. The paper does not explain *why* scaling specific heads improves retrieval—only that it does empirically. Critical weaknesses: (1) The synthetic data generation strategy (Section 4.1) lacks theoretical justification—why should formatting alone, without semantic content, teach the model to scale heads for meaningful retrieval? (2) The claim that gradient descent 'ascertains' head impact is misleading; optimization on synthetic data may converge to local optima unrelated to true head function. (3) No ablation on the impact of different data generation strategies or sample sizes (fixed at 50)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments are limited and lack rigor. The paper evaluates primarily on two synthetic tasks (line retrieval, Needle-in-a-Haystack) where SEAL shows large gains. However, these are not representative of real-world use cases. The LongBench evaluation (Table 3) is critical but underdeveloped: (1) Out-of-domain results show negligible improvements (23.29% → 23.53%), contradicting claims of generalization. (2) In-domain results (tuning on line retrieval for QA tasks) are inflated by task-specific scaling learned from retrieval-heavy data, not evidence of general retrieval improvement. (3) No error bars, confidence intervals, or significance testing across runs. (4) Limited baseline comparisons—SEAL-L/SEAL-D (LoRA/DoRA) results are provided but not thoroughly analyzed. Why does SEAL-H (1024 params) not match SEAL-C (128K params) performance? (5) Hyperparameter tuning is ad-hoc (different learning rates per task/model, no justification). (6) The claim about extending context beyond learned limits (Section 6.2, Mistral) is mentioned but not rigorously evaluated. Critical weakness: No statistical significance testing; improvements could be within noise, especially for out-of-domain tasks."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely limited. No code is released or promised (paper states 'Anonymous authors' but provides no supplementary materials or commitment to release). Dataset generation is described qualitatively (Section 4.1) with only two example prompts; the full generation pipeline is not detailed. Hyperparameters are scattered across Section 6 with different values for different models/tasks (lr 2e-2, 1e-2, 4e-2, 5e-2 for SEAL-H; 2e-4 for SEAL-L), but no justification or ablation. No random seeds reported. The Axolotl framework is mentioned, but specific configuration files or command-line arguments are absent. Training details are minimal: '1 epoch' on 50 samples with AdamW but no batch size, weight decay, warmup steps, or convergence criteria. Evaluation protocol on LongBench is not specified (exact metrics, how scores are aggregated). Critical weakness: Without code and reproducible data generation, other researchers cannot replicate or verify results. The paper's central claims about head importance and scaling cannot be independently validated."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work coverage is sparse and positioning is unclear. The paper cites circuit analysis (Elhage, Ferrando, Wu et al.) and context extension methods (position interpolation, NTK, Self-Extend) but does not engage deeply with them. SEAL is positioned as distinct from PEFT methods like LoRA, but the distinction is superficial—SEAL-H/SEAL-C are essentially constrained LoRA. The paper includes SEAL-L as a baseline but does not thoroughly explain why SEAL-H/SEAL-C should outperform it, or whether the improvements justify the added complexity. Missing comparisons: (1) Other attention-focused methods (e.g., attention re-weighting, layer-wise scaling) are not discussed. (2) Recent work on improving long-context performance (e.g., sliding window attention, sparse attention patterns) is absent. (3) No comparison to fine-tuning the full model on the same 50 synthetic samples. (4) The relationship to knowledge-editing and parameter steering is not addressed. Critical weakness: The paper does not justify why scaling is the right approach vs. other possible interventions (e.g., masking, pruning permanently). The claim of novelty vs. PEFT is unsubstantiated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Ethics and broader impacts are entirely absent. The paper does not discuss: (1) Potential misuse of improved long-context retrieval (e.g., encoding biased documents or harmful content into extended contexts). (2) Data provenance of synthetic training data or LongBench/LongEval sources. (3) Computational costs and environmental impact of training multiple models. (4) Fairness implications—does SEAL improve performance uniformly across different document types/languages? (Table 3 shows multilingual QA, but no analysis of disparities). (5) Whether generated synthetic data could inadvertently introduce artifacts or biases. (6) Licensing and reproducibility concerns (models are fine-tuned LLMs; does the paper respect model licenses?). The paper provides no ethical statement, risk assessment, or discussion of potential harms. Critical weakness: The absence of any ethics consideration is a major gap for a paper proposing modifications to widely-deployed LLM systems. This is a red flag for responsible AI research."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper proposes SEAL, a method to scale attention heads/channels to improve long-context retrieval in LLMs. While the core motivation—that certain heads contribute differently to retrieval—is intuitive, the execution and validation are insufficient for acceptance at a top-tier venue. Critical issues: (1) **Limited Novelty**: SEAL is a straightforward application of learnable scaling to specific attention components, closely resembling LoRA with task-specific constraints. The distinction is marginal and not convincingly justified. (2) **Weak Empirical Validation**: Improvements are substantial on synthetic benchmarks (line retrieval, Needle-in-a-Haystack) but marginal on realistic tasks (LongBench out-of-domain: 23.29% → 23.53%). No statistical significance testing. (3) **Unverified Assumptions**: The paper observes that certain heads are correlated with retrieval performance but does not establish causation. The claim that synthetic data generation (format-only, no semantic content) teaches meaningful head scaling lacks justification. The direct effect analysis (Section 5) uses a non-standard formula without proper validation. (4) **Reproducibility Crisis**: No code, no detailed hyperparameter justification, no random seeds, incomplete dataset generation description. The method cannot be independently verified. (5) **Missing Ethics**: Zero discussion of ethical implications, data provenance, or fairness concerns—a major gap. (6) **Limited Related Work**: Positioning vs. PEFT methods is weak; comparisons to other attention-focused or context-extension approaches are absent. **Positive aspects**: The paper is well-written, includes useful qualitative analysis (direct effect), and shows some evidence of generalization to out-of-domain tasks (though improvements are minimal). However, these strengths do not overcome the fundamental weaknesses in novelty, validation rigor, and reproducibility. The work feels incremental—applying a simple scaling trick to improve retrieval—without sufficient evidence that the approach is novel, effective, or reproducible. Per RBCL guidelines: The **Reproducibility score of 1** (no code, incomplete specifications) triggers the fatal-flaw override, capping total_score at 20 and mandating a decision of 'Reject' or worse. Additionally, the **unverified causal claims** in technical soundness and the **weak empirical validation** (minimal improvements on realistic tasks, no significance testing) further support rejection. This paper requires major revisions: complete reproducibility materials, rigorous statistical testing, deeper mechanistic analysis of why scaling heads improves retrieval, comprehensive comparisons to related work, and ethical considerations."
+  }
+}
+```

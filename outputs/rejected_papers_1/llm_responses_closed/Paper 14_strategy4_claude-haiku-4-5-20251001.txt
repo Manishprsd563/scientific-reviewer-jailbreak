@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes structure-aware masks for identifying influence-critical parameters in Transformers at the head and filter level. While this is a reasonable extension of parameter-efficient unlearning, the core idea of using masks to identify importance is not fundamentally novel—it borrows heavily from lottery ticket hypothesis and existing pruning literature. The main contribution is applying masks at the structural level (heads/filters) rather than individual parameters, which is an incremental refinement rather than a genuine paradigm shift. The categorization of successive unlearning into memory-free and memory-aided scenarios, while useful, is largely a clarification of existing concepts rather than a novel insight. The theoretical derivation of mask importance scores (Equation 8, referenced but not shown in detail) lacks sufficient novelty to warrant a higher score."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Machine unlearning for Transformers is an important problem with clear practical relevance (GDPR compliance, right to be forgotten). The paper demonstrates modest improvements in the efficacy-fidelity-efficiency trade-off. However, the significance is limited by several factors: (1) experiments are restricted to relatively small Transformer models (BERT-base, DistilBERT, RoBERTa-large) and simple tasks (GLUE, SQuAD), not large language models where unlearning is most critical; (2) the improvements over baseline SO are marginal (Table 2 shows SPE-SO achieving nearly identical efficacy metrics to SO in many cases); (3) the method's practical applicability to real-world MLaaS scenarios remains unclear, especially for the large-scale models that dominate industry practice. The paper acknowledges this limitation but does not adequately address it."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Critical issues undermine technical soundness: (1) Equation (8), which supposedly derives the importance scores for masks, is referenced but the actual formulation and derivation are not presented in the provided text. This is a fatal omission for a theory-based contribution. (2) The claim that structure-aware masks provide 'tightly bounded approximation error' (Section 3.2) lacks formal proof or bounds. (3) The diagonal FIM approximation (Equation 3) is standard but the paper does not justify why this approximation remains valid when only a sparse subset of parameters are updated via masks. (4) The simplification in Equation (13) for memory-aided unlearning drops the gradient term on the forgetting dataset without rigorous justification—the paper only states 'the proportion of the forgetting dataset is negligible,' which is a weak assumption. (5) The greedy search algorithm mentioned in the abstract and introduction is never detailed; the optimization method for computing masks is unclear. These theoretical gaps suggest the work may lack the rigor expected for a top-tier venue."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Multiple experimental weaknesses significantly limit validation: (1) No ablation study on key design choices—e.g., why mask heads and filters specifically? Why not other Transformer components (position embeddings, layer norms)? The lottery ticket hypothesis is cited but not empirically validated for this task. (2) Table 2 shows SPE-SO performance nearly identical to SO in many cases (e.g., BERT-base unlearning accuracy: 85.94% for both), undermining claims of superiority. The improvements in remaining accuracy (94.15% vs 94.07%) are negligible and within potential noise margins. No statistical significance testing (confidence intervals, p-values) is reported. (3) Default forgetting set size is only 128 samples; sensitivity to this hyperparameter is not explored. (4) The successive unlearning experiments (Figure 4, Table 1) are incomplete in the provided text—only Table 1 shown with limited data. (5) The greedy search algorithm is never formally described or empirically validated; Algorithm 1 is referenced but not shown. (6) Memory consumption comparison (Table 3) is useful but the time overhead of SPE-SO (1274s vs 1160s for BERT) contradicts the 'efficiency' claim. (7) MIA evaluation uses only 'confidence-based MIA' predictor with no comparison to other attack methods or discussion of potential weaknesses in this evaluation approach."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised: (1) No code repository or link is provided. The paper is under blind review, but future reproducibility is uncertain. (2) Critical algorithmic details are missing: Algorithm 1 is referenced but not shown; the greedy search procedure is never formalized; Equation (8) is cited but its formulation is absent from the paper text. (3) Hyperparameters for mask optimization (learning rate, iterations, initialization) are not specified. The abstract mentions 'warm start greedy search' but no details are given. (4) Random seed and initialization strategy for masks are not disclosed. (5) The paper states detailed hyperparameters are in 'Appendix A.1' but this appendix is not provided in the review text. (6) For the fine-tuning baselines (FT, GD, SA), full configurations appear to be missing from the main text. (7) No discussion of computational environment (GPU type, training time per experiment, batch sizes). (8) The paper does not indicate whether code will be released post-acceptance, which is critical for reproducibility in unlearning research. This lack of transparency makes independent verification impossible and violates standards for reproducible ML research."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is partially adequate but positioning is unclear: (1) The paper correctly identifies two streams of prior work: Transformer unlearning (Section 5) and parameter-efficient unlearning. However, the connection to pruning and lottery ticket hypothesis literature is mentioned but not thoroughly explored. (2) The comparison to parameter-efficient methods (Liu et al. 2024a, Pochinkov & Schoots 2024) is dismissive—the paper claims these are 'heuristic or empirical' but does not deeply engage with their theoretical or empirical contributions. (3) The paper claims to be 'first' to categorize successive unlearning into memory-free vs. memory-aided, but Guo et al. (2020) and Liu et al. (2023a) are already cited as pioneering these concepts; the novelty of this categorization is overstated. (4) No discussion of recent work on unlearning in large language models, which is the most impactful application area. (5) The paper positions structure-aware masks as addressing 'intra-layer interactions' but does not compare to methods that explicitly model such interactions (e.g., attention-based importance). (6) Fair comparison: the baseline methods (SA, GD, FT) are fine-tuning based and thus fundamentally different from the second-order approach; a more direct comparison would be to other structure-aware pruning or unlearning methods."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Ethics and broader impacts are almost entirely absent: (1) No explicit discussion of potential risks, misuse, or safety concerns. (2) No statement on data provenance—GLUE and SQuAD are well-established benchmarks but the paper does not discuss licensing, use restrictions, or ethical considerations around training data. (3) No discussion of whether unlearning is truly effective at removing information vs. creating false sense of privacy (a critical concern in unlearning literature). (4) No analysis of fairness implications—does structure-aware unlearning disproportionately affect certain data types or subgroups? (5) No discussion of the tension between the right to be forgotten and model utility; the paper does not address scenarios where unlearning conflicts with other stakeholders. (6) No statement on code/model release plans or licensing, which are essential for reproducibility and responsible AI. (7) The paper focuses on fine-tuned models but makes no ethical distinction between unlearning from pre-trained vs. fine-tuned models, which have different privacy implications. (8) No discussion of potential for adversarial unlearning requests or how the method handles such cases. This near-complete absence of ethics discussion is a significant oversight for a privacy-focused paper."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses an important problem (machine unlearning for Transformers) but suffers from multiple critical flaws that prevent acceptance at a top-tier venue. The most severe issues are: (1) **Missing theoretical foundation**: Equation (8), which is central to the proposed method, is never formally presented or derived. The claimed 'tight approximation error bounds' lack formal proofs. The greedy search algorithm is mentioned throughout but never detailed. (2) **Weak empirical validation**: Experiments show marginal improvements over the SO baseline (often identical efficacy metrics), with no statistical significance testing. Ablations are absent, leaving key design choices (why heads/filters?) unjustified. The successive unlearning experiments are incomplete in the provided text. (3) **Severe reproducibility crisis**: No code, missing appendices, absent algorithmic details, no hyperparameters for mask optimization, no random seeds. Algorithm 1 and Equation (8) are referenced but not provided. (4) **Limited scope**: Experiments on small Transformers (BERT-base, DistilBERT) and simple tasks (GLUE, SQuAD), not the large language models where unlearning matters most. The acknowledged gap to LLMs is not addressed. (5) **Absent ethics discussion**: No discussion of privacy guarantees, fairness, or broader impacts—critical for a privacy-focused paper. (6) **Overclaimed novelty**: Structure-level masking is an incremental refinement of existing pruning/lottery ticket ideas. The categorization of successive unlearning is presented as novel but largely clarifies existing concepts. Fatal-flaw logic applies: Technical soundness (score 2) and reproducibility (score 1) both fall below the acceptance threshold. Per RBCL guidelines, these failures alone warrant rejection regardless of other factors. The paper requires major revisions including: presenting Equation (8) and its derivation, formal approximation error analysis, complete experimental ablations with significance testing, full algorithmic details, release of code and hyperparameters, and scaling to larger models. In its current form, the work is not ready for publication at ICLR/NeurIPS."
+  }
+}
+```

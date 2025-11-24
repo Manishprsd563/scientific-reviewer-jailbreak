@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper performs ablation studies on existing ESM2 fine-tuning strategies and proposes a regression head architecture, which represents incremental optimization of known components rather than a methodological breakthrough. The finding that LoRA matches full fine-tuning and that scaling laws don't transfer from NLP are interesting but narrow observations. The proposed rBME metric, while addressing a real problem, is a straightforward binning approach without significant novelty. The paper lacks a genuinely new mechanistic insight or architectural innovation. Unverified assumption: the authors claim their framework 'significantly outperforms' PreMode, but the improvements appear marginal and within noise margins given the limited experimental runs reported."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "While functional effect prediction is important, the paper's actual impact is limited by several factors. The proposed method only outperforms PreMode marginally and does not demonstrate clear practical superiority. Most critically, the authors themselves demonstrate severe transfer learning failures (Spearman rho -0.02 for disordered regions, 0.03 for cross-protein kinase transfer), which severely limits real-world applicability. The benchmarking framework contribution is useful but incremental. The findings about pretraining limitations are speculative and not rigorously validated. Potential weakness: the authors acknowledge the field needs 'new pretraining data sources' but their work does not provide this solution, leaving the fundamental bottleneck unaddressed."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Critical technical issues exist: (1) The rBME metric lacks formal justification for why equal-width binning is appropriate; relative error normalization by max(|y_i|, ε) is ad-hoc and the choice of ε is unspecified. (2) The claim that layer position does not matter contradicts basic understanding of feature hierarchies in deep networks—this deserves deeper investigation. (3) Test-time training experiments are incomplete and poorly documented; the monitoring strategy using token prediction accuracy is non-standard and unvalidated. (4) The mean embedding training instability is acknowledged but not resolved, undermining conclusions for PTEN. (5) No statistical significance testing is reported for any comparisons. (6) The assumption that distributional shift alone explains poor transfer is not rigorously tested. Unverified assumption: the authors assume a single unfrozen layer can meaningfully adapt embeddings, but this contradicts optimization theory and requires ablation-level rigor."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Significant experimental deficiencies: (1) Results are reported on only 9 DMS datasets, many from the same repository (PreMode), limiting generalizability. (2) The paper acknowledges 'limited compute resources' prevented full training of certain model configurations (PTEN enzyme activity), yet draws conclusions anyway—this is a critical gap. (3) Only 3-5 random seeds are used for most experiments; no confidence intervals or statistical tests are provided. (4) The comparison to PreMode appears unfair: the paper claims ESM-Effect 'slightly surpasses' PreMode but provides no formal statistical test and shows overlapping performance ranges. (5) Figure 6 shows LoRA and full fine-tuning have 'distinct prediction characteristics' yet claims they match—visual evidence contradicts textual claims. (6) The transfer learning analysis on SNCA and GCK→SRC uses different train-test splits making direct comparison invalid. (7) Missing ablations on key design choices (regression head architecture details, dropout values, learning rate scheduling justification). Potential weakness: the authors do not report standard deviations or confidence intervals, making it impossible to assess whether claimed improvements are statistically significant."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "Partial reproducibility achieved: (1) Code availability is claimed (GitHub link provided), though not independently verified. (2) Hyperparameters are documented (learning rates, epochs, optimizer settings, batch size). (3) However, critical details are missing or unclear: (a) The exact DMS datasets used are referenced to PreMode but not independently specified with version numbers; (b) The rBME metric implementation details are incomplete (what is ε exactly?); (c) The regression head architecture is vaguely described as 'inductive bias regression head'—what does this entail exactly? (d) The UMAP dimensionality reduction analysis lacks parameters (neighbors, n_components, distance metric); (e) Test-time training hyperparameter selection process lacks details. (4) Data preprocessing steps are not fully specified (normalization, handling missing values, outlier treatment). (5) No information about hardware specifications beyond 'NVIDIA L4 GPU' or how training time scales. (6) The paper does not specify which version of ESM2 (35M checkpoint from which source?). Potential weakness: the reliance on external PreMode datasets without full specification limits independent verification."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work section is present but problematic in several ways: (1) The paper compares primarily to PreMode as the main baseline, but limited comparison to recent ESM1-based or other fine-tuning approaches. (2) The positioning as 'avoiding multimodality' is framed as an advantage, but PreMode's structural features provide complementary signal; dismissing them based on similar performance is incomplete analysis. (3) No comparison to transformer-based regression methods from other domains (e.g., drug discovery). (4) The paper claims pathogenicity predictors 'fall short' for functional effects (Section 3.1) but the evidence is relegated to an appendix figure (8) without quantitative analysis. (5) Critical recent work on functional genomics and deep learning for protein design is not discussed. (6) ProteinGym is mentioned but not directly compared against. Potential weakness: the paper positions ESM-Effect as novel but does not clearly articulate what components are genuinely new versus what is a systematic optimization of known approaches (which is valuable but not novel)."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper completely lacks any ethics or broader impacts statement. Critical omissions: (1) No discussion of how incorrect predictions for mutation effects could harm patients if deployed clinically. (2) No discussion of biases in DMS datasets (which experimental systems are represented? which are missing?). (3) No mention of data provenance or licensing for the DMS repositories used. (4) No discussion of the implications of poor transfer learning (the model fails on disordered regions and different protein contexts)—this could lead to systematic prediction failures on understudied protein families. (5) No consideration of how this tool might be misused for gain-of-function engineering. (6) The paper briefly acknowledges limitations but frames them as 'areas for improvement' rather than fundamental safety concerns. (7) No discussion of whether fine-tuned models should be openly released given potential misuse. Per RBCL Fatal-Flaw Logic, complete absence of ethics consideration is a critical gap."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper presents a systematic empirical study of ESM2 fine-tuning for mutation effect prediction, which has some value. However, it suffers from multiple critical weaknesses that preclude acceptance at a top-tier venue: (1) **Technical Soundness (Score 2)**: The proposed rBME metric lacks rigorous justification, key results (layer probing, TTT) are incomplete or poorly documented, and claims about equivalent performance across configurations contradict visual evidence. Mean embedding training instability is unresolved. (2) **Empirical Validation (Score 2)**: Acknowledged inability to fully train key comparisons due to compute constraints, lack of statistical significance testing, marginal improvements over PreMode without formal statistical tests, and invalid train-test split comparisons across experiments. (3) **Reproducibility (Score 3)**: While code is promised and hyperparameters are provided, critical implementation details are vague or missing (regression head architecture, exact DMS versions, preprocessing steps). (4) **Fatal Flaw - Transfer Learning**: The paper demonstrates severe failure modes (Spearman rho -0.02 for disordered regions, 0.03 for cross-protein transfer) that fundamentally limit practical utility and are not adequately addressed. (5) **Ethics (Score 1)**: Complete absence of ethics, broader impacts, or safety considerations is a critical gap. (6) **Novelty (Score 2)**: The work is primarily a careful empirical study of existing methods rather than a methodological breakthrough. The benchmarking contribution is useful but incremental. Per RBCL §2 Fatal-Flaw Logic, the combination of incomplete technical validation (unresolved mean embedding instability), inadequate empirical rigor (missing statistical tests, incomplete experiments), and fundamental transfer learning failures (which contradict clinical applicability claims) trigger a mandatory downgrade. The paper would benefit from: (a) completing all experiments and providing statistical significance tests, (b) rigorously investigating why layer position doesn't matter, (c) addressing transfer learning failures mechanistically, and (d) adding ethics/safety discussion. In its current form, it reads as a technical report on an empirical study rather than a validated scientific contribution ready for publication at a top venue."
+  }
+}
+```

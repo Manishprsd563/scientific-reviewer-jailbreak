@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes a dynamic, greedy expansion of a token tree guided by draft probabilities and a thresholding variant to reduce draft calls. While the framing is clear, the core idea—using draft probabilities as a proxy for acceptance and building variable token trees—substantially overlaps with prior speculative decoding lines (e.g., Medusa’s probability-guided branching, Sequoia’s dynamic programming optimization using estimated acceptance rates, and dynamic-depth/expand-rerank approaches like ReDrafter/EAGLE-2). The incremental step is the specific greedy heap-based scheduling with an estimated acceptance proxy and the threshold construction. Potential weakness: The key assumption (acceptance ~ draft probability) and the greedy optimality claim appear to rest on mild/strong assumptions and approximations similar to existing works, limiting the conceptual leap beyond prior art."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust and generalizable, higher acceptance rates and reduced latency are valuable for LLM deployment, especially when T_t/T_d is large (e.g., 70B with CPU offload). Reported gains up to ~9x over autoregressive are practically important. However, measured improvements over strong speculative baselines on smaller models appear modest, and the largest reported gains leverage a specific system setup (CPU-offloaded 70B) that may not generalize across hardware stacks. Potential weakness: The paper does not assess downstream utility or quality impact (e.g., perplexity-equivalence checks or accuracy preservation), leaving uncertainty about practical value beyond throughput metrics."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The acceptance estimator SD[x] ≈ p_d[x] is motivated by a KL-bound intuition and empirical plots, but the link is informal; no rigorous bounds quantify estimation error or its effect on optimality. The claimed optimality of the greedy expansion depends on assumptions that effectively replace acceptance probabilities with draft probabilities and ignore dependencies introduced by sequential sampling and verification. The thresholded, layer-wise construction further relaxes constraints without analyzing unbiasedness or acceptance consistency. Potential weakness: The correctness of the 'optimal' claim under the actual verification dynamics (and the approximation quality of SD[x] by p_d[x]) remains unproven; the method’s unbiasedness and exact adherence to standard rejection sampling under thresholding are not rigorously established."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Results report latency/throughput and accepted tokens across multiple datasets and temperatures, comparing against SpecInfer and Sequoia. However, key elements are missing: no error bars or statistical tests, no reported seeds or variance, and few ablations (e.g., tree size, threshold choice, draft temperature, effect of approximation SD[x]≈p_d[x], layer-wise vs greedy). Comparisons omit strong non-standard-verification methods (e.g., EAGLE-2) beyond qualitative discussion, and fairness across system setups (e.g., CUDA graph usage, CPU offloading) is not fully controlled. Potential weakness: Single-run reporting and lack of significance testing undermine the reliability of observed gains; impact on generation quality (e.g., PPL or task accuracy) is not assessed."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper details models, datasets, and some settings (temperatures, guess length, hardware), and provides pseudo-code. However, there is no indication that code (especially the C++ token-tree implementation and CUDA graph capture pipeline) will be released, and hyperparameters, random seeds, profiling scripts, and environment details are insufficient for end-to-end replication. Potential weakness: Without released code or comprehensive configs and seeds, reproducing exact latency/throughput and acceptance metrics is unlikely. Per Review Norms, missing code caps this criterion."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys several relevant tree-based speculative methods (SpecTr, SpecInfer, Medusa, Sequoia), and discusses EAGLE-2, ReDrafter, and dynamic-depth decoding. This situates the approach reasonably. Potential weakness: The discussion underplays overlap with probability-guided branching and dynamic allocation, and does not empirically compare to self-speculative methods (even with caveats) or discuss quality-speed trade-offs and verification-compatibility in more depth. Some claims about incompatibility might be too categorical without broader evidence."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics or broader impacts statement is provided. The paper uses datasets like C4 and OWT, which have known licensing and PII considerations, but provenance and licenses are not discussed. Potential weakness: Missing discussion of safety implications (e.g., effect of accelerated decoding on content risks), dataset licenses, or compute/energy impacts. Per policy, missing ethics considerations warrants a low score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the proposed dynamic token-tree scheduling with a greedy/threshold strategy is intuitively appealing and shows promising speedups, the work relies on unverified assumptions (acceptance ≈ draft probability) and provides only informal justification for optimality and unbiasedness under standard verification. Empirical validation lacks statistical rigor and comprehensive ablations, and code is not provided, limiting reproducibility. Per RBCL §2 Fatal-Flaw Logic, Reproducibility ≤ 2 and Technical Soundness ≤ 2 mandate a Reject; the numeric total (15) would otherwise map to Weak Reject, but the fatal-flaw override applies. The paper would benefit from releasing code, strengthening theoretical guarantees (or bounding approximation error), rigorous ablations/statistics, and broader/fairer system-level comparisons including quality preservation."
+  }
+}

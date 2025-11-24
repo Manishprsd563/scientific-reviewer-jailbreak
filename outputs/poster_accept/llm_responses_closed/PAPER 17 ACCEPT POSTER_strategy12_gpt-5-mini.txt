@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "RaSA proposes partial rank sharing across layers for LoRA-style adapters, which is a sensible and non-trivial extension that combines sharing and layer-specific weighting. This is incremental relative to existing sharing and dynamic-rank methods (VeRA, Tied-LoRA, AdaLoRA, PriLoRA) rather than a wholly new paradigm; the core idea is a careful engineering / modelling choice rather than a fundamentally different mechanism. Potential weaknesses / unverified assumptions: (1) the novelty claim may be overstated because several prior works already explore inter-layer sharing or global banks of bases — the difference here is mainly in the pooling + diagonal weighting design and its empirical validation; (2) the paper assumes the same-dimension property across layers (Section 2.2) which simplifies design but may limit applicability to architectures that break that assumption; (3) some derivations and notational issues in the theory section reduce clarity of what is genuinely new. Note: score reflects a conservative stance and RBCL anti-inflation (scores penalised overall by the required 0.5 reduction before total)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If RaSA reliably improves PEFT performance for challenging tasks (code, math) without increasing parameter overhead, it would be useful for practitioners adapting large models under resource constraints. The observed gains on multiple models and tasks indicate practical relevance. Potential weaknesses / unverified assumptions: (1) demonstrated gains are limited to the domains and model families reported (Llama / Mistral) and may not generalize to other architectures or to very large-scale production settings; (2) benefits vs. increased training time / complexity trade-offs are only partially quantified (e.g., VeRA training-time increases reported, but broader cost-benefit across settings is not exhaustively explored); (3) impact on downstream safety, latency and serving complexity is not deeply evaluated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The constructive argument that e_rasa(k) ≤ e_lora is plausible and the proof sketch (stacking selected SVD components into a shared pool with per-layer diagonal weights) is reasonable in the restricted setting presented. The empirical coordinate-descent optimization experiments support the claim that RaSA can realize lower reconstruction error in practice. Potential weaknesses / unverified assumptions: (1) several simplifying assumptions are used in the analysis (e.g., D_i operating only on shared matrices, identical layer dimensions) that are not always valid and may limit theoretical guarantees; (2) the proof constructs a feasible solution but does not address optimization dynamics or whether gradient-based training reliably reaches such solutions in practice; (3) some algebraic steps and notational clarity are lacking (typos and inconsistent notation in the manuscript), reducing confidence in the generality of the theoretical claims. Per RBCL Fatal-Flaw Logic, no fatal technical flaw (e.g., contradicted theorem) was found, but the score is conservative."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports a broad empirical suite: multiple models (Llama, Mistral and some larger-scale mentions), two challenging domains (code and math), comparisons to several PEFT baselines, ablations over k and r, reconstruction experiments and forgetting analyses. This breadth is a strength. Potential weaknesses / unverified assumptions: (1) the manuscript relies on 'BEST' vs 'LAST' checkpoints without clear reporting of number of random seeds or repeated runs; there is no discussion of run-to-run variance or statistical significance (single-run or few-run risk); (2) selection of checkpoints (reporting BEST) risks overestimating gains; (3) some important baselines such as stronger full-finetuning variants or more diverse model families could be missing, and cost/efficiency trade-offs (GPU hours, memory) are reported but not normalized across environments; (4) possible dataset contamination and decontamination procedures (e.g., for Magicoder-Evol-Instruct and test splits) are only briefly mentioned and not fully audited in the main text. Following the empirical-rigor rule (penalize single-run, missing statistical tests), I score conservatively."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper explicitly states that code, data and scripts are available at a GitHub URL (abstract and text) and refers to appendices for optimization details and prompt templates, which is encouraging for reproducibility. Potential weaknesses / unverified assumptions: (1) the review cannot verify the completeness or permanence of the repository (e.g., whether it contains exact training scripts, random seeds, environment spec, dependency versions, preprocessed datasets and decontamination scripts); (2) the paper lacks explicit mention of random seeds, number of runs, or hardware/environment reproducibility notes in the main text (they point to appendices, but these must be complete and accessible); (3) some datasets (e.g., reproducible reproductions of WizardCoder) may have licensing or access constraints that complicate exact replication. Because code availability is claimed but key reproducibility artifacts (explicit seeds, multiple runs, environment details) are not clearly presented in the main paper, I remain cautiously optimistic but conservative."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites and situates itself relative to many relevant PEFT works (LoRA, AdaLoRA, VeRA, OLoRA, PriLoRA, MoRA) and prior studies on LoRA parameter redundancy and rank needs. The empirical comparisons include a range of representative baselines. Potential weaknesses / unverified assumptions: (1) given the rapid pace of work in PEFT, there may be very recent concurrent works or nuanced theoretical analyses not covered; (2) the position relative to approaches that use learned bases or random bases is discussed but could be deeper (e.g., trade-offs in optimization difficulty, convergence guarantees); (3) cost and practical deployment considerations (e.g., serving complexity when merging shared pools) could be better compared across baselines. Overall the related-work treatment is solid but not exhaustive."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper does not include an explicit ethics or broader impacts section, nor detailed discussion of data provenance or licensing for the training corpora (some datasets are noted as 'reproduced and decontaminated' but the decontamination methodology is not fully detailed in the main text). Potential weaknesses / unverified assumptions: (1) absence of an explicit ethics statement and limited discussion of dataset provenance, potential biases, licensing and dual-use risks is a notable omission; (2) code-generation models can produce insecure or copyrighted code — no mitigation strategies or red-team analysis are presented; (3) use of GPT-rewritten training data (MetaMathQA) raises provenance and attribution questions that are not fully addressed. Per the rubric, missing or unclear ethics discussion caps this criterion conservatively."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: RaSA is a well-motivated and practically relevant extension of LoRA that pools shared ranks across layers with layer-specific weighting. The paper presents plausible theory (constructive bound showing e_rasa ≤ e_lora), an extensive empirical suite across code and math tasks, and several ablations that suggest the approach is promising. However, multiple concerns lead to a conservative overall judgment. Most critical issues: (1) Empirical rigor concerns — lack of clear reporting of multiple runs, seeds, and statistical significance, and reporting of 'BEST' checkpoints raises risk of overclaiming; (2) Ethics and data-provenance discussion is missing, including limited detail on decontamination and licensing for the used datasets; (3) Some theoretical assumptions (same-dimension layers, simplifications in D_i treatment) and notational/proof clarity issues reduce confidence in the generality of the claims. Application of RBCL and scoring rules: I followed the presumption of rejection and the Anti-Inflation Safeguard (each criterion was treated conservatively and the mandatory 0.5-per-criterion reduction was applied when computing the total). Under RBCL Practical ICLR Calibration, the adjusted total falls into the ambiguous/low range and therefore I default to Reject rather than Borderline or Accept. No single fatal technical flaw (as defined by the rubric) was found that would force an automatic Reject per §2 fatal-flaw logic, but the combination of empirical reproducibility concerns and missing ethics statement is severe enough that, under the non-compensatory RBCL rules and Evidence Severity Scaling, acceptance is not warranted. Key actionable suggestions to remediate: (a) release the full reproducibility artifact (exact scripts, environment, seeds, dataset processing and decontamination steps) and run multiple seeds with statistical reporting; (b) add a clear ethics / broader impacts section discussing data provenance, licenses, risk mitigation for code generation, and potential misuse; (c) improve clarity of the theoretical section by explicitly stating assumptions, cleaning notation/typos, and discussing optimization dynamics and when the constructed bound is achievable in gradient descent training. Decision downgraded due to RBCL Practical Calibration and Anti-Inflation Safeguard (scores conservatively reduced by 0.5 per criterion before computing total)."
+  }
+}

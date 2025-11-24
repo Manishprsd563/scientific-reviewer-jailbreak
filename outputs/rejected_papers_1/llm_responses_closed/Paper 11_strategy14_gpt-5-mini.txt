@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes pooling and globally broadcasting per-agent recurrent memory within a transformer architecture (SRMT). This is a reasonable and practically useful extension of single-agent memory transformers to a multi-agent context and includes non-trivial engineering (shared recurrent memory + cross-attention) and extensive empirical evaluation. However, the core idea (sharing latent representations / memories) is a relatively natural extension of prior memory/communication works (ATM, SCRIMP, RMT, etc.) and may be closer to a substantive incremental advance than a fundamentally new methodological insight. Potential weakness / unverified assumption: the novelty claim hinges on the importance of the particular pooling/broadcasting design versus other communication mechanisms, but the paper lacks a theoretical argument or ablation isolating why this design is qualitatively new beyond demonstrated empirical gains (i.e., no formal properties or proofs showing a representational/expressive advantage)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, SRMT could improve coordination in decentralized MARL and lifelong MAPF settings, which are important for robotics, traffic management, and simulation research; the demonstrated generalization up to long corridors and competitive POGEMA results suggest practical relevance. Potential weakness / unverified assumption: claims of broad applicability assume the shared-memory broadcast scales and is applicable in realistic bandwidth / latency constrained settings; the paper does not analyze communication/compute overheads or runtime constraints in resource-limited deployments, so practical impact may be limited by unexamined scalability/efficiency factors."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The architectural design and algorithmic descriptions appear internally consistent and plausible; the use of recurrent memory tokens plus cross-attention is coherent and implementation details (e.g., ResNet encoder, memory head) seem reasonable. Potential weakness / unverified assumption: the paper does not provide formal analysis of stability, convergence, or complexity (communication/compute scaling with #agents/memory size), and several assumptions are not justified (e.g., that global broadcasting preserves decentralization constraints, or that memory pooling will not cause information overload/confounding across agents). No proofs or theoretical bounds are provided to support generalization claims."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The empirical suite is relatively extensive: toy Bottleneck tasks with multiple reward regimes, ablations (RMT, Attention, RNN, Empty), comparisons to several baselines (MAMBA, QPLEX, ATM, RATE, RRNN), generalization experiments on much longer corridors, and POGEMA benchmark evaluations including multiple metrics. The paper shows confidence intervals and ablations that support many claims. Potential weakness / unverified assumption: important experimental details are missing or insufficiently specified (e.g., number of random seeds / independent runs used to compute CIs, exact hyperparameter sweeps, learning curves for stability, computational budgets required), and no statistical hypothesis tests are reported. The very large training budgets (e.g., 1B environment steps) raise concerns about reproducibility and about whether gains are due to model architecture versus massive compute; single-run / large-compute effects are not clearly excluded."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper refers to an appendix for hyperparameters and to the POGEMA benchmark (public) and describes architectures at a high level, but it does not state that code, training scripts, random seeds, exact hyperparameter values, or pretrained models are publicly released. Given the heavy compute used (hundreds of millions to billions of environment steps), the absence of an explicit code & artifact release (or precise seed/hyperparam tables and minimal reproducible configs) materially limits reproducibility. Per the review rubric, missing or unclear information caps this criterion at 2/5. Potential weakness / unverified assumption: the authors implicitly assume others can reproduce results from textual descriptions and an appendix, but without released code or detailed run configurations the experiments are unlikely to be replicable in practice. Note: because reproducibility is <= 2, RBCL §2 Fatal-Flaw Logic requires the overall decision be Reject (this downgrade is applied in the final decision)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys a broad set of related approaches: memory transformers, ATM, RATE, RRNN, and many MARL baselines (MAMBA, QPLEX, RHCR, etc.) and positions SRMT relative to centralized/decentralized/communication approaches. This contextualization is helpful and the experiments include many relevant baselines. Potential weakness / unverified assumption: the related-work discussion selectively emphasizes alignment with some prior works while downplaying or not deeply analyzing closely related communication/centralized-training mechanisms (e.g., transformer-based communication approaches such as SCRIMP) and lacks discussion of trade-offs (e.g., communication overhead, privacy) compared to message-passing or sparse communication alternatives."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The submission contains no dedicated ethics / broader impacts discussion, no analysis of potential misuse, no account of compute cost / environmental impact of very large-scale training runs, and no statement about data provenance beyond using public benchmarks. Missing or unclear ethical considerations cap this criterion at 2/5. Potential weakness / unverified assumption: authors appear to assume MARL pathfinding is benign, but deployment contexts (e.g., robotics, traffic) have safety and fairness consequences that are not discussed; the lack of an explicit ethics analysis and absence of release/licensing details limit assessment of responsible release and use."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents a pragmatic and well-engineered approach (SRMT) that extends memory transformers to multi-agent pathfinding via pooled/shared recurrent memories. Empirically, the work is promising: it includes multiple baselines, ablations, and generalization experiments on POGEMA and toy bottlenecks. However, the submission has two interrelated, critical shortcomings that justify rejection under the review criteria and the mandated RBCL rules. First, reproducibility is inadequate: the authors do not provide code, exact seeds, or fully detailed experiment configurations (only a reference to an appendix), and the experiments rely on very large compute (hundreds of millions to billions of environment steps), making independent verification unlikely. Per the rubric, missing/unclear reproducibility details cap that criterion at 2/5. Second, while technically plausible, the paper lacks theoretical analysis of assumptions, complexity, or convergence, and the practical costs and trade-offs of global memory broadcasting (communication and runtime scaling with number of agents) are not analyzed. These deficits create a fatal flaw per RBCL §2 (Technical Soundness ≤ 2 or Reproducibility ≤ 2 leads to Reject). Application of RBCL and scoring corrections: I followed the prescribed conservative scoring process (baseline + adjustments and the anti-inflation rule). Crucially, because reproducibility ≤ 2, RBCL §2 Fatal-Flaw Logic mandates that the overall decision be \"Reject\" (this override was applied). Practical recommendation: the paper could become acceptable with (1) a public artifact release (code, training scripts, seeds, exact hyperparameters, model checkpoints), (2) clearer reporting of the number of runs, statistical tests, and computational cost, (3) a more detailed analysis of communication/compute scaling and failure modes of shared memory (including cases where shared memory could be detrimental), and (4) a deeper theoretical or empirical ablation isolating why the particular shared-memory pooling design provides benefits over alternative communication mechanisms. Because of the reproducibility deficiency and unverified assumptions about scalability, I recommend Reject. (Decision downgraded due to RBCL §2 Fatal-Flaw Logic and the RBCL anti-inflation conservatism.)"
+  }
+}

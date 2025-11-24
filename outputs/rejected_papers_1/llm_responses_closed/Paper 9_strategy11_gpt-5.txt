@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a sparse TTA framework (SNAP-TTA) combining (i) a Class and Domain Representative Memory (CnDRM) that uses pseudo-label confidence and proximity to a domain centroid, and (ii) an inference-only, batch-aware normalization (IoBMN) with soft-shrinkage corrections. The overall framing for latency-sensitive sparse adaptation is timely and the specific pairing of representative memory with on-the-fly normalization is a cohesive design. However, several components resemble known ideas (confidence-based pseudo-label selection, AdaBN-style recalibration, centroid-based sampling, and sparsified update policies). The domain-representative metric reduces to comparing means/variances (akin to Gaussian 2-Wasserstein assumptions), which may limit novelty in the core technical insight. Potential weakness: novelty is largely a composition of established elements with limited theoretical justification that the specific combination is uniquely superior under wide conditions."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing latency for TTA on edge devices is important, and demonstrating substantial latency reductions alongside accuracy retention directly targets a practical bottleneck. The method’s compatibility with multiple TTA algorithms increases its potential utility. However, validation focuses on corruption benchmarks (CIFAR-C, ImageNet-C) rather than real-world, non-synthetic streams or safety-critical deployments; the generality to tasks beyond classification and to non-corruption domain shifts is unverified. Potential weakness: claims of suitability for latency-sensitive applications (e.g., autonomous driving) are not substantiated with realistic streaming setups, safety assessments, or end-to-end throughput constraints."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proposed IoBMN uses shrinkage on normalization statistics, and CnDRM relies on pseudo-label confidence and domain proximity computed from early-layer statistics. These choices are plausible and consistent with known intuitions (e.g., early layers containing domain information, BN/LN recalibration helps under shift). Yet, theoretical underpinnings are limited: the Wasserstein distance is computed from only means/variances, effectively assuming Gaussian-like behavior; stability/robustness analyses of IoBMN under varying batch sizes and skewed pseudo-labels are not provided; and there are minor notation/equation issues that reduce clarity. Potential weakness: reliance on pseudo-label confidence and predicted-class balancing can propagate errors under severe shift; there is no formal analysis of convergence or failure cases for sparse updates."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover multiple TTA methods (Tent, EATA, SAR, CoTTA, RoTTA), three corruption datasets, a Raspberry Pi latency testbed, ablations (CRM, CnDRM, IoBMN), and a ViT variant. The breadth is good and 3 seeds are reported. However, statistical significance tests are absent; some tables appear garbled and difficult to verify; the latency protocol may not normalize for augmentation and model differences or consider end-to-end streaming constraints (e.g., backlog handling, frame drop rates); and evaluations are primarily on corruption benchmarks at highest severity, leaving generality to other shifts unclear. Potential weakness: lack of rigorous fairness/sensitivity analyses for latency (frequency, I/O, OS scheduling, power throttling), and missing energy/power measurements on-device."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "While the paper references appendices with implementation details and claims to report averages over three seeds, the submission does not explicitly provide code, detailed scripts, or exact environment specifications (e.g., Raspberry Pi OS version, thermal controls, power settings, threading, device drivers). Per the rubric, absence of code and fully specified setup caps this criterion. Potential weakness: without released code and precise system configuration, reproducing the exact latency and accuracy trade-offs on resource-constrained devices is uncertain."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates SNAP-TTA among TTA methods (Tent, EATA, SAR, CoTTA, RoTTA) and mentions BN statistics calibration. It cites a latency-aware evaluation protocol (Alfarra et al., 2024). Positioning as an orthogonal add-on is clear. However, discussion of closely related ideas (e.g., AdaBN variants, event-triggered/update-budgeted adaptation, frame/sample selection policies, energy-aware/on-device TTA) could be deeper; head-to-head comparisons with recent adaptive-update or selective-training approaches are limited. Potential weakness: some relevant lines of work on adaptive frequency policies and test-time normalization calibration are not fully contrasted."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics/broader impacts statement is evident in the excerpt. While datasets are standard (CIFAR/ImageNet), potential safety implications for latency-sensitive settings (e.g., autonomous driving) and on-device storage of test samples (privacy) are not discussed. Potential weakness: missing discussion of data licenses/provenance, privacy of streamed data kept in memory, and risk mitigation for deployment in safety-critical contexts. Per rubric, missing or unclear ethics discussion caps the score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.6,
+    "final_decision": "Reject",
+    "final_justification": "SNAP-TTA targets an important, practical problem—reducing TTA latency on edge devices—and presents a coherent design (representative sampling plus inference-only normalization) with encouraging results across several benchmarks and TTA methods. However, adopting a conservative, falsification-oriented stance, two issues prevent acceptance: (1) Reproducibility/Transparency is capped (score ≤ 2) due to absent code and insufficiently specified system setup, triggering the Decision & Overrides rule and RBCL §2 Fatal-Flaw Logic—hence the decision is downgraded to Reject regardless of other strengths; and (2) the empirical and technical claims, while plausible, lack stronger theoretical support and rigorous statistical and fairness analyses for latency and robustness. Given a total score of 19 (which would map to Borderline/Major Revision), RBCL further advises treating this as a Reject absent exceptional breakthroughs. Releasing code and detailed device setup, strengthening statistical analyses, and evaluating on realistic streaming scenarios would substantially improve the case."
+  }
+}

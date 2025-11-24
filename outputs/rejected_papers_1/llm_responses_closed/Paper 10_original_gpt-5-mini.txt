@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a simple per-layer rescaling toward initialization via an EMA which is applied at each update. This is an incremental but useful refinement of existing rescaling and initialization-distance penalties (e.g., L2-init, Weight Rescaling, layerwise rescaling). Theorem 1 formalizes proportionality for homogeneous activations, but that result and the idea of rescaling to preserve outputs are largely known; SWR's contribution is a pragmatic, lightweight variant rather than a fundamentally new mechanism. Potential weakness / unverified assumption: the method's novelty depends on parameter choices (lambda, EMA) and how different it is from prior 'rescale to init' or initialization-anchoring penalties in practice — the manuscript does not convincingly demonstrate that SWR yields qualitatively new behavior beyond a well-tuned variant of existing techniques. Note: I applied RBCL anti-inflation skepticism (preferring conservative scoring) and did not elevate the score to reflect marginal variation over prior art."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, a low-overhead method that recovers plasticity and stabilizes weight magnitudes across layers would be broadly useful for warm-starts, continual learning, and standard supervised training — all practically relevant settings. The experimental claims (small improvements on multiple models and a notable gain on VGG-16 / TinyImageNet) indicate potential impact. Potential weakness / unverified assumption: the gains reported are modest in many settings (and the authors even note that L2 sometimes outperforms SWR); it is unclear whether SWR will scale to modern large-scale architectures (transformers, modern normalization schemes) or large datasets, and whether benefits generalize beyond the shown image-classification tasks."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper states and sketches a plausible result (Theorem 1) about constructing proportional networks via per-layer scaling under homogeneous activations — the claim is mathematically reasonable and likely correct for the stated setting. The boundedness claim for SWR is plausible and the authors refer to appendices with proofs. Potential weakness / unverified assumption: the theoretical scope is narrow (requires homogeneous activations and affine/convolution layers) and the treatment of normalization layers is cursory (stating that only final normalization parameters matter). There is limited theoretical analysis of optimization dynamics, interaction with common optimizers (SGD/Adam), or rigorous generalization bounds; these are left informal. Also, proofs are in appendices that are not shown here for verification; if those proofs are incomplete or rely on hidden assumptions, correctness could be undermined. (RBCL note: I remained conservative per Fatal-Flaw Logic but did not find a technical-score <=2, so no automatic rejection on technical grounds.)"
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover multiple tasks (warm-start, continual learning, standard supervised) and multiple architectures/datasets (MLP/CNN on MNIST/CIFAR, VGG-16 on TinyImageNet). The authors compare against common baselines (L2, L2 Init, S&P, head reset) and report means and standard deviations in at least some tables/figures. Potential weakness / unverified assumption: key experimental details are incomplete or not visible here (e.g., full hyperparameter sweeps, seeds, optimizer types for all runs, number of independent runs across experiments, and ablations over lambda/EMA settings). Important baselines are missing or not fully explored (e.g., spectral norm regularization, modern normalization/optimizer combinations, transformer-like architectures). There are few ablations showing sensitivity to SWR hyperparameters or computation/latency costs. Statistical significance tests, multi-seed coverage for all experiments, and thorough ablations appear limited, so empirical claims are incompletely supported and require more rigorous validation."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper refers to appendices (D, E, F) for experimental settings and hyperparameters, and uses standard public datasets, which is helpful. However, there is no explicit statement that code, training scripts, random seeds, or pre-trained model checkpoints are released, nor any link to a code repository in the manuscript. Potential weakness / unverified assumption: absent a public code release or explicit, detailed reproducibility artifacts (exact seeds, environment, training schedules, and full hyperparameter tables), reproducing the reported results may be difficult. Per the evaluation rules, missing/unclear information about releases/hyperparameters caps this criterion at 2/5. Also: Decision downgraded due to RBCL Fatal-Flaw Logic — reproducibility <= 2 requires a conservative final decision ('Reject' or worse)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites a wide range of prior work on weight magnitude, rescaling, re-initialization, and weight-anchoring (e.g., L2 Init, Layerwise rescaling, S&P). The authors position SWR as combining advantages of rescaling and re-initialization and discuss interactions with normalization layers. Potential weakness / unverified assumption: the discussion sometimes glosses over close technical differences to the most related methods (e.g., explicit comparison to Niehaus et al. 2024 weight rescaling and detailed empirical head-to-heads), and there is limited discussion of how SWR relates to optimizer-state interactions (Adam/SGD), modern normalization variants, or wider literature on continual learning regularizers. Some claims about prior methods' drawbacks are stated but not always empirically validated against strong contemporary baselines."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper does not contain an explicit ethics or broader impacts section, nor does it discuss potential misuse, data provenance, licensing of code/datasets, or environmental/training-cost implications of applying SWR across large models. Potential weakness / unverified assumption: absence of an ethics statement or explicit discussion of how SWR might affect fairness, robustness, or downstream misuse means ethical implications are unaddressed and transparency is lacking; per rubric missing/unclear ethics documentation caps this criterion at 2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.85,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper introduces a pragmatic technique (Soft Weight Rescaling) to curb unbounded weight growth and recover plasticity; it provides plausible theoretical statements and a set of experiments demonstrating modest gains across warm-start, continual learning, and supervised benchmarks. Strengths include a simple, low-overhead method, a clear motivating problem (plasticity loss), and multi-setting empirical evidence. However, important limitations and gaps prevent acceptance at a top-tier venue in its current form. The primary concerns are reproducibility and incomplete empirical rigor: the manuscript does not provide an explicit public code release or complete, unambiguous reproducibility artifacts (seeds, full hyperparameter tables / scripts) in the main text; ablations and sensitivity analyses over SWR hyperparameters are limited; and interaction with common optimizers/modern architectures is not thoroughly explored. The theoretical claims are somewhat narrow (homogeneous activations) and the treatment of normalization layers is brief; the novelty is incremental relative to existing rescaling/initialization-anchoring works rather than a clear conceptual breakthrough. According to the mandatory evaluation logic: reproducibility score <= 2 triggers a required conservative outcome. Therefore, the final decision is 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility <= 2 obligates rejection). To improve: release code + training scripts and seeds; include comprehensive hyperparameter tables and compute environments; expand ablations (lambda / EMA sensitivity, optimizer interactions); compare to stronger and more diverse baselines (spectral norm, modern normalization-aware regularizers, large-scale models); and strengthen theoretical analysis of optimization dynamics and interactions with normalization. With these fixes and evidence of reproducibility, the work could be reconsidered."
+  }
+}

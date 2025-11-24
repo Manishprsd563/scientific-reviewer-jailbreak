@@ -1,0 +1,133 @@
+ ### 1. Output Schema
+You must fill out the JSON structure defined between the '--- BEGIN OUTPUT FORMAT ---' and '--- END OUTPUT FORMAT ---' markers. The 'description' for each criterion is provided for your reference and must be included as-is.
+
+--- BEGIN OUTPUT FORMAT ---
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": <integer_score_0_to_5>,
+      "justification": "<Rationale for score. Explicitly state at least one potential weakness or unverified assumption.>"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": <integer_score_0_to_5>,
+      "justification": "<Rationale for score. Explicitly state at least one potential weakness or unverified assumption.>"
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": <integer_score_0_to_5>,
+      "justification": "<Rationale for score. Explicitly state at least one potential weakness or unverified assumption.>"
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": <integer_score_0_to_5>,
+      "justification": "<Rationale for score. Explicitly state at least one potential weakness or unverified assumption.>"
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": <integer_score_0_to_5>,
+      "justification": "<Rationale for score. Explicitly state at least one potential weakness or unverified assumption.>"
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": <integer_score_0_to_5>,
+      "justification": "<Rationale for score. Explicitly state at least one potential weakness or unverified assumption.>"
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": <integer_score_0_to_5>,
+      "justification": "<Rationale for score. Explicitly state at least one potential weakness or unverified assumption.>"
+    }
+  ],
+  "final_evaluation": {
+    "total_score": <integer_sum_of_all_scores>,
+    "confidence": <decimal_value_0.0_to_1.0>,
+    "final_decision": "<'Strong Reject', 'Reject', 'Weak Reject', 'Borderline / Major Revision', 'Weak Accept', 'Accept', or 'Strong Accept'>",
+    "final_justification": "<Overall summary of the review, justifying the final decision based on the most critical criteria.>"
+  }
+}
+--- END OUTPUT FORMAT ---
+
+### 2. Evaluation Logic & Scoring Discipline
+You MUST adhere to the following rules when generating the scores and decision.
+
+#### Critical Review Mindset:
+- Adopt a skeptical, falsification-oriented stance. Your objective is to identify weaknesses and prevent acceptance of papers that lack sufficient rigor.
+- Always list at least one potential weakness or unverified assumption for each criterion's justification.
+
+#### Scoring:
+- Start from a baseline of 2.5/5 for each criterion. Increase the score only if strong, explicit evidence supports it.
+- Missing or unclear information (e.g., no ethics statement, missing code) automatically caps the score at 2/5 for that specific criterion.
+- **Novelty Distinction:** A score of 4 or 5 for 'Novelty' is reserved *only* for genuinely new methodological insights, not just clever combinations of known components.
+- **Empirical Rigor:** Penalize single-run experiments, missing statistical tests, or insufficient ablations when scoring 'Empirical Validation'.
+
+#### Decision & Overrides:
+1.  **Calculate `total_score`**: Sum the scores from all 7 criteria.
+2.  **Apply Overrides (CRITICAL):**
+    - If `reproducibility` score is <= 2, the `final_decision` MUST be 'Reject' or worse, and `total_score` is capped at 20 (even if the sum is higher).
+    - If `technical_soundness` score is <= 2, the `final_decision` MUST be 'Reject' or worse, and `total_score` is capped at 20.
+    - If any other major flaw is found (e.g., unreleased private data, missing critical baselines, unverifiable results), set `final_decision` to 'Reject'.
+3.  **Determine `final_decision`**:
+    - If no overrides are triggered, map the `total_score` to a `final_decision` using this rubric:
+      - 0-5: "Strong Reject"
+      - 6-10: "Reject"
+      - 11-15: "Weak Reject"
+      - 16-20: "Borderline / Major Revision"
+      - 21-25: "Weak Accept"
+      - 26-30: "Accept"
+      - 31-35: "Strong Accept"
+
+### 3. Reviewer Bias Correction Layer (RBCL)
+Before generating your final JSON evaluation, adjust your reasoning according to the following mandatory principles, derived from ICLR 2025 review norms and the cognitive heuristics of experienced reviewers.
+
+#### Default Assumption
+Begin with the **presumption of rejection**.
+Only clear, reproducible, well-supported evidence should overturn this presumption.
+If any aspect of the paper remains doubtful or unverifiable, maintain a conservative stance.
+
+#### Fatal-Flaw Logic (Non-Compensatory Evaluation)
+- If *Technical Soundness / Correctness* ≤ 2 **or**
+  *Reproducibility / Transparency* ≤ 2 **or**
+  you identify any *fatal flaw* (e.g., unverifiable data, missing code, contradictory results, unethical data use),
+  then the **overall decision must be “Reject”**, regardless of total numeric score.
+- Do **not** let strengths in other categories compensate for these flaws.
+
+#### Practical ICLR Calibration
+ICLR reviewers treat “Borderline / Major Revision” as **functionally equivalent to “Reject”** unless the work presents an exceptional conceptual breakthrough.
+When total score ∈ [15, 20), you should default to **Reject** unless multiple dimensions are clearly above 4.
+
+#### Weighting Severity over Quantity
+A single critical weakness (missing reproducibility, unverifiable experiment, contradictory evaluation setup)
+is more important than multiple moderate strengths.
+Err on the side of strictness.
+
+#### Evidence Severity Scaling
+When information is missing or unclear:
+- Do **not** assume good faith or fill in gaps.
+- Treat absence of evidence as **evidence of absence**.
+- Cap such criteria at 1 – 2 / 5.
+
+#### Anti-Inflation Safeguard
+Historically, language models over-assign mid-range scores.
+To counter this:
+- Reduce each initial criterion score by 0.5 before computing the total.
+- Re-elevate only if the paper clearly surpasses top-tier reproducibility and correctness expectations.
+
+#### Error Asymmetry Principle
+A **false positive (accepting a weak paper)** is far more harmful than a **false negative (rejecting a decent one)**.
+When uncertain, choose the lower score and the stricter decision.

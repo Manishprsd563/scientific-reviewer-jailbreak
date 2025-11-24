@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a uniformity-driven, multi-objective allocation framework that combines three sampling probability matrices (accuracy, convergence, scalability) via element-wise product and uses greedy tuple selection. While the unification and emphasis on uniformity across distinct objectives are interesting, the approach appears heuristic and closely related to established ideas in adaptive sampling/active ranking/dueling bandits and importance-weighted estimation. The integration mechanism and objectives are not formalized as a principled multi-objective optimization problem. Potential weakness: the assumption that enforcing uniformity across models/samples/uncertainty collectively yields near-optimal efficiency is not theoretically justified and may overlap with prior adaptive design literature not fully discussed."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Efficient comparing-based evaluation is practically important, and reported budget savings (≈17% in static and >50% when models are added) would be valuable if robust. The framework could help practitioners reduce annotation or judge calls. However, the gains are moderate on static settings versus RANDOM/ARENA, and evaluations rely heavily on LLM-as-judge and a small human benchmark. Lack of comparisons to stronger adaptive/dueling bandit baselines limits evidence of broader impact. Potential weakness: the real-world significance is uncertain due to narrow benchmarks and reliance on simulated or LLM-judged settings without end-to-end cost/latency or human-utility analyses."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The estimator and uncertainty formulation resemble importance-weighted and variance-tracking approaches, but key derivations are unclear or possibly inconsistent. Equations for P^{acc-l} and P^{sca-l} have confusing/misalused indices; P^{con-l} lacks sample (k) dependence despite the probability being over (i,j,k); and the multiplicative fusion of matrices is heuristic without analysis of bias/variance trade-offs. The claim that completely uniform allocation minimizes sampling bias is asserted with an Appendix proof not provided here, and it is not reconciled with greedy sampling that could introduce selection bias. Potential weakness: unbiasedness and variance properties under the proposed greedy sampling and matrix product integration are not rigorously proven; indexing inconsistencies raise correctness concerns."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper evaluates on AlpacaEval and MT-Bench, includes multiple judges (GPT-4o, GPT-3.5, Qwen-Plus) and a small human-judged scenario, and provides ablations on objectives, sampling, and aggregation. However, experiments rely heavily on LLM-as-judge, provide no statistical significance tests or confidence intervals, and exclude established dueling bandit/active ranking baselines (e.g., UCB/TS for pairwise comparisons, optimal experimental design variants). Dynamic scalability scenarios appear synthetic. Potential weakness: claims such as Pearson >0.995 hinge on defining ground truth as fully traversed LLM-judged matrices; robustness to judge biases and noise is underexplored."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The manuscript references appendices (proofs, prompts, and implementation details) but does not provide code, data-processing scripts, or precise experimental configurations in the text provided. Many critical details are missing: exact seeds, environment, API settings/costs, and how the full traversal ground truth was generated at scale. The paper claims averaging over 10,000 random seeds but provides no public artifact to verify. Potential weakness: without released code/prompts and precise instructions, it is difficult to reproduce the allocation schedules and metrics; per RBCL, missing artifacts caps this score."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper covers RANDOM, ARENA, and AlpacaEval, and aggregation methods (Elo, Bradley–Terry), but overlooks a substantial literature on dueling bandits, active ranking, adaptive tournament scheduling, and optimal design for pairwise comparisons that is highly relevant to multi-objective sampling and uncertainty reduction. Comparisons are limited to three baselines, omitting stronger adaptive baselines. Potential weakness: incomplete positioning risks overstating novelty and underestimates alternative principled approaches."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No dedicated ethics statement is evident in the provided text. The work uses LLM-as-judge and third-party datasets (e.g., Chatbot Arena) without clear discussion of licenses, annotator consent, or potential biases propagated by automated judges. The concluding paragraph downplays dataset bias and cites a 2025 meta-analysis as justification, which is both post-dated and insufficient to negate bias concerns. Potential weakness: risks of systemic bias amplification, provenance and licensing details, and human-annotator considerations are not addressed; per RBCL, missing/unclear ethics discussion caps this score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.6,
+    "final_decision": "Reject",
+    "final_justification": "While the paper tackles an important problem and presents a seemingly effective uniformity-driven allocation heuristic with supportive empirical trends and ablations, the submission falls short on technical rigor, completeness of comparisons, and reproducibility. Indexing inconsistencies and unproven claims (e.g., optimality of uniformity and unbiasedness under greedy sampling) undermine correctness. Critical artifacts (code, exact settings, prompts) are missing, preventing verification. Ethics and broader impacts are minimally addressed and include a questionable justification for dataset bias. Per RBCL §2 Fatal-Flaw Logic, technical soundness ≤ 2 and reproducibility ≤ 2 trigger an override to Reject, with total score capped. The work could be strengthened by: (1) providing formal analysis of estimator properties under the proposed sampling and integration, (2) releasing code and full experimental artifacts, (3) comparing against stronger adaptive/dueling bandit baselines with statistical tests, and (4) adding a substantive ethics statement and data-use clarifications."
+  }
+}

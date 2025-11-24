@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a targeted, learnable attention-scaling approach (head- and channel-wise) for improving long-context retrieval which is an interesting and plausible idea. This goes beyond simple application of existing PEFT modules by explicitly identifying and adjusting attention components, which is moderately novel. Potential weaknesses/unverified assumptions: (1) the claim that specific heads causally drive long-context retrieval is not firmly established (pruning correlations may not imply causation); (2) the use of tiny synthetic training sets (50 samples) is an empirical trick whose generality is not proven; (3) the paper positions itself as a novel theoretical framework but provides limited formal theoretical development. Per RBCL §Anti-Inflation and Evidence Severity Scaling, I have adopted a conservative score and noted that the novelty claim would need stronger theoretical or mechanistic evidence to merit a higher score."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Improving long-context retrieval for deployed LLMs with a lightweight tuning procedure is potentially useful to both research and practice (e.g., combining with training-free context-extension). Potential weaknesses/unverified assumptions: (1) applicability beyond the tested retrieval tasks (line retrieval, needle-in-haystack, some QA) is not thoroughly validated; (2) claimed benefits when combined with diverse context-extension methods may depend on model and task specifics and are not proven across many model families or realistic downstream retrieval pipelines; (3) practical cost/benefit tradeoffs (robustness, failure modes) are not deeply characterized. Given these uncertainties, significance is moderate rather than high."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The methodological description is plausible and experiments are consistent with the mechanism, but rigorous theoretical grounding and causal evidence are limited. Potential weaknesses/unverified assumptions: (1) the core causal claim (that scaling specific heads/channels is the principal lever for long-context retrieval) relies on correlation from pruning/ablation without interventions showing causal necessity/sufficiency; (2) the direct-effect analysis omits normalization terms and does not fully rule out alternative explanations (e.g., MLP dominance reported in the paper); (3) some hyperparameter choices (e.g., learning rates, epochs) and stopping/selection criteria lack justification. Per RBCL Fatal-Flaw Logic, because technical soundness is ≤ 2 this triggers a mandatory 'Reject' range decision unless strong corrective evidence is provided; I explicitly cite RBCL §Fatal-Flaw Logic in this justification."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports experiments across multiple models and tasks (LongEval line retrieval, Needle-in-a-Haystack, parts of LongBench) and includes ablations across SEAL variants and comparisons to some context-extension methods. However, important empirical limitations remain. Potential weaknesses/unverified assumptions: (1) extremely small tuning dataset (50 synthetic samples) and single-run results are presented with no statistical significance testing or multiple seeds; (2) lack of thorough baselines in some places (e.g., comparing to more fine-tuning strategies or stronger retrieval augmentation baselines); (3) limited clarity on evaluation protocols (e.g., how many trials, randomness in synthetic generation, exact prompts/templates). Per the scoring rules, single-run/no-statistics must be penalized and thus the empirical score is low."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper provides some tuning hyperparameters (optimizers, learning rates for certain settings, hardware used) and describes dataset generation at a high level, but it does NOT provide code, seeds, exact synthetic-generation prompts, full hyperparameter lists, or instructions to reproduce results. Potential weaknesses/unverified assumptions: (1) absence of released code and exact synthetic-data generation templates prevents verification; (2) random seed/variance and selection procedures are not reported; (3) evaluation scripts, exact datasets, and model weights/scaling application procedures are not provided. Because reproducibility is ≤ 2 this triggers the RBCL Fatal-Flaw Logic -> overall decision downgrade to 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL §Evidence Severity Scaling)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites relevant prior work on circuit analysis, context-extension methods (RoPE scaling, NTK, Self-Extend), and PEFT baselines (LoRA/DoRA), and positions SEAL relative to them. Potential weaknesses/unverified assumptions: (1) some recent closely related works on attention-head interventions or targeted attention re-weighting may be missing or not fully compared experimentally; (2) claims of being a 'fundamental theoretical framework' are not reconciled with the empirical/heuristic nature of the experiments; (3) more explicit discussion contrasting to stronger fine-tuning context-extension methods would strengthen positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "There is no explicit ethics or broader impacts section, no discussion of data provenance, licensing of model weights, or potential misuse. Potential weaknesses/unverified assumptions: (1) generated synthetic datasets and potential contamination risks are not analyzed; (2) implications of altering attention patterns (e.g., for model biases or safety-critical deployments) are not discussed; (3) no licensing or provenance details are given for the evaluated models/datasets. Per the grading rules, missing ethics statement leads to a low score and this absence contributes to conservative overall judgement."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes an interesting and practically appealing technique (SEAL) to improve long-context retrieval by learning head- and channel-wise attention scales using small synthetic datasets. Experiments show promise across several models and tasks, and the method is lightweight. However, critical weaknesses prevent acceptance at this time: (1) Reproducibility is poor (no released code, missing seeds, underspecified synthetic-data generation and evaluation scripts), and I set reproducibility=1; per RBCL Fatal-Flaw Logic a reproducibility score ≤ 2 mandates a 'Reject' decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). (2) Technical soundness is limited: core causal claims are supported primarily by correlational pruning/ablation rather than rigorous causal interventions or proofs, and some mechanistic assertions (e.g., 'fundamental theoretical framework') are not substantiated; technical_soundness=2 also independently triggers the RBCL fatal-flaw rule if left unchecked. (3) Empirical evaluation lacks statistical rigor (single-run, tiny tuning set of 50 synthetic samples, missing multiple seeds and significance testing) and some important baselines and protocol details are missing. (4) Important ethical and provenance information is omitted. Taken together, these flaws are non-compensatory: per RBCL 'Fatal-Flaw Logic' and the reviewer bias correction layer I adopt the presumption of rejection in the absence of clear, reproducible, and rigorous evidence. To be acceptable, the authors should (at minimum) release code and dataset-generation scripts, provide multiple-run experiments with seeds and statistical analysis, include stronger causal/mechanistic evidence for head-level causality, expand baselines (including stronger fine-tuning and retrieval baselines), and add an ethics/broader-impacts section. Given the current manuscript, the correct decision is 'Reject'."
+  }
+}

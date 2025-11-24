@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic token tree construction method for speculative decoding, which is an incremental improvement over existing tree-based approaches (Sequoia, SpecInfer, Medusa). While the greedy expansion strategy and connection between draft probability and acceptance rate are useful observations, the core novelty is limited. The main contribution—using draft distribution to guide tree expansion—is relatively straightforward and follows naturally from Hypothesis 1. The paper acknowledges that Eagle-2 also uses dynamic predicted token trees, reducing the claim to originality. The theoretical contribution (optimality under mild assumptions) is not sufficiently developed or rigorously justified. Missing: no comparison with concurrent or very recent dynamic tree methods beyond Eagle-2."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "Speculative decoding is an important practical problem for LLM inference acceleration, and demonstrating consistent speedups (up to 9.1× on Llama2-70B) across multiple datasets and model sizes is valuable. However, the impact is somewhat limited by several factors: (1) the improvements over Sequoia are often modest (e.g., 9.42× vs 6.29× on C4 with temperature 0, but 6.77× vs 5.66× at temperature 0.6—suggesting high variance and dataset/temperature dependence); (2) the method requires significant implementation overhead (C++ optimizations, CUDA graphs, careful engineering) which may limit adoption; (3) the approach is specific to speculative decoding and does not generalize beyond this setting. The practical applicability is clear, but the theoretical insights are shallow."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Critical issues identified: (1) **Hypothesis 1 is stated informally and validated only empirically on one dataset (CNN DailyMail, Figure 2).** The KL divergence argument in Section 4 is intuitive but lacks formal rigor. The claim that 'tokens with large draft probability must have large target probability' is not guaranteed by a KL constraint alone—counterexamples exist. (2) **The approximation SD[t_i] ≈ p_d[t_i] in Section 5.1 is unjustified.** This conflates acceptance probability with draft probability, which are distinct quantities. No error bounds or conditions under which this holds are provided. (3) **'Proof of optimality' is relegated to Appendix D (not provided in the review).** The greedy algorithm's optimality is claimed but not demonstrated in the main text, raising doubt about correctness. (4) **The threshold-based method (Section 5.4) introduces heuristics (e.g., C ≈ 1/n) without theoretical justification or ablation studies.** (5) **Notation is inconsistent and sometimes incorrect** (e.g., 'norm(relu(T - D))' in preliminaries is unclear—what distribution does this refer to?). (6) **The time complexity analysis in Section 5.3 conflates algorithmic complexity with wall-clock time**, making claims about negligibility hard to verify without detailed profiling."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Strengths: Multiple datasets (C4, OpenWebText, CNN DailyMail, GSM8k, MT-Bench), different temperatures, and multiple model sizes (7B, 13B, 70B). Weaknesses: (1) **No ablation studies.** The paper does not isolate the contribution of individual components (e.g., impact of threshold selection, sensitivity to temperature, effect of draft model quality). (2) **High variance in results.** Table 1 shows improvements range from near-parity (OWT, temp 0.6: 2.40× vs 2.18×) to substantial (GSM8k, temp 0: 3.93× vs 2.79×). No statistical significance testing or confidence intervals provided. (3) **Limited baseline comparisons.** Only Sequoia and SpecInfer are compared; Eagle-2 is discussed but not experimentally compared despite being highly relevant. (4) **Experimental setup limitations:** (a) Fixed prompt length (128 tokens) and generation length (128 tokens) may not reflect diverse real-world scenarios; (b) Single GPU setup limits reproducibility; (c) CUDA graph optimization is used but not clearly ablated—its contribution to speedup is unclear. (5) **Temperature analysis is superficial.** The paper uses only two temperatures (0 and 0.6), not a continuous range. (6) **No analysis of failure cases** or scenarios where DYSPEC underperforms. (7) **The 9.1× speedup claim is headline-focused:** when broken down by dataset, many results are closer to 6-7×."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Major gaps identified: (1) **No code or implementation details released.** The paper promises C++ implementation but provides no source code, making reproduction infeasible. (2) **Critical hyperparameters are missing or vague:** (a) How is threshold C chosen in practice? Section 5.4 states 'typically around 1/n' but provides no sensitivity analysis or principled method. (b) Heap implementation details and tie-breaking strategy for equal-valued nodes are unstated. (c) CUDA graph configuration (batch sizes, memory allocation) is not documented. (3) **Incomplete algorithm specification:** Algorithm 1 has notation inconsistencies (TreeInfo vs. TreeInf_O, unclear variable updates). The algorithm does not specify how to compute residual distribution norm or handle edge cases. (4) **Missing experimental details:** (a) Random seeds not mentioned. (b) Number of experimental runs/trials unstated. (c) GPU memory usage for each model configuration not reported. (d) Draft model training or fine-tuning procedures not described. (5) **Datasets are public but specific preprocessing, tokenization, and sampling details not fully specified.** (6) **Figure 4 profiling results lack supporting data** (raw timings, error bars). (7) **No supplementary material or appendix provided** (Appendix A.2, D referenced but absent from review text)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Strengths: Comprehensive coverage of tree-based speculative decoding methods (SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, ReDrafter, Dynamic Depth Decoding) with clear descriptions. Weaknesses: (1) **Unfair characterization of Eagle-2.** The paper claims Eagle-2 'cannot accept tokens with standard verification' because it selects rather than samples. However, this conflates the tree construction process with the verification process—Eagle-2's verification is standard. The explanation is misleading. (2) **Missing recent baselines:** No comparison with ReDrafter or detailed comparison with Eagle-2 despite acknowledged relevance. Sequoia is the primary competitor but only three results differ substantially. (3) **Insufficient differentiation.** The paper does not clearly articulate *why* dynamic expansion based on draft probability is fundamentally superior to Sequoia's acceptance-rate estimation or Eagle-2's expand-rerank procedure. The conceptual gap is blurred. (4) **Related work section (3) is descriptive rather than analytical.** It does not synthesize insights or identify limitations in prior work that DYSPEC addresses. (5) **No discussion of when fixed trees might be preferable** (e.g., low-variance scenarios, real-time constraints, memory constraints)."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Critical absence: The paper contains **no ethics statement, discussion of broader impacts, or safety considerations whatsoever.** While speculative decoding is an optimization technique with minimal direct ethical concerns, the paper should address: (1) Potential for increased energy consumption if speedups enable longer or more frequent inference; (2) Implications for model accessibility (speedups may favor well-resourced organizations); (3) Data provenance and licensing for datasets used (C4, OpenWebText, CNN DailyMail, GSM8k, MT-Bench); (4) Responsible disclosure of any security implications (side-channel attacks via tree structure, information leakage via timing); (5) Reproducibility ethics (closed-source C++ implementation limits audit and verification by independent researchers). The complete omission of any ethical consideration is a significant weakness for a venue like ICLR, which increasingly emphasizes responsible AI."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "**Summary:** DYSPEC proposes a dynamic token tree construction method for speculative decoding with greedy expansion based on draft probability. While the empirical results show consistent improvements over baselines, the paper suffers from critical weaknesses that prevent acceptance: (1) **Technical Soundness (Score 2):** Hypothesis 1 is validated on only one dataset; the key approximation SD[t_i] ≈ p_d[t_i] lacks justification; the optimality proof is not provided in the main text; the KL divergence argument is informal. These are fatal flaws per RBCL §2. (2) **Reproducibility (Score 2):** No code, algorithm details are incomplete, critical hyperparameters are missing (threshold selection, heap tie-breaking), and experimental procedures are underspecified. This triggers the reproducibility override. (3) **Empirical Validation (Score 3):** No ablation studies, no statistical significance testing, high variance in results (especially at higher temperatures), limited baseline comparisons (Eagle-2 excluded), and improvements are often modest and dataset-dependent. (4) **Ethics (Score 1):** Completely absent; no broader impacts statement required at top venues. (5) **Novelty (Score 3):** The core idea (greedy expansion via draft probability) is relatively straightforward and incremental over prior work; Eagle-2 already explores dynamic trees. **Decision Rationale:** Per RBCL §1 (Presumption of Rejection) and §2 (Fatal-Flaw Logic), the combination of (a) unjustified technical approximations, (b) missing proofs, and (c) poor reproducibility automatically triggers a **Reject** decision, even though total_score = 18 would normally suggest 'Borderline / Major Revision.' The paper would require major revisions addressing the theoretical gaps, comprehensive ablations, released code, and ethical considerations before resubmission. The empirical improvements, while promising, are insufficient to overcome these fundamental flaws."
+  }
+}
+```

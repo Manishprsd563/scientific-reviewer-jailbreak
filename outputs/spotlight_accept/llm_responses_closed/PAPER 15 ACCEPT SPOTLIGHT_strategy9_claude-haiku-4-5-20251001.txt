@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper combines existing techniques (VQ-VAE, MCTS, Transformer-based models, progressive widening) rather than introducing fundamentally novel methodological components. The main contribution is the application of temporal abstraction via learned macro-actions to offline RL in high-dimensional spaces. However, macro-actions and VQ-VAE discretization have been explored before (e.g., TAP by Jiang et al., 2023). The masked return regularization in VQ-VAE (Section 3.1) is a modest technical contribution but addresses a specific problem in their setting rather than a broadly novel insight. The integration with MCTS and progressive widening is sensible but incremental. Potential weakness: The paper does not clearly articulate what is genuinely novel beyond the specific engineering choices for combining known components."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The work addresses a relevant problem: offline RL planning in high-dimensional continuous action spaces with stochasticity. If the empirical results hold, the method could be useful for practitioners. However, the significance is limited by several factors: (1) The paper is restricted to the offline RL setting, which limits broader applicability; (2) No clear evidence that the approach substantially outperforms simpler baselines or that it offers insights that generalize beyond the tested domains; (3) The improvements over model-free baselines (CQL, IQL) are not consistently dramatic, and the paper does not establish why planning-based methods should be preferred in these settings. Potential weakness: The practical utility compared to well-tuned model-free methods remains unclear, especially given the added complexity of learning multiple models."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns arise: (1) The masked return regularization loss (Section 3.1) lacks clear theoretical justification. The claim that masking prevents fragmentation due to return variability is intuitive but not rigorously validated. The modification to the VQ-VAE loss introduces an additional regularization term without ablation studies showing its necessity or impact. (2) The argument that taking expectations over latent transitions mitigates stochasticity (Section 3.2, Appendix C) is hand-wavy; the paper claims this applies 'broadly' but does not prove that MCTS specifically addresses the non-injective mapping problem. (3) The connection between the prior model p(z|s) and the transition model p(z'|z,s) is not clearly explained—are they the same Transformer or separate? (4) The paper assumes the decoded return-to-go is an accurate estimate of Q-values, but no justification is provided for why reconstruction loss implies good Q-learning targets. Potential weakness: Critical assumptions about the expressiveness of the latent space and the validity of decoded estimates are not validated empirically through ablations."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experimental evaluation has several significant weaknesses: (1) Missing critical ablation studies: No ablation isolating the impact of the masked return regularization, the contribution of macro-actions vs. direct action discretization, or the necessity of progressive widening. (2) Limited baseline comparisons: The paper compares against Trajectory Transformer and TAP (model-based), and CQL/IQL (model-free), but does not compare against other recent temporal abstraction methods (e.g., OPAL, PRISE mentioned in related work) or other latent planning approaches. (3) Incomplete experimental setup: Hyperparameters for L-MAP (M, N, B, λ, α, ε, c) are mentioned but their selection is not justified, and sensitivity analysis is absent. (4) Statistical rigor: The paper does not report confidence intervals, multiple runs, or significance tests. Figure 1b shows improvements in latency with more MCTS iterations, but this is obvious and not a strong validation of the method's design choices. (5) Stochastic environment claims: The paper emphasizes stochastic MuJoCo environments but does not clearly define how stochasticity is injected or provide direct comparison between deterministic and stochastic variants to isolate the benefit of the approach. Potential weakness: Without ablations and detailed statistical reporting, it is unclear whether the empirical gains come from the core algorithmic contributions or from careful hyperparameter tuning and engineering choices."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper lacks critical reproducibility information: (1) No mention of code availability or promise to release code. (2) Hyperparameters for key components (VQ-VAE architecture, Transformer models, MCTS parameters) are not fully specified in the main paper or appendix. (3) No random seeds, number of runs, or computational resources reported. (4) The paper does not specify which MuJoCo stochastic environments were used (e.g., how is stochasticity injected?), making it impossible to reproduce. (5) No details on data preprocessing, train/test splits, or offline dataset generation procedures. (6) Adroit hand manipulation is mentioned as a high-dimensional task, but specifics about the dataset and evaluation protocol are missing. Potential weakness: As written, the paper cannot be reproduced without significant reverse-engineering and guesswork, which is a critical flaw for a venue emphasizing reproducibility."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 5) is comprehensive in scope, covering model-free temporal abstraction methods, model-based sequence modeling, theoretical foundations, and planning perspectives. The paper positions L-MAP as extending prior work (TAP, MuZero) to handle high-dimensional continuous actions with stochasticity. However, the positioning has weaknesses: (1) The distinctions from TAP (Jiang et al., 2023) are not sharply articulated—both use discretization and planning in the latent space. The paper mentions TAP uses downsampling that 'obscures stochasticity,' but this claim is not empirically validated. (2) The comparison to MuZero and Stochastic MuZero is superficial; the paper claims these operate only in discrete action spaces, but does not explain why extending them is fundamentally harder than the proposed approach. (3) The paper does not adequately discuss why model-based planning is necessary in offline RL when strong model-free baselines (IQL, CQL) exist; the comparison results do not strongly motivate the added complexity. Potential weakness: The paper claims to handle stochasticity better than prior work but provides no direct empirical comparison (e.g., ablating stochastic vs. deterministic settings) to support this."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper is entirely silent on ethics, broader impacts, safety, and data provenance. There is no discussion of: (1) Potential risks of using learned models for planning in real-world applications (e.g., autonomous driving mentioned in intro). (2) Data source and licensing for offline datasets (D4RL, Adroit). (3) Failure modes or safety guarantees of the method. (4) Potential societal implications of deploying such systems. (5) Any consideration of fairness, bias, or distributional shift beyond the offline RL setting. The acknowledgments mention NSF and DARPA funding but no ethical oversight or review is mentioned. This is a significant omission for a top-tier venue that increasingly requires such reflection. Potential weakness: Complete absence of an ethics statement or broader impact discussion, which would automatically cap this score at 1–2 per the evaluation guidelines."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "While L-MAP addresses a relevant problem (planning in high-dimensional continuous action spaces with stochasticity), the paper suffers from critical weaknesses that prevent acceptance: (1) **Reproducibility Crisis (score 1):** Complete absence of code, missing hyperparameter specifications, and underspecified experimental protocols make the work non-reproducible. Per RBCL §2 (Fatal-Flaw Logic), reproducibility ≤ 2 triggers a Reject decision. (2) **Insufficient Empirical Validation (score 2):** No ablation studies isolating the contribution of key components (masked return regularization, macro-actions, progressive widening). Missing comparisons to related temporal abstraction methods. No statistical rigor (confidence intervals, significance tests, multiple runs). The empirical gains do not convincingly demonstrate the value of the proposed complexity. (3) **Technical Soundness Concerns (score 2):** Critical assumptions (masked return regularization prevents latent fragmentation; MCTS mitigates non-injective mapping effects) lack rigorous justification. The connection between reconstruction loss and Q-learning targets is unvalidated. Per RBCL §2, technical soundness ≤ 2 also triggers Reject. (4) **Moderate Novelty (score 3):** The work primarily combines existing techniques (VQ-VAE, MCTS, Transformer models) without introducing fundamental new insights. The masked return regularization is a minor contribution. (5) **Ethics Omission (score 1):** Complete lack of ethics, safety, or broader impacts discussion. (6) **Weak Significance (score 3):** The practical utility compared to simpler model-free baselines is unclear. The restriction to offline RL and the added complexity are not well-motivated by the empirical results. **Cumulative Assessment:** The paper attempts a reasonable idea but falls short of conference standards due to fatal flaws in reproducibility and technical soundness, combined with weak empirical validation. The absence of code, ablations, and statistical rigor makes it impossible to assess whether the claimed improvements are genuine or artifacts of hyperparameter tuning. Per RBCL evaluation principles, the presumption of rejection stands unchallenged by the evidence presented."
+  }
+}
+```

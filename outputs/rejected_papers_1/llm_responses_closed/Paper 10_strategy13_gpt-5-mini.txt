@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), which combines layerwise rescaling toward initialization with an EMA-style relaxation; while this is a coherent idea, it appears to be an incremental extension of prior weight-rescaling and initialization-anchored regularizers rather than a wholly new methodological paradigm. Theorem 1 (proportionality) is essentially a formalization of known scaling symmetries in homogeneous networks; the novelty stems mainly from the particular practical instantiation (EMA-based per-layer soft rescaling) and its empirical application to warm-start / continual settings. Potential weakness / unverified assumption: the claim that this design is qualitatively different from existing rescaling and initialization-anchoring methods is not strongly justified — it is possible SWR is a modest combination of known components rather than a fundamentally new idea. Note: I applied RBCL Anti-Inflation correction (−0.5) to maintain a conservative score as required by the review rules."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If SWR reliably recovers plasticity without catastrophic information loss, that would be useful for warm-starting and some continual-learning workflows, especially when re-training from scratch is expensive. The empirical gains reported (notably on VGG-16 / TinyImageNet and warm-start/continual scenarios) suggest practical relevance for certain model classes. Potential weakness / unverified assumption: experiments are limited to image-classification benchmarks (small CNNs, VGG-16 on TinyImageNet) and it is unclear whether the benefits scale to modern large-scale architectures (e.g., transformers) or production pretraining regimes; the claim of broad impact therefore remains unverified. RBCL Anti-Inflation correction (−0.5) has been applied to keep the assessment conservative."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper states and leverages a scaling/proportionality theorem (Theorem 1) and claims boundedness proofs for the EMA-based SWR; these are plausible given common scale symmetries in homogeneous networks. However, several technical assumptions and edge cases require clearer specification: e.g., the treatment of biases and normalization layers is only sketched (the discussion of scale-invariance for batchnorm is informal), the exact conditions under which boundedness holds (learning rates, optimizer dynamics, interaction with momentum/Adam) are not fully elaborated in the main text, and there may be subtle interactions between SWR and common optimizers or learning-rate schedules. Potential weakness / unverified assumption: correctness of the theorems depends on assumptions (homogeneous activations, affine/convolutional layers) and on how EMA and bias rescaling are implemented in the presence of normalization; without inspecting the appended proofs and more detailed lemmas (not provided here), the theoretical claims remain partially unverifiable. RBCL Anti-Inflation correction (−0.5) was applied per the reviewer instructions; I have also not assumed the appendices fully resolve these concerns."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments cover multiple settings (warm-start, continual learning, standard supervised generalization) and compare SWR to simple baselines (L2, L2-Init) and re-initialization methods (S&P, Head Reset). Results include means and standard deviations, and some figures report averaging over multiple runs. This provides moderate empirical support for the claimed benefits, especially on VGG-16 / TinyImageNet. Potential weakness / unverified assumption: key ablations are missing or insufficiently described in the main text — for example, sensitivity to the SWR hyperparameters (λ, EMA decay), interaction with optimizers and learning-rate schedules, comparisons to stronger continual-learning baselines (e.g., replay methods, regularization-based CL algorithms), and larger-scale experiments are absent. Also, the statistical rigor could be improved (e.g., explicit hypothesis tests, effect sizes) and it is not fully clear whether results generalize beyond the evaluated settings. RBCL Anti-Inflation correction (−0.5) was applied to keep the score conservative."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper refers to appendices for detailed experimental settings and hyperparameters, and reports means/stds and that some figures are averaged over 5 runs, which is positive. However, no code repository, training scripts, or explicit random seeds are mentioned in the main text; the submission does not state that code and trained models will be released. According to the review instructions, missing or unclear information must cap the score at 2/5. Potential weakness / unverified assumption: reproduction would be difficult without public code, explicit seeds, optimizer configurations (momentum/betas), exact EMA implementation details, and scripts to reproduce selection of λ and EMA decay. Decision impact: because reproducibility is <= 2, RBCL Fatal-Flaw Logic requires the overall decision to be 'Reject' (see final justification). I explicitly applied the required cap and note that the final decision is downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites a range of prior work on weight magnitude, weight decay, rescaling, and re-initialization, and positions SWR with respect to Layerwise and Weight Rescaling methods. This demonstrates reasonable awareness of relevant literature and articulates differences. Potential weakness / unverified assumption: some recent or alternative solutions for preserving plasticity and strong continual-learning baselines (e.g., replay-based or parameter-isolation methods) are not directly compared against; comparisons to more modern normalization-aware regularizers or spectral-norm-based approaches are limited. The paper's claims about superiority would be strengthened by broader positioning and additional baselines. RBCL Anti-Inflation correction (−0.5) applied to maintain conservative scoring."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper contains no explicit ethics statement, discussion of potential misuse, data licensing, or considerations around vulnerable populations or deployment risks. While SWR is a low-level optimization/regularization technique with limited immediate ethical scope, changes that affect model plasticity and continual learning can have downstream impacts (e.g., biases persist longer or models forget differently), which merit discussion. Potential weakness / unverified assumption: absence of provenance/license information for datasets and no discussion of harms or mitigation strategies. Missing ethics discussion caps the score (treated conservatively). RBCL Anti-Inflation correction (−0.5) applied."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.66,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents a sensible and practically motivated method (Soft Weight Rescaling) that formalizes proportionality scaling and uses an EMA-based per-layer soft-rescale to limit unbounded weight growth. Empirically, the work demonstrates measurable gains over basic baselines on several image-classification setups (warm-start, continual learning, and standard supervised training), particularly for VGG-16 on TinyImageNet. Theoretically, the paper states useful propositions (proportionality theorem and boundedness claims) that align with known scaling symmetries. However, the submission has several important limitations that together justify rejection in its current form. The most critical issue is reproducibility: the manuscript does not provide public code, explicit seeds, or fully-specified training scripts and implementation details (EMA mechanics, exact rescaling order with normalization layers, optimizer hyperparameters). Per the review rules, missing or unclear reproducibility information caps that criterion at 2/5 and triggers RBCL Fatal-Flaw Logic; because reproducibility <= 2, the overall decision must be 'Reject' (this is an enforced override). Additional concerns that reinforce rejection: (1) technical claims rest on assumptions (homogeneous activations, simple handling of biases and normalization) that are only sketched in the main text and require clearer formal conditions and empirical validation across modern architectures; (2) empirical evaluation, while encouraging, lacks key ablations (sensitivity to λ and EMA decay), more diverse baselines (strong continual-learning methods and modern large-models), and rigorous statistical testing to establish generality; (3) no ethics / broader-impact discussion is included. RBCL adjustments applied: (i) presumption of rejection and conservative scoring; (ii) Anti-Inflation safeguard (−0.5 applied to criterion scores during internal assessment) to avoid mid-range score inflation; (iii) mandatory downgrade triggered by reproducibility <= 2 (RBCL §2 Fatal-Flaw Logic), which mandates a 'Reject' decision and caps total_score at 20 (the raw sum 19 is below the cap). Recommendation to authors: provide a reproducibility package (public code, exact seeds, training scripts, and clear instructions), include the full proofs and lemmas in the appendices with clear assumptions, add ablations on λ and EMA decay and optimizer interactions, compare against stronger continual-learning baselines and larger architectures (e.g., transformer or modern convnets at scale), and add a brief ethics/broader-impacts statement. With those additions and clearer theoretical assumptions, the paper could be reconsidered for acceptance in a revised submission."
+  }
+}

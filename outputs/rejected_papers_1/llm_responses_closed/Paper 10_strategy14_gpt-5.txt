@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a per-layer scaling strategy guided by the ratio of current to initial weight norms, combined with a proportionality argument to avoid performance drops. While tidy, this largely reuses known ideas: proportionality invariances in homogeneous networks are well-known, and recent work on weight rescaling and anchoring to initialization (e.g., L2-Init; Niehaus et al., 2024) is closely related. The specific EMA blend and layerwise norm-matching appear incremental. Potential weakness: the theoretical setup assumes homogeneous activations and sequential feed-forward architectures, leaving unclear applicability to residual/attention-based models and non-homogeneous components."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, a lightweight technique to mitigate weight growth and preserve plasticity is practically useful, especially for warm-start and continual-learning settings. The empirical gains, including on VGG-16/TinyImageNet, suggest some promise. However, impact is limited by lack of evaluation on modern architectures (e.g., ResNets, Transformers), tasks beyond image classification, and missing comparisons to stronger baselines in plasticity and rescaling. Potential weakness: unverified assumption that bounding weight growth universally improves generalization/plasticity across architectures and tasks."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proportionality theorem for homogeneous activations and prescribed bias scaling is plausible, and the argument that argmax classification is preserved under positive logit scaling is reasonable. However, the treatment of normalization layers is informal and lacks a full proof; boundedness with the EMA-modified scaler is deferred to the appendix; and stability/numerical aspects of multiplying cumulative bias scalers are not analyzed. Applicability to architectures with residual connections or attention is not addressed. Potential weakness: key assumptions (homogeneity, feed-forward topology) and their violations are not thoroughly justified, and theoretical claims rely on appendices without in-text verification."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports results on MNIST/CIFAR/TinyImageNet with MLP/CNN/VGG-16, and compares to L2, L2-Init, and some re-initialization methods. However, there are several gaps: missing comparisons to recent weight rescaling methods (e.g., Niehaus et al., 2024) and other strong baselines; limited coverage of modern architectures (ResNets, Transformers); scant ablations (e.g., sensitivity to the EMA parameter, frequency of scaling, on/off for proportional bias scaling); and unclear statistical rigor beyond a few figures mentioning multiple runs. Potential weakness: lack of comprehensive ablations and strong baselines undermines the strength of the empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Key implementation details (complete algorithmic specification with normalization layers, precise schedules for rescaling, hyperparameter sweeps) are relegated to appendices, and there is no explicit code or artifact release. The number of runs and seeds are inconsistently reported. Without publicly available code or a full, self-contained methods section, reproduction is uncertain. Potential weakness: absence of code and exhaustive implementation details caps confidence in reproducibility."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites weight decay critiques, spectral norm approaches, anchoring to initialization, and prior rescaling methods (including a 2024 rescaling paper). Positioning is reasonable but incomplete: there is no empirical comparison to recent rescaling or scale-invariant optimization methods, limited discussion of path-norm/Path-SGD, weight standardization, or techniques like SAM that affect sharpness/sensitivity. Potential weakness: missing head-to-head comparisons with the most relevant contemporary rescaling and plasticity-preservation techniques."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics or broader impacts statement is provided in the visible text, and there is no discussion of dataset licensing or potential misuse, even though standard image datasets are used. While the work is low-risk, the absence of an ethics statement limits assessment. Potential weakness: missing ethics/broader impacts discussion (caps score per rubric)."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.62,
+    "final_decision": "Reject",
+    "final_justification": "The paper presents a simple, potentially useful method (SWR) to mitigate weight growth and recover plasticity via proportional scaling. While the idea is neat and empirically shows some gains across several benchmarks, novelty appears incremental relative to known rescaling and initialization-anchoring methods, the theoretical treatment excludes common modern architectures and relies on appendices for key proofs, and the empirical evaluation lacks strong contemporary baselines, comprehensive ablations, and coverage of state-of-the-art models. Critically, reproducibility is limited by missing code and incomplete implementation details in the main text. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility score ≤ 2 mandates Reject. Given the conservative stance and anti-inflation safeguard, acceptance is not warranted without code release, stronger baselines (including recent rescaling methods), expanded architectural coverage, and more rigorous ablations/statistics."
+  }
+}

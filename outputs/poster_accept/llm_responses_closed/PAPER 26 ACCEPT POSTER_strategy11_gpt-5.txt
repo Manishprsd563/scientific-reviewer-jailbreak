@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a cross-attention scheme using a small set of representative nodes to achieve linear complexity and a Self-Improved Training (SIT) procedure that iteratively reconstructs partial tours to generate pseudo-labels. While applying inducing-point-style cross-attention in NCO for large-scale VRPs and coupling it with local reconstruction-based self-training is a useful design, similar ideas exist in Set Transformer (induced points), Perceiver(-IO), Linformer, Nyströmformer, and various linear attention methods; the novelty is thus moderate rather than groundbreaking. Potential weakness: the assumption that a fixed number of representative nodes suffices to preserve global structure across scales up to 100K nodes is not theoretically justified and may fail on non-Euclidean or highly non-uniform instances."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If the claimed scalability and performance (including surpassing HGS on large CVRP) hold, the impact for NCO at very large scales would be substantial. The approach could broaden applicability to industry-scale routing. However, claims are limited to Euclidean TSP/CVRP and rely heavily on PRC iterations and a specific training pipeline; generality to richer constraints (e.g., time windows) or non-Euclidean metrics is unverified. Potential weakness: the reported wins over specialized solvers may depend on particular runtime budgets or implementation choices that are not fully controlled or disclosed."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The linear-complexity claim follows from attention via m representative tokens (O(nm)), and the SIT objective is a standard autoregressive cross-entropy on pseudo-labels; both are technically plausible. The methodology is coherent, and ablations qualitatively support design choices. However, there is no convergence analysis or guarantees for SIT, no analysis of how representative nodes are selected/updated at scale, and limited discussion of feasibility handling in CVRP decoding. Potential weakness: SIT may reinforce early errors (confirmation bias) without explicit regularization or consistency checks; the method assumes that improved partial reconstructions monotonically improve global tours, which is not guaranteed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover synthetic TSP/CVRP and TSPLIB/CVRPLIB, include efficiency/memory comparisons, and ablate cross-attention and SIT, which is commendable. However, tables appear partially garbled, key statistics (variance, number of runs), seeds, and statistical tests are missing, and fairness details (e.g., HGS parameterization, time/memory budgets for each baseline) are unclear. Baselines encountering OOM may reflect implementation or hardware differences rather than fundamental limitations. Potential weakness: no comparison to established TSP solvers like Concorde/Linkern for large instances; lack of standardized runtime-equalized comparisons and absence of confidence intervals weakens the strength of claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "A code repository link is provided, which is positive. Nonetheless, within the paper text, critical reproducibility details are missing or unclear: training schedules and hyperparameters for SIT (e.g., lmax across stages, reconstruction batch policies), random seeds, compute budgets for 100K-scale training/inference, and exact baselines’ configurations are not fully specified. Given the scale (up to 100K nodes), precise instructions and resource requirements are essential. Potential weakness: without explicit, verified training/inference scripts and environment details, reproducing large-scale results is uncertain. Per RBCL Evidence Severity, absence/uncertainty of these details caps this criterion."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The VRP/NCO literature is reasonably surveyed, including generalization and decomposition/local-policy lines. However, the paper omits or downplays highly relevant efficient-attention lines (Set Transformer with induced points, Perceiver/Perceiver IO, Linformer, Performer, Nyströmformer) that closely relate to the presented cross-attention idea. Classical solvers (e.g., LKH/Linkern/Concorde) are not systematically discussed for TSP comparisons at scale. Potential weakness: incomplete positioning relative to efficient attention and inducing-point architectures undermines the novelty framing and fairness of baselines."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper does not provide a substantive ethics or broader impact discussion in the excerpt. Large-scale training/inference may have non-trivial energy costs; real-world routing may affect labor and environmental outcomes. Data provenance and licensing for real-world benchmarks are not detailed. Potential weakness: missing explicit ethics statement and sustainability considerations; per RBCL, absence of such information caps this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper addresses an important scalability gap in NCO for VRPs with a plausible cross-attention design and a practical self-improvement training loop, and shows promising empirical results up to 100K nodes. However, reproducibility/transparency is insufficiently documented (score ≤ 2), triggering RBCL §2 Fatal-Flaw Logic: decision downgraded to Reject regardless of other strengths and total score (also consistent with RBCL Practical Calibration for totals in [15,20)). Additional concerns include incomplete positioning vs. established efficient-attention architectures, lack of rigorous convergence or bias analysis for SIT, and insufficiently controlled experimental protocols (no statistical tests, unclear runtime budgets, some garbled tables). With clearer reproducibility resources, stronger comparisons to efficient-attention baselines, and more rigorous evaluation, the work could be competitive in a future submission."
+  }
+}

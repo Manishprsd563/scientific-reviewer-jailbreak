@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper introduces a sparse TTA framework combining Class and Domain Representative Memory (CnDRM) with an Inference-only Batch-aware Memory Normalization (IoBMN). The joint use of early-layer feature statistics to define domain centroids and a soft-shrinkage correction for normalization at inference is a reasonably fresh combination tailored to sparse adaptation settings. However, both components resemble established ideas (confidence-based sampling/coreset selection and batch-statistics adaptation/EMA-like normalization), making the contribution feel like a careful integration rather than a fundamentally new paradigm. Potential weakness: several formulations (e.g., choice and estimation of shrinkage thresholds, reliance on mean/variance-only Wasserstein distance) are not theoretically justified in depth, and the novelty hinges on combining known building blocks."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing TTA latency on edge devices is important and underexplored; showing large latency reductions while retaining accuracy could make TTA more practical in real-time settings. The method’s orthogonality to popular TTA algorithms increases potential adoption. Potential weakness: impact is demonstrated primarily on CIFAR10/100-C and ImageNet-C classification with a single hardware platform (Raspberry Pi 4); generality to other hardware profiles (mobile SoCs, NPUs), tasks (segmentation/detection), or real streaming constraints is not substantiated, limiting the broader applicability claim."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proposed mechanisms (confidence-balanced sampling plus domain centroid proximity; soft-shrinkage normalization guided by memory vs. current batch statistics) are plausible and consistent with prior TTA intuition. However, several equations and algorithmic details are unclear or partially garbled, hyperparameter choices (e.g., alpha/lambda/thresholds) lack principled justification, and using only first-layer mean/variance for domain representation is a strong assumption that may fail under complex shifts. Potential weakness: reliance on pseudo-label confidence can propagate errors; the Wasserstein distance based on univariate mean/variance is an oversimplification; no formal convergence or stability guarantees under sparse updates."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The study spans multiple datasets (CIFAR10/100-C, ImageNet-C), several SOTA TTA baselines, ablations isolating CnDRM and IoBMN, different adaptation rates, and latency measurements on-device. Reporting averages over three seeds is positive. Potential weakness: tables appear partially corrupted and lack consistent uncertainty reporting or statistical tests; details of streaming protocols and deadline adherence are limited; only one hardware platform is profiled; sensitivity to memory size, thresholds, and adaptation-rate scheduling is insufficiently explored; continuous shift scenarios and non-classification tasks are not evaluated."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for hyperparameters and implementation details and mentions averaging over three seeds. However, there is no explicit code release, no repository link, and many critical implementation specifics (e.g., exact memory management policy, thresholding/lambda choices, hardware configuration and software stack, precise latency measurement protocol) are either deferred to appendices or unclear in the main text. Per the rubric, missing or unclear artifacts cap this criterion. Potential weakness: without code and detailed instructions, reproducing the device-level latency/accuracy trade-offs and IoBMN internals is uncertain."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself among TTA methods (Tent, CoTTA, EATA, SAR, RoTTA) and mentions efficiency-oriented discussions and an evaluation protocol considering latency. Positioning toward sample-selection/coreset ideas is partially addressed. Potential weakness: comparison to other efficiency- or memory-focused TTA/TTA-triggering approaches is limited; the novelty relative to BN/LN statistics adaptation variants is not deeply analyzed; related sparse-update or event-triggered adaptation literature is not comprehensively covered."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work uses standard benchmarks and proposes an efficiency method, which presents low direct ethical risk. However, there is no explicit ethics/broader impacts statement, no discussion of on-device adaptation failure modes in safety-critical settings (e.g., autonomous driving) or data provenance/licensing, and no consideration of potential biases amplified by pseudo-label-based sampling. Per the rubric, missing/unclear information caps this score. Potential weakness: unaddressed safety implications of misadaptation under sparse updates in time-critical applications."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.62,
+    "final_decision": "Reject",
+    "final_justification": "The paper tackles an important practical problem—reducing TTA latency for edge devices—by combining representative memory-based sampling (CnDRM) with a lightweight inference-time normalization (IoBMN). Results across CIFAR10/100-C and ImageNet-C with several baselines and on-device latency measurements are promising. However, key limitations remain: unclear or incomplete technical details (some equations/hyperparameters garbled or insufficiently justified), limited statistical rigor, partial and noisy tabular reporting, a single device platform, and no released code. Critically, reproducibility/transparency is inadequate (score ≤ 2), triggering RBCL §2 Fatal-Flaw Logic: final decision must be Reject regardless of other strengths, and we adopt a conservative stance per the Anti-Inflation Safeguard. With a public code release, clearer methodology, and stronger, more comprehensive experimental validation (including broader hardware and streaming setups), this work could become competitive."
+  }
+}

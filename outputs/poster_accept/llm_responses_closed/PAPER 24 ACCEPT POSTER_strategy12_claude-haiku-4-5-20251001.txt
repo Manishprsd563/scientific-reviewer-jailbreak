@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core contribution—weight embedding via direct input to a neural CO model—is conceptually straightforward and relatively incremental. The addition-based variant (WE-Add) is merely linear projection + element-wise addition, a standard operation. The conditional attention variant (WE-CA) combines feature-wise affine transformation with multi-head attention, which are established techniques. While the application to MOCO is reasonable, the underlying methodological novelty is limited. The paper claims elegance over complexity, but this is more a design philosophy than a novel insight. Potential weakness: The authors acknowledge that CNH also inputs weight information to the model (Section 2), yet claim their approach is fundamentally different—this distinction is not convincingly articulated. No truly novel learning mechanism or theoretical insight is introduced."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses a meaningful problem in neural MOCO: improving solution quality for weight-specific subproblems. Empirical results show WE-CA achieves competitive or superior performance vs. baselines on classic problems (MOTSP, MOCVRP, MOKP). The cross-size generalization capability is valuable. However, significance is somewhat limited by scope: (1) evaluation restricted to three well-studied academic problems; (2) real-world MOCO with complex constraints is acknowledged but not addressed; (3) improvements over PMOCO, while consistent, are often modest (0.2–1.5% in many cases); (4) the method still requires decomposition-based optimization, not a fundamental paradigm shift. Potential weakness: No discussion of applicability to other scalarization schemes (e.g., Tchebycheff, PBI) or to non-decomposition-based neural MOCO methods, limiting broader impact claims."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The mathematical formulations appear correct: Equations (1)–(11) define standard operations (linear projection, attention, affine transformation) appropriately. The training procedure via REINFORCE with baseline is standard. However, several technical concerns arise: (1) Equation (8)–(10) in the conditional attention model lack clarity—the notation and role of the MHA layer on modified embeddings (h'_i) is confusing; does the weight embedding h_λ attend to itself? (2) No theoretical justification is provided for why feature-wise affine transformation should effectively capture weight-instance interaction beyond empirical observation. (3) The claim that weight embedding inherently provides cross-size generalization (Section 4.3) lacks rigorous justification—why should a weight embedding trained on smaller sizes extrapolate to much larger sizes? (4) Table 4 shows minimal gains of WE-CA-Aug over WE-CA-w/o-C-Aug (0.73% vs 0.73% on one subproblem), questioning the necessity of the full conditional attention design. Potential weakness: Ablation in Appendix H is mentioned but not fully detailed in the main paper, making validation difficult."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover three MOCO problems with multiple sizes and both bi/tri-objective variants, which is reasonable. Baselines include recent neural methods (PMOCO, CNH, MORAM) and traditional heuristics (MOEA/D, NSGA-II). Statistical significance testing (Wilcoxon rank-sum at 1% level) is applied. However, several limitations: (1) Only randomly generated instances are used; TSPLIB instances (Figure 2) are mentioned only briefly, limiting real-world validation. (2) Hyperparameter selection is not fully justified—why embedding dimension 128, 6 attention layers, 8 heads? No sensitivity analysis provided. (3) The claim of 'generalization across problem sizes' uses only a modest range (20–100 for TSP/CVRP; 50–200 for KP). Out-of-distribution tests (Table 3) on 150 and 200 are valuable but limited. (4) Instance augmentation (marked '-Aug') substantially improves results but is not a core contribution; comparisons without augmentation are harder to interpret. (5) Missing ablations: What if weight embedding dimension differs from node embedding? What if different weight initialization strategies are used? Potential weakness: The paper does not report variance/confidence intervals across runs, only average HV over 200 instances. Single runs may mask instability."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 4,
+      "justification": "The authors claim code is publicly available (Section 5.1), which is positive. Hyperparameters are mostly specified: 200 epochs, batch size 64, learning rate 10^-4, weight decay 10^-6, Adam optimizer, embedding dimension 128, 6 encoder layers, 8 attention heads, 101/105 weight vectors. Training details follow prior work (POMO, Lin et al. 2022a). However, gaps remain: (1) Random seeds are not explicitly reported, affecting reproducibility of exact numbers. (2) Details of instance generation (e.g., node coordinate ranges for TSP, capacity distributions for CVRP) are deferred to Appendix B; main paper lacks sufficient detail. (3) Code availability is claimed but not verified in this review—URL or repository would strengthen transparency. (4) Some implementation choices (e.g., why tanh in Equation 5, why C=10) are inherited from POMO without justification. (5) Appendix references (C, D, E, F, G, H) are extensive, suggesting key details are relegated to supplementary material. Potential weakness: If code is not actually released or contains errors, reproducibility claims are invalidated. The paper should provide explicit GitHub link or supplementary code archive."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper provides a reasonable taxonomy of neural MOCO methods (multi-model vs. single-model) and cites many relevant works. However, positioning is weak: (1) The distinction between WE and CNH is stated (Section 2: CNH 'pursues complex techniques such as size-aware decoder') but not rigorously compared. Both methods input weights to the model; the key difference (feature-wise affine transformation vs. size embedding) deserves deeper analysis. (2) Comparison to hypernetwork-based approaches (PMOCO) is limited—only empirical results shown, no discussion of why WE-CA outperforms PMOCO's modulation strategy. (3) Non-decomposition neural MOCO methods (e.g., diversity-focused work by Chen et al. 2023b) are mentioned but not compared, limiting understanding of method's generality. (4) Traditional heuristics (MOEAs) comparisons are useful but somewhat orthogonal—neural methods target speed, heuristics target quality; the trade-off is implicit, not explicit. (5) Missing recent work: No discussion of diffusion-based or flow-based neural CO methods, though these may not be directly applicable. Potential weakness: The paper does not explain why weight embedding should fundamentally outperform hypernetwork-based parameter modulation (PMOCO) beyond empirical results. Theoretical motivation is absent."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no ethics section, no discussion of broader impacts, no mention of potential misuse, and no data provenance statements. The conclusion (Section 6) acknowledges 'limitations' (complex real-world constraints, further improvements possible) but does not engage with ethical considerations. For an optimization paper targeting logistics and manufacturing, the following are unaddressed: (1) Potential negative societal impacts of MOCO solvers (e.g., optimizing fairness may mask discrimination, labor cost minimization may harm workers). (2) Data provenance and licensing for benchmark instances are not discussed. (3) Environmental impact of neural training (computation carbon footprint) is not mentioned, despite claims of faster inference. (4) No acknowledgment of responsible use or deployment considerations. (5) The paper is purely technical with no reflection on dual-use or harm potential. This is a significant gap for a top-tier venue, which increasingly expects ethical reflection. Potential weakness: Complete absence of ethics statement automatically caps this score at ≤2 per RBCL guidelines; score of 1 reflects the utter lack of engagement with the topic."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 21,
+    "confidence": 0.75,
+    "final_decision": "Weak Accept",
+    "final_justification": "This paper presents a methodologically sound but incremental contribution to neural MOCO. The core idea—weight embedding via simple addition or conditional attention—is intuitive and shows consistent empirical improvements over recent baselines (PMOCO, CNH) across three classic problems. The cross-size generalization capability is a practical strength. However, several critical issues prevent a higher rating: (1) Limited novelty: the techniques (linear projection, feature-wise affine transformation, attention) are standard; the insight that weight-instance interaction matters is not new. (2) Weak theoretical justification: why conditional attention captures interaction better than alternatives is not explained mechanistically. (3) Incomplete experimental validation: only academic benchmarks (random instances + 3 TSPLIB), no real-world problems; modest improvements in many cases (0.2–1.5% over PMOCO); no variance/confidence intervals. (4) Missing ethics engagement: no discussion of broader impacts, responsible deployment, or societal implications—a significant gap for a top venue. (5) Reproducibility concerns: code availability claimed but not verified; random seeds not reported; hyperparameter sensitivity not analyzed. The paper is well-written, experiments are reasonably comprehensive, and results are competitive. It makes a solid engineering contribution that advances the state-of-the-art marginally. However, the lack of novelty, minimal theoretical insight, and absence of ethics reflection prevent acceptance at a top tier. The work would benefit from: (i) deeper analysis of why WE-CA outperforms hypernetwork-based modulation; (ii) real-world problem instances and constraints; (iii) theoretical or empirical justification for cross-size generalization; (iv) ethics discussion; (v) variance reporting and sensitivity analysis. By ICLR standards, this falls into the 'Weak Accept' boundary, trending toward 'Borderline / Major Revision' due to limited novelty and ethics gaps."
+  }
+}
+```

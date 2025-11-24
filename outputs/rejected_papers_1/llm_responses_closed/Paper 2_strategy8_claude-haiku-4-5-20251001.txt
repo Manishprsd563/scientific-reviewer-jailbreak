@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "EXE presents a benchmark for evaluating code execution on real-world Python repositories, which is a reasonable contribution. However, the core concept—evaluating LLMs' ability to execute code and predict program states—builds directly on prior work (Learning To Execute, CRUX-Eval, etc.). The main novelty claims center on scale (30,000+ tasks from 1,000 repos) and continuous regeneration capability, rather than a fundamentally new methodological insight. The use of real-world code instead of synthetic code is an incremental improvement over prior execution benchmarks. The proposed function chaining extension via composition is mentioned but not evaluated. Potential weakness: The paper does not clearly articulate what novel mechanistic or algorithmic insight EXE provides beyond 'larger and from real code.'"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "EXE addresses a real gap—code execution evaluation on diverse real-world code—and the continuous updateability is a valuable property for reducing training data contamination risk. The results show that models struggle with certain patterns (floating-point math, compound assignments, list comprehensions), which could guide future work. However, the practical impact is somewhat limited: (1) the benchmark primarily measures a narrow capability (predicting function outputs), (2) the findings are somewhat expected (models struggle with complex multi-step reasoning), and (3) there is insufficient evidence that EXE will become a standard benchmark or drive significant changes in model development. Potential weakness: The paper does not demonstrate that insights from EXE lead to tangible improvements in model design, training, or real-world software engineering tasks."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Multiple technical concerns undermine soundness: (1) The filtering pipeline is not rigorously validated. Claims that code is 'pure' and 'deterministic' rely on static AST analysis, which is known to be incomplete. No ground truth validation of filtering quality is provided. (2) The test case generation methodology (Section 2 and Appendix A.2) is underspecified—it relies on an LLM function schema to generate inputs, but no details on schema design, generation constraints, or diversity guarantees are provided. (3) Exception comparison using 'language model comparison' (Section 2.1) is methodologically problematic—LLM-based evaluation of correctness introduces unreliable noise into ground truth labels. (4) The claim that models 'maintain internal variable states' during computation is not validated; passing a test case does not prove step-by-step execution. (5) The upper bound formula for composite task expansion (Section 2.2) is stated without derivation or justification of the constants. Potential weakness: The paper lacks rigorous validation of its core assumption that static analysis and LLM-based filtering produce clean, deterministic code suitable for execution evaluation."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Significant empirical limitations: (1) Table 1 reports only Pass@1 for six models; no statistical significance testing, confidence intervals, or multiple runs are provided. The paper does not clarify whether results are single-run or averaged, or whether variance is reported. (2) No ablation studies validate the filtering pipeline, test case generation strategy, or evaluation methodology. For instance, does removing static filtering change results? How sensitive are results to exception comparison method? (3) Claims about 'smooth difficulty scaling' (Figure 5) show log-linear correlations but the R² values are not reported, making it unclear how much variance is explained. The claim that pass@1 'surprisingly improves' with function call count (Figure 7) is explained post-hoc with cherry-picked examples rather than systematic analysis. (4) The task generation scalability claim (Figure 6) is based on only eleven functions; generalization is unclear. (5) No human evaluation or manual validation of task quality is provided. (6) The correlation between EXE and downstream tasks (e.g., code generation, debugging) is not empirically demonstrated, despite theoretical motivation. Potential weakness: The empirical validation is insufficient to support the benchmark's reliability and utility claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility failure: The paper is under 'double-blind review' and does NOT release code, data, or evaluation artifacts. No repository link, dataset download link, or implementation details are provided. The paper states 'Initial release containing 30,000+ problems' but neither the data nor the generation pipeline is accessible for verification. Methodological details are delegated to appendices (A.1–A.8), which are referenced but not shown in the provided paper text, preventing independent verification. Hyperparameters for LLM-based test case generation are not specified. Random seeds and exact prompts used for models are not disclosed. The evaluation protocol (e.g., temperature, sampling strategy, retry logic) is not fully specified. Without code and data, the benchmark cannot be reproduced or extended by other researchers. This is a fatal flaw for a benchmark paper. Potential weakness: This is a showstopper—the paper cannot be accepted for a top-tier venue without artifact release."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 4) is reasonably comprehensive and covers relevant prior work: HumanEval, MBPP, Learning To Execute, CRUX-Eval, SWE-bench, Skill-Mix, and others. The paper clearly positions EXE as extending prior execution benchmarks to real-world code. However, there are gaps and concerns: (1) The comparison to CRUX-Eval is superficial—both evaluate execution on code, but CRUX-Eval enforces specific simplifications (no floating-point, limited complexity) that EXE removes. No direct empirical comparison or discussion of trade-offs is provided. (2) The paper does not clearly articulate why real-world code (with all its messiness) is preferable to controlled synthetic code for understanding mechanistic capabilities—this is asserted rather than justified. (3) The connection to code generation benchmarks (HumanEval) is stated but not empirically validated with correlation analysis. (4) Some recent work on code understanding and symbolic execution is not discussed. Potential weakness: The positioning relative to CRUX-Eval is insufficient, and the empirical advantage of real-world code is not demonstrated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Ethics and broader impacts are insufficiently addressed: (1) The paper mentions filtering repositories to those with 'permissive licenses,' but does not specify which licenses are included or provide a detailed audit of attribution and licensing compliance. (2) No discussion of potential harms: EXE contains real code from production repositories, which could be reverse-engineered to identify security vulnerabilities in deployed systems. Section 5 speculates on cybersecurity applications ('code injection, path resolution, memory buffer attacks'), but the paper does not discuss whether releasing EXE could enable malicious actors. (3) Data provenance is not fully transparent—the paper does not list which repositories are included or provide a mechanism for authors to request removal of their code. (4) No privacy analysis: functions might contain sensitive patterns or algorithms that authors did not intend to expose. (5) The paper mentions 'error prediction' as a testing mechanism but does not discuss how errors (and their fixes) should be handled responsibly. (6) No discussion of environmental cost: generating 30,000+ tasks with LLMs incurs non-trivial carbon emissions. Potential weakness: The ethics statement is largely missing, which is a concern for a benchmark that involves real-world code at scale."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "EXE addresses a relevant problem—evaluating LLMs on code execution with diverse, updatable tasks—and the engineering effort is substantial. However, the paper has fatal flaws that prevent acceptance at a top-tier venue: (1) **Reproducibility failure (score 1):** No code, data, or artifacts are provided. This is non-negotiable for a benchmark paper and triggers the RBCL §2 Fatal-Flaw Logic override. Without releases, the benchmark cannot be verified, reproduced, or extended. (2) **Technical soundness (score 2):** The filtering pipeline relies on incomplete static analysis without rigorous validation. Exception evaluation uses LLM-based comparison, introducing unreliable noise. The core assumption that this generates deterministic, pure code is unvalidated. (3) **Empirical validation (score 2):** Experiments lack statistical rigor (single runs, no confidence intervals), ablations are absent, and key claims (smooth scaling, surprising improvements) are supported only by post-hoc explanations, not systematic analysis. (4) **Ethics (score 2):** No discussion of licensing compliance audits, security risks of exposing production code patterns, or privacy concerns. The novelty is incremental (real code instead of synthetic; larger scale), and significance is uncertain because downstream impact is not demonstrated. The paper reads as a well-intentioned engineering contribution, but it does not meet the rigor bar for publication at ICLR/NeurIPS/ICML without substantial revision and artifact release. **Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility score ≤ 2 requires Reject or worse.** Final decision: **Weak Reject** (borderline with major revision needed, but fatal flaw in reproducibility necessitates rejection)."
+  }
+}
+```

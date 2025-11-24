@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes an orbit-based feature augmentation scheme and three guiding principles which meaningfully adapt symmetry-breaking ideas to ILPs. However, related ideas (random features, positional IDs, orbit-based symmetry handling, SBS-style augmentation) have been explored in recent literature and the contribution appears to be an informed design and analysis rather than a wholly new methodological paradigm. A potential weakness is the reliance on existing symmetry-detection and label-transformation tools (e.g., Bliss, SymILO) whose integration is largely engineering; it is not shown that the orbit-based idea yields fundamentally new theoretical expressivity beyond prior symmetry-breaking techniques. Another unverified assumption is that orbit detection and the proposed sampling strategy scale and remain robust across a wide range of ILP instances (especially extremely large industrial instances) without introducing label conflicts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing symmetry in ML models for ILPs is an important practical problem and improvements in predictive quality and training efficiency could benefit learned ILP heuristics. The paper targets a real limitation of GNN-based approaches and thus has potentially useful impact for communities working on ML for combinatorial optimization. A key weakness is the limited scope: the method is tailored to formulation symmetry and supervised settings with multiple label choices; the authors acknowledge this and do not demonstrate applicability beyond this setting. Additionally, the practical significance depends on robustness to non-optimal labels (they use time-limited SCIP solutions) and the overhead of symmetry detection and SymILO; these factors are not fully quantified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical claim that permutation equivariance/invariance implies identical outputs across orbits is straightforward and appears correct; propositions are plausible and the described proofs (in appendices) are consistent with established group-equivariance reasoning. The design principles are reasonable and the combinatorial counting of augmentation parsimony is sound. Notable weaknesses and unverified assumptions: (1) the analysis assumes clean formulation symmetries and exact orbits — in practice orbit detection may be approximate or expensive, and the paper does not fully quantify failure modes of orbit detection; (2) the training pipeline relies on SymILO to align labels under augmentations, but the correctness and convergence properties of combining SymILO with the augmentation strategy are not thoroughly theoretically justified in the main text; (3) important practical detail: many training labels are obtained via time-limited SCIP runs (not guaranteed optimal), which can render theoretical analyses about predicting an \"optimal solution\" less applicable. These points weaken the technical guarantees in realistic settings."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experimental setup compares several augmentation strategies on multiple ILP benchmarks (BPP, BIP, SMSP) and includes relevant baselines (No-Aug, Uniform, Position). The authors provide dataset statistics, some training hyperparameters, and state that code is available. However, the empirical validation has important shortcomings: (1) the paper excerpt does not present quantitative results, variance estimates, or statistical tests in the provided text — it is unclear whether improvements are consistent and statistically significant; (2) experiments appear to use single test-sample evaluations and do not report multiple random seeds or confidence intervals; (3) while several augmentation schemes are compared, more ablations (e.g., sensitivity to orbit detection errors, cost of SymILO, runtime/overhead analysis at scale) are missing; (4) labels are produced by time-limited SCIP (3600s) and thus may be suboptimal, raising questions about what is being learned and how label noise affects conclusions. Per the scoring discipline, missing statistical rigor and single-run-like evaluation penalize empirical score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The authors provide a GitHub link to the source code and report many training hyperparameters (optimizer, learning rate, batch size, epochs), the model architecture reference, and the symmetry detection tool (Bliss). However, several reproducibility-relevant items are either missing or not clearly specified in the paper excerpt: random seeds and the exact procedure for sampling augmented features at test time are not fully documented; it is not explicit whether the released repository includes the exact data generation scripts, preprocessed datasets, solver configurations (SCIP version/config), environment dependencies, and instructions to reproduce reported runs. Given the absence of explicit seeds, environment and complete dataset provenance in the text, and following the conservative RBCL rules (treating missing information as evidence of absence), I cap reproducibility at 2/5. Decision downgraded due to RBCL §2 Fatal-Flaw Logic because reproducibility <= 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites relevant prior work on symmetry in ILPs, GNNs for combinatorial optimization, and recent symmetry-breaking/augmentation approaches (including very recent 2024 works). The authors position their contributions relative to random-feature augmentation and positional IDs and argue for parsimony and isomorphic consistency, which is useful context. Potential weaknesses: the survey may under-emphasize deeper connections to symmetry-handling techniques in SAT/constraint programming literature and to algorithmic symmetry-breaking in classical ILP solvers; some important practical baselines (e.g., solver-side symmetry-breaking integrated with learned components) may be missing or insufficiently compared. Also, empirical comparisons to the strongest related ML baselines (e.g., end-to-end methods that incorporate symmetry-awareness) are not fully detailed in the excerpt."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper contains a short \"Limitations\" paragraph but lacks a dedicated ethics or broader impacts section. There is no explicit discussion of data licenses, potential misuse, or societal implications of better ILP solvers (e.g., supply-chain optimization, resource allocation) and no clear statement about privacy or data provenance for the datasets used. Given this absence of an explicit ethics statement and limited discussion of broader impacts, I cap this criterion at 2/5. A potential unverified assumption is that applications are benign and datasets are free of provenance or licensing issues; this is not documented."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important and practical limitation of GNNs applied to ILPs with formulation symmetry and proposes a principled orbit-based augmentation scheme with reasonable theoretical justification and empirical comparisons. Strengths include a clear problem statement, principled design goals (distinguishability, parsimony, isomorphic consistency), integration with symmetry-detection tools, and code availability. Major weaknesses that motivate rejection: (1) Reproducibility concerns — although code is linked, key experimental details (random seeds, full environment and dataset provenance, solver configs, deterministic evaluation protocol) are not fully documented in the text, and absence of these details triggers a reproducibility cap; per the review rules this is a critical flaw. (2) Empirical rigor — the paper does not report statistical significance, confidence intervals or multiple independent runs; labels used for supervised training come from time-limited SCIP runs (not guaranteed optimal), raising questions about what is being learned and the robustness of results. (3) Scope and novelty — the contribution is a careful design/analysis and engineering of augmentation for symmetry, but it is not a deep conceptual breakthrough beyond existing symmetry-breaking approaches; prior related methods exist and the incremental nature limits the paper's claim to being a major advance. Decision rationale per evaluation logic: Reproducibility score <= 2 triggers the override in the Instructions (RBCL §2 Fatal-Flaw Logic), which mandates an overall decision of 'Reject' (and the total_score cap). I therefore set the final decision to 'Reject' and note explicitly that the decision was downgraded due to RBCL §2 (fatal-flaw logic) because reproducibility <= 2. If the authors can (a) release a fully documented reproduction package (environment, seeds, solver configs, datasets or data-generation scripts), (b) report multiple independent runs with statistical tests and provide more thorough ablations (sensitivity to orbit-detection errors and SymILO behavior), and (c) clarify the implications of using time-limited solver-produced labels (or retrain/evaluate with provably optimal labels on a subset), the paper could be reconsidered as a borderline/major-revision submission."
+  }
+}

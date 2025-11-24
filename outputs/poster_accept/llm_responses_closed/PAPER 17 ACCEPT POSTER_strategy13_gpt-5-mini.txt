@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Rank-Sharing LoRA (RaSA), which extends LoRA by sharing partial ranks across layers and provides theoretical analysis and experiments. This is a reasonably novel engineering idea with some theoretical framing, but it appears to be an incremental advance over prior rank-sharing / parameter-sharing work (e.g., VeRA, tied-LoRA, other shared-basis approaches) rather than a fundamentally new methodological paradigm. Potential weakness / unverified assumption: the approach relies on the \"same-dimension\" assumption across layers and on the utility of a shared rank pool; it is not established whether this idea scales to architectures that break these assumptions or to tasks beyond the evaluated code/math domains. Also, some prior works that share parameter bases are close in spirit and the paper does not convincingly argue why RaSA is a qualitatively new mechanism rather than a variant of existing sharing schemes."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If RaSA consistently delivers better performance for PEFT with little parameter overhead, this would be useful to the PEFT community and practitioners fine-tuning large models, especially for rigorous tasks (code/math). The paper shows improvements across multiple models and tasks, indicating practical relevance. Potential weakness / unverified assumption: results are reported on a limited set of task domains (code and math) and models; it's unclear how broadly the benefits generalize to other tasks (e.g., classification, retrieval, multilingual) or to proprietary LLMs. The claim of \"no parameter overhead\" hides extra complexity (shared pools + per-layer diagonal D_i) whose runtime/serving impacts beyond training are not fully quantified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper presents a clear formulation and a plausibility proof (Theorem 3.1) that RaSA's minimum reconstruction error is at most LoRA's. The decomposition and constructions are intuitive and the Eckart–Young–Mirsky theorem is used appropriately to motivate comparisons. Potential weakness / unverified assumption: some steps in the proof and algebraic derivations appear hand-wavy and contain typographical/notation issues (e.g., inconsistent notation around D_i and simplifications like \"D_i operates only on the shared matrices\" which is an assumption that affects generality). The proof demonstrates existence of a construction but does not fully analyze optimization dynamics, identifiability, or conditions under which training will find the constructed solution; the practical optimization behavior is only empirically shown. The paper also relies on the same-dimension assumption and particular initialization schemes which are not fully justified theoretically."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments include multiple competitive baselines (LoRA, MoRA, VeRA, AdaLoRA, PriLoRA, OLoRA), two model families (Llama, Mistral), and two challenging domains (code and math) with ablations over r and k, data/model scaling, and forgetting analyses. This is substantial coverage. Potential weakness / unverified assumption: the paper does not report statistical significance, number of random seeds / independent runs, confidence intervals, or standard deviations; many results are reported as BEST vs LAST checkpoints rather than aggregated across runs. Best-checkpoint reporting on benchmarks without validation sets can be optimistic. Appendix details are referenced but not clearly summarized; the lack of explicit run counts and seed information means results may be from single runs and are therefore unreliable. According to the evaluation rules, missing/reported-run statistics and seed information reduce empirical rigor, so the score is capped accordingly."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper states that code, data, and scripts are available at a public repository and provides many training details (optimizer, batch size, epochs, learning rate, k selection heuristics) and points to appendices for more. This increases reproducibility. Potential weakness / unverified assumption: the provided extract does not show explicit mention of random seeds, full hyperparameter grids, exact data decontamination procedures, environment details (hardware/software), or complete scripts and instructions to exactly reproduce experiments and the claimed decontamination. Without verification of the linked repository contents and full run recipes, reproducibility remains uncertain."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates RaSA well within the PEFT literature, discussing LoRA, dynamic rank allocation (AdaLoRA, PriLoRA), and parameter-sharing approaches (VeRA, tied-LoRA). Empirical comparisons include many of these baselines. Potential weakness / unverified assumption: while relevant prior work is cited, the paper could do more to clearly delineate where RaSA's technical novelty departs from recent shared-basis or frozen-shared-matrix approaches; also, comparisons to other optimization or regularization strategies that affect effective rank are limited. Some claims about prior works being \"sub-optimal\" need stronger evidence and more nuanced discussion."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly mentions dataset reproduction and decontamination for Magicoder-Evol-Instruct-110k and uses public benchmarks, which suggests attention to data provenance. However, there is no explicit ethics or broader-impact section, no discussion of potential misuse (e.g., improved code generation risks, model hallucination in math), licensing of datasets and code, or details on decontamination methodology and residual contamination risk. Potential weakness / unverified assumption: absence of an explicit ethics statement and detailed data provenance and licensing information limits assessment of societal risks and compliance; this omission warrants a conservative score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "Summary: RaSA presents a reasonable and practically-motivated extension to LoRA (partial rank sharing across layers) with theoretical guarantees about minimum reconstruction error and extensive empirical evaluations showing gains on code and math tasks. Strengths include a clear formulation, an existence-style proof demonstrating RaSA can match or improve LoRA's reconstruction error, comprehensive baselines, and experiments across multiple models and scaling analyses. Primary concerns (critical): (1) Empirical rigor is limited by lack of reported run counts, random seeds, and statistical tests; many results appear to be reported as single runs or best-checkpoint values which undermines confidence in the observed improvements. (2) The theoretical treatment proves an existence result but relies on simplifying assumptions (e.g., D_i limited to shared matrices, same-dimension assumption) and leaves optimization/identifiability questions open. (3) No explicit ethics / broader-impact section or full data provenance/licensing details are provided. Application of mandatory reviewer-correction rules: I applied the RBCL Anti-Inflation Safeguard and conservative calibration (presumption of rejection). In particular, under RBCL Practical ICLR Calibration, a total score in [15,20) should default to 'Reject' unless multiple dimensions are clearly above 4 — that condition is not met here. Therefore the decision is downgraded to 'Reject' (Decision downgraded due to RBCL Practical ICLR Calibration). The reproducibility and technical-soundness scores are above the fatal-flaw thresholds, so no automatic 'Reject' override from those criteria was triggered. Recommendation: The paper would be strengthened by (a) releasing the full reproduction package with explicit run scripts, seeds, and environment; (b) reporting multiple independent runs with standard deviations and statistical tests; (c) clarifying and tightening the theoretical derivations (explicit assumptions, edge cases, and optimization behavior); and (d) adding an explicit ethics and data-provenance statement that documents decontamination and licensing. With those improvements, the work could be reconsidered for acceptance."
+  }
+}

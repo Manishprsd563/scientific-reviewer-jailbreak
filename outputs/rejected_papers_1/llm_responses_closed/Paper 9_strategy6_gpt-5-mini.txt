@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a combined approach (class+domain representative sampling + inference-only memory-aware normalization) tailored to sparse test-time adaptation on edge devices. This is a useful engineering contribution with a clear practical focus, but it appears to be an informed combination of existing ideas (coreset-like sampling, pseudo-label confidence, BN-statistic correction) rather than a fundamentally new methodological insight. Potential weaknesses / unverified assumptions: (1) the novelty claim leans on integrating known components; the distinction from prior sampling- or normalization-based works is not demonstrated theoretically; (2) the effectiveness of the Wasserstein-on-(mean,var) centroid for domain representation is assumed but not theoretically justified for complex shifts; (3) some empirical novelty claims (e.g., large latency gains across many methods) depend on implementation details that are not verifiable from the text provided."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing latency-sensitive TTA on resource-constrained devices is practically important and of clear interest to both research and deployment communities; integrating SNAP-TTA with multiple TTA algorithms increases potential applicability. Potential weaknesses / unverified assumptions: (1) real-world significance is asserted based on synthetic corruption benchmarks (CIFAR/Imagenet-C) which may not reflect continuous or complex domain shifts encountered in real deployments; (2) claims about safety-critical domains (e.g., autonomous driving) assume the tested adaptation rates and sampling strategies generalize to those domains without evaluation on realistic streams; (3) the meta-analysis citation near the end is suspicious and may not substantively validate real-world relevance."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The algorithmic components (confidence-based, prediction-balanced sampling; centroid-distance selection using mean/variance; soft-shrinkage corrected normalization) are described with equations and appear internally consistent. Potential weaknesses / unverified assumptions: (1) key assumptions—e.g., that early-layer mean/var suffice to capture domain centroid and that Wasserstein distance on (mean,var) is a reliable proxy—are not theoretically justified and may fail for complex shifts; (2) choices of hyperparameters (alpha=4, confidence threshold, memory==batch size) are presented with little principled justification; (3) some derivations (variance-of-variance formula) are stated without proof and rely on asymptotic approximations whose validity for small memory sizes is unclear."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper reports experiments over multiple common benchmarks (CIFAR10-C, CIFAR100-C, ImageNet-C), several TTA baselines, ablations, and a Raspberry Pi latency testbed — this breadth supports the main claims. Potential weaknesses / unverified assumptions: (1) only three random seeds are reported, with no statistical significance testing or confidence intervals beyond small standard deviations; (2) many reported tables contain formatting errors, inconsistent numbers, and incomplete entries making independent interpretation difficult; (3) evaluation focuses on synthetic corruptions and does not include continuous/realistic streaming domain shifts or long-term stability analyses; (4) critical baselines (e.g., dynamic/adaptive update schedules, more extensive streaming baselines, or non-synthetic domain datasets) are missing or not clearly described."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for implementation and hyperparameter details and mentions a Raspberry Pi testbed, but there is no explicit statement of public code, scripts, exact seeds, or environment/container specification in the provided text. According to the review rules, missing/unclear reproducibility information caps this score. Potential weaknesses / unverified assumptions: (1) absence of a clear code/data release or link prevents reproduction of both adaptation and latency measurements; (2) important experimental details (full hyperparameter ranges, memory management algorithm pseudocode, seed values, precise Pi setup and measurement protocol) are only referenced as being in appendices but are not verifiable here; (3) some reported results show formatting/typographical corruption, raising concerns about correctness of reported numbers."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites a broad set of recent TTA works (Tent, CoTTA, EATA, SAR, RoTTA) and situates SNAP-TTA as orthogonal to many of them, with some ablations comparing variants. Potential weaknesses / unverified assumptions: (1) related-work discussion is partially deferred to Appendix A and the main text lacks deeper comparative analysis on algorithmic trade-offs; (2) the paper may under-emphasize closely related sampling/coreset literature applied to unsupervised adaptation and streaming adaptation literature; (3) fairness of comparisons depends on implementation details and hyperparameters (not fully disclosed), so empirical positioning cannot be fully verified."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly mentions limitations and dataset biases but does not include a dedicated ethics / broader impacts section addressing data provenance, potential misuse, licensing, or safety implications of deploying adaptation in safety-critical systems. Potential weaknesses / unverified assumptions: (1) assertions about applicability to safety-critical domains assume safe operation under partial adaptation without evaluation of failure modes; (2) data provenance and licensing for benchmarks and any collected runtime traces are not discussed; (3) lack of explicit mitigation strategies for potential negative uses (e.g., adversarial manipulation of adaptation memory) is a gap."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.60,
+    "final_decision": "Reject",
+    "final_justification": "Summary: SNAP-TTA addresses an important practical problem (latency-sensitive TTA on edge devices) and presents a plausible, well-motivated combination of class/domain representative sampling (CnDRM) and an inference-only memory-aware normalization (IoBMN). The experimental scope (multiple benchmarks, baselines, ablations, and a Raspberry Pi latency testbed) lends practical credibility. However, the manuscript has important shortcomings that prevent acceptance in its current form. The most critical issue is reproducibility: there is no explicit code release or complete, verifiable experimental specification in the provided text (appendices are referenced but not available), which triggers the evaluation override per the review rules (Reproducibility ≤ 2 ⇒ overall decision must be Reject and total_score capped). Additional serious concerns include reliance on unverified assumptions (Wasserstein mean/variance centroid sufficiency, fixed hyperparameters like alpha=4 and fixed confidence thresholds), limited statistical rigor (only three seeds reported, no significance testing), and formatting/consistency problems in tables that cast doubt on result integrity. Per the Reviewer Bias Correction Layer (RBCL): (a) the Reproducibility fatal-flaw rule is triggered (reproducibility score ≤ 2) and thus the final decision is \"Reject\" (Decision downgraded due to RBCL §2 Fatal-Flaw Logic); (b) I applied the Anti-Inflation Safeguard and conservative scoring principles described in the review instructions in forming the numeric evaluations. Recommendation: The paper could be reconsidered after (1) public release of code and exact experiment scripts, seeds, and Pi measurement code; (2) clearer, corrected tables and full appendices describing algorithms and hyperparameters; (3) stronger empirical validation on more realistic streaming shifts and statistical tests across many seeds; and (4) a dedicated ethics / broader impacts section documenting data provenance and deployment risks. Until these are provided, the reproducibility and verification requirements for a top-tier acceptance are not met."
+  }
+}

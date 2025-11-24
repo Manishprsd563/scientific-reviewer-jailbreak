@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper's primary contribution is a comprehensive audit of MQUAKE and a corrected version (MQUAKE-REMASTERED). While this is valuable, it is fundamentally a dataset correction effort rather than a novel methodological contribution. The authors identify five types of errors (intra contamination, inter contamination, conflicting edits, missing information, duplicates) through systematic analysis—solid engineering work, but not a new technique or theoretical insight. GWalk, presented as a pilot method, is a minimally invasive graph-based approach that leverages existing memory-based editing paradigms without fundamental novelty. The paper acknowledges GWalk uses standard RAG + ICL, merely preserving triples instead of natural language descriptions. Potential weakness: The paper positions itself as advancing the field, but the core contribution is remedial rather than generative—it fixes what exists rather than introducing genuinely new concepts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The significance is substantial given that MQUAKE-CF-3K has become the de facto benchmark for multi-hop knowledge editing. Revealing that 33–76% of questions/labels are corrupted directly impacts the reliability of all prior evaluations. This work addresses a critical pain point: if evaluation metrics are flawed, methodological comparisons are unreliable. The provision of MQUAKE-REMASTERED and re-benchmarking of existing methods offers immediate practical value to the community. However, potential weaknesses include: (1) the fix is specific to one dataset; broader impact on knowledge editing methodology beyond MQUAKE evaluation is unclear, and (2) the paper does not fundamentally advance the capability of knowledge editing methods themselves, only the measurement thereof. The significance is thus conditional on adoption of MQUAKE-REMASTERED by the community."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The audit methodology is sound: the authors systematically identify contamination patterns (intra-edited-to-unedited, inter-edited-to-edited, conflicting edits, missing instructions, duplicates) with concrete examples. The categorization is logical. However, several technical concerns emerge: (1) For contamination (§3.1–3.2), the paper identifies the problem but the 'fix' via dynamic masking (§4.2) is incomplete—it only masks facts for memory-based methods and cannot address parameter-based methods without creating a smaller dataset (MQUAKE-REMASTERED-CF-6334 with 6,334 cases, down from 9,171 in MQUAKE-CF). This is a workaround, not a fundamental solution. (2) The hard corrections for missing information use Llama-3.1-405B to regenerate instructions, but there is no validation that regenerated instructions match the original intent or ground truth semantics. (3) The paper claims 'audit correctness analysis' in Appendix D but this analysis is not shown in the provided text, making it unverifiable. Unverified assumption: That human/LLM-regenerated questions maintain semantic equivalence to the original triples."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Significant empirical validation concerns: (1) Results in Table 3 show only two methods (MeLLo, GWalk) on the main benchmarks; coverage is extremely sparse. (2) Table 4 shows several methods (ICE, IKE) hitting OOM or achieving <1% accuracy, suggesting implementation issues or unfair experimental setup—these are not properly diagnosed or addressed. (3) The paper acknowledges (§6) that methods like GLAME, StableKE, Temple-MQA, GMeLLo, and StruEdit are omitted due to lack of timely open-source implementations, severely limiting the breadth of the re-benchmark. (4) Critical methodological flaw acknowledged by the authors themselves: 'we cannot complete a full rerun before camera-ready. We will make the official run soon'—this undermines the credibility of reported results. (5) No statistical significance testing or error bars are provided; single-run results without confidence intervals. (6) Ablation studies mentioned as 'discussed in Appendix E' are not visible, so claims about error impact cannot be verified. Potential weakness: The re-benchmark is incomplete, potentially invalidating the main claim that MQUAKE-REMASTERED provides more reliable evaluation."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility issues: (1) The paper explicitly states results are preliminary and will be updated ('we cannot complete a full rerun before camera-ready'). This is a major red flag—the reported results may not be final, making reproduction of *these exact results* impossible. (2) While the authors promise datasets and code via HuggingFace and GitHub, the paper itself does not provide hyperparameter details, random seeds, number of runs, or hardware specifications for the experiments shown in Tables 3 and 4. (3) GWalk's Algorithm 1 is described at a high level but critical implementation details are missing: What is the embedding similarity threshold in line 4? How is the text model T used for entity/relation matching? What are the specific prompts for M in lines 2 and 5? (4) The 'audit correctness analysis' (Appendix D) and 'ablation studies' (Appendix E) are referenced but not provided, preventing verification. (5) Multiple methods failing with OOM or <1% accuracy without root-cause explanation raises questions about implementation correctness and fair evaluation. Unverified assumption: That released code and data will fully enable reproduction, given the current paper's incompleteness."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper provides good contextualization of MQUAKE's role and motivates the multi-hop knowledge editing problem well. However, several positioning gaps emerge: (1) The related work section is minimal (integrated into introduction and discussion rather than a dedicated section), making it hard to assess comprehensive coverage of prior knowledge editing and dataset auditing work. (2) The paper identifies that methods like RAE, GLAME, and PokeMQA may exploit MQUAKE idiosyncrasies (§5) but does not comprehensively analyze *why* or *how* this occurs beyond speculation. (3) The comparison to other dataset correction/auditing efforts in NLP (e.g., work on dataset noise in QA, entity linking, etc.) is absent. (4) The paper fairly acknowledges trade-offs in KG-based approaches (§5) but this discussion comes late and is brief. (5) Fair comparison is also undermined by the incomplete re-benchmark—omitting five recent methods (GLAME, StableKE, Temple-MQA, GMeLLo, StruEdit) due to lack of implementations means the paper cannot fairly claim GWalk outperforms 'almost all' methods. Potential weakness: Positioning relies partly on negative evidence (showing prior methods fail on MQUAKE-REMASTERED) rather than positive evidence of GWalk's general superiority."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Minimal ethics engagement: (1) The paper provides no explicit ethics statement or broader impact discussion. (2) No discussion of data provenance beyond noting MQUAKE was built from Wikidata, which itself has known biases and coverage gaps. (3) No discussion of potential harms from correcting the dataset—e.g., if practitioners relied on prior MQUAKE results for deployment, how should they migrate? (4) No discussion of the labor involved in manual corrections (§4.1) or potential biases introduced by the choice to use Llama-3.1-405B for regenerating instructions. (5) No discussion of licenses for regenerated data or code release terms. (6) No analysis of how dataset corrections might affect reproducibility of prior published results—researchers who published on MQUAKE may face reputation/replication concerns. (7) No consideration of whether the 33–76% error rate raises questions about the trustworthiness of similar large-scale datasets in the community. Potential weakness: The paper engages in dataset correction without addressing the ethical implications of retroactively invalidating prior published work or offering guidance on how the community should reconcile with the original flawed benchmark."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses a genuine and important problem: MQUAKE, the primary benchmark for multi-hop knowledge editing, contains substantial errors. The comprehensive audit is valuable, and MQUAKE-REMASTERED provides a needed correction. However, the paper suffers from multiple critical weaknesses that prevent acceptance: (1) **Empirical Validation (score 2):** Results are acknowledged as preliminary ('we cannot complete a full rerun before camera-ready'), and the re-benchmark omits five recent methods due to implementation unavailability. Tables 3–4 show sparse coverage and unexplained method failures (OOM, <1% accuracy). Statistical rigor is absent. (2) **Reproducibility (score 2):** Despite promises of code/data release, the paper itself lacks sufficient detail (hyperparameters, random seeds, thresholds, prompts) to reproduce results. Appendices with critical analyses are referenced but not provided. (3) **Technical Soundness (score 3):** The contamination 'fix' via dynamic masking is incomplete (only for memory-based methods), and the regeneration of instructions using Llama-3.1-405B is unvalidated. The claim of 'audit correctness analysis' cannot be verified. (4) **Novelty (score 3):** The contribution is primarily remedial—fixing an existing dataset—rather than introducing new methodology or insights. GWalk is a straightforward application of existing techniques without fundamental novelty. Per RBCL §2 Fatal-Flaw Logic: The combination of incomplete reproducibility, preliminary and unverified results, and missing critical experimental details (Appendix D, E) triggers a downgrade. Additionally, per RBCL §5 (Practical ICLR Calibration): A total score of 19 maps to 'Borderline / Major Revision,' but given the fatal flaws in reproducibility and experimental validation, this defaults to **Reject**. The paper makes a useful service contribution but requires substantial additional work—complete re-runs, full ablations, comprehensive re-benchmarking of all recent methods, and detailed reproducibility documentation—before it can reliably support its claims."
+  }
+}
+```

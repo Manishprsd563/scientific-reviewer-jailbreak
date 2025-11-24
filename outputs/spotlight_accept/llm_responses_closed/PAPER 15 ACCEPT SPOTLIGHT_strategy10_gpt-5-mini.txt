@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper combines state-conditioned VQ-VAE discretization, a Transformer prior that acts as both a policy/prior and latent transition model, and MCTS with progressive widening applied to latent macro-actions. This is a reasonable composition of known components but does not constitute a clear, standalone conceptual breakthrough. At least one potential weakness/unverified assumption: the claimed novelty rests on engineering a particular combination rather than introducing a fundamentally new algorithmic principle, and it is unclear whether the masked VQ-VAE modification is sufficiently novel versus prior state-conditional discretizations. Decision downgraded due to RBCL Anti-Inflation Safeguard (scores conservatively lowered)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If effective and scalable as claimed, L-MAP could materially help planning in high-dimensional stochastic continuous-control tasks (robotics, autonomous driving), which is significant. At least one potential weakness/unverified assumption: the paper asserts broad applicability and low-latency planning but provides insufficient concrete evidence (e.g., real-world latency benchmarks, large-scale deployment scenarios) to judge impact; scalability to very large action/state spaces and generalization to out-of-distribution dynamics remain unverified. The RBCL presumption of rejection and Anti-Inflation Safeguard informed a conservative score."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The methodological components are plausible and the high-level algorithmic design is coherent: state-conditioned VQ-VAE, a Transformer prior for latent transitions/prior, and MCTS with progressive widening form a reasonable pipeline. At least one potential weakness/unverified assumption: important theoretical claims (e.g., that taking expectations over latent transitions uniformly mitigates uncertainty sources, or convergence/consistency properties of planning in the learned latent space) are asserted but not formally proven; the VQ-VAE regularizer aligning masked and full embeddings is heuristic and its statistical properties under stochastic returns are not analyzed. Also, implementation-sensitive choices (codebook size, macro-action length L, hyperparameters for progressive widening) are not justified theoretically. Note: RBCL Anti-Inflation Safeguard applied in reasoning; however, technical soundness was not reduced to a fatal <=2 level."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper claims extensive experiments across stochastic MuJoCo and Adroit tasks and comparisons to TT, TAP, CQL, and IQL, which is encouraging. At least one potential weakness/unverified assumption: the submission text lacks detailed quantitative results (no tables/metrics shown here), absent discussion of statistical significance, number of runs and random seeds, ablation studies (e.g., effect of codebook size, macro length L, the masked-loss term), and runtime/latency measurements are described only qualitatively. Because core experimental details and reproducibility artifacts are missing or unclear, the score is capped per rubric. Decision downgraded due to RBCL Evidence Severity (missing experimental details) and RBCL Anti-Inflation Safeguard."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper does not include an explicit statement that code, data, or hyperparameters are released; there is no mention of random seeds, exact architectures, training schedules, or the precise datasets and pre-processing steps in the provided text. At least one potential weakness/unverified assumption: without code and hyperparameter details (and the referenced Appendix C not included here), independent reproduction is infeasible. Per review rules, missing/unclear information caps the score at 2. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2) and RBCL Evidence Severity guidance."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a broad set of related literature spanning temporal abstraction, VQ models, Transformers for trajectories, robust RL, and planning (e.g., TAP, TT, MuZero, ESPER, CompILE). The positioning is generally clear and the distinctions are described. At least one potential weakness/unverified assumption: while high-level comparisons exist, detailed empirical ablation versus the most similar baselines (e.g., TAP variants, Trajectory Transformer variants that also compress trajectories) are not shown in the provided text; missing discussion of related concurrent work that may also use latent macro-actions or other discretizations for continuous control could leave gaps in contextualization."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes standard acknowledgements of funding but does not provide an explicit ethics or broader impacts section, does not discuss potential misuse, data provenance, licensing of datasets/code, or safety considerations for deploying planning systems in real-world safety-critical domains. At least one potential weakness/unverified assumption: omission of ethical analysis for deploying learned planners in safety-critical domains (e.g., robotics, autonomous vehicles) where failures can be harmful. Per rubric, missing ethics/broader impact discussion caps the score at 2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: L-MAP presents a coherent and plausible approach—learning state-conditioned discrete latent macro-actions via a VQ-VAE variant, modeling latent transitions with a Transformer prior, and planning with MCTS and progressive widening. This combination is practically promising and, if validated, could address important scaling challenges in planning for stochastic continuous-control domains. However, the submission as presented lacks critical reproducibility and experimental detail (no code/hyperparameters/seeds provided here, limited quantitative reporting and ablations in the text), and several methodological claims are asserted without formal justification or thorough empirical corroboration. The most critical issue is reproducibility: per the rubric and RBCL Fatal-Flaw Logic, reproducibility score ≤ 2 forces a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Additionally, empirical validation details are insufficient (single-run statistics, ablations, and latency/runtime measurements are not provided), which further undermines confidence in the claimed performance gains. Technical soundness is plausible but relies on heuristic components (masked VQ-VAE alignment, expectation-over-latent arguments) that are not theoretically or extensively empirically analyzed. Given the RBCL presumption of rejection, the Anti-Inflation Safeguard applied to scoring, and the Evidence Severity rules treating missing information as absence of evidence, the conservative decision is Reject. Recommendation to authors: release code, seeds, and full experimental logs; include rigorous ablations (codebook size, macro length, masked loss term), multi-seed statistical reporting and runtime/latency benchmarks; and strengthen theoretical justification or empirical analyses of when and why the latent expectation approach mitigates stochasticity. Addressing these issues could change the assessment substantially."
+  }
+}

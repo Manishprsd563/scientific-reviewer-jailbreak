@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper introduces a lightweight cross-attention mechanism with linear complexity, which is a meaningful contribution to NCO architectures. The Self-Improved Training (SIT) algorithm represents a novel approach to training on large-scale instances without labeled data. However, the cross-attention idea of using representative nodes is relatively straightforward (similar to linformer and other linear attention variants in the literature), and the SIT algorithm, while practical, builds heavily on existing local reconstruction concepts from prior work (Luo et al., 2023; Ye et al., 2024). The novelty is solid but not groundbreaking—these are refinements rather than fundamental paradigm shifts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper demonstrates significant practical impact: achieving performance competitive with or superior to HGS (a specialized solver) on large-scale VRPs (10K–100K nodes) for the first time in NCO literature is noteworthy. Scalability to 100K nodes substantially expands applicability. However, the significance is somewhat diminished by: (1) reliance on problem-specific tuning (e.g., l_max sensitivity in Table 5 suggests careful hyperparameter selection is needed), (2) comparison with HGS is limited to three instances, and (3) the method still requires domain expertise in local reconstruction strategy design. The impact is high but not transformative."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical presentation has several concerns: (1) The cross-attention mechanism description (Section 4.1) lacks rigorous justification for why representative nodes should preserve effective node interactions—the claim that 'propagating embeddings through representative nodes maintains interactions' is stated but not theoretically proven. (2) The loss function in Eq. (3) conditions on both the first and last nodes of partial solutions, but the justification for why this architectural choice is optimal is missing. (3) The non-overlapping parallel reconstruction strategy (Section 4.3) may introduce boundary artifacts when reconstructing consecutive segments, and this limitation is not discussed. (4) Critical implementation details are deferred to appendices, making full verification difficult. The method is not unsound, but several design choices lack sufficient justification."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments are extensive in scope (synthetic and real-world benchmarks, up to 100K nodes) but have notable gaps: (1) Table 1 comparisons on synthetic instances use greedy search for fair comparison, but PRC iterations vary (50 vs. 500+), making direct quality comparisons ambiguous—statistical significance tests are absent. (2) Real-world TSPLIB/CVRPLIB results (Table 2) show the proposed method outperforms on only 2/4 groups with greedy search; PRC results are stronger but obscure the greedy baseline performance. (3) The ablation study (Table 3) trains 'w/o SIT' on CVRP100 due to label scarcity, whereas the full method trains on large instances—this is not a fair ablation since different data distributions are used. (4) No error bars, confidence intervals, or multiple runs reported. (5) Sensitivity analysis (Table 5) only varies l_max; other hyperparameters (number of representative nodes m, sampling range ω, etc.) are not studied."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper claims code is available at a GitHub link, which is a positive sign. However, the paper itself lacks critical implementation details: (1) The number of representative nodes m is not explicitly stated in the main text or methodology section (only visible in Figure 1). (2) Random seeds and number of experimental runs are not mentioned. (3) GPU specifications and training wall-clock times are not provided. (4) Detailed hyperparameter settings (learning rate, batch size, optimizer, warmup schedules, etc.) for SIT are relegated to Appendix D, which is not fully visible in the submission. (5) The SIT algorithm's convergence criteria ('predefined time budget') are vague. While code availability is promised, the paper itself does not provide sufficient detail for independent reproduction without accessing external code."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 2) is well-structured and categorizes methods into three groups (generalization-based, simplification-based, heatmap-based), providing good context. However, there are omissions and positioning issues: (1) Linear attention mechanisms from NLP literature (Linformer, Performer, etc.) are not discussed, even though they are directly relevant to the proposed cross-attention. (2) The relationship between the proposed local reconstruction and prior works like Luo et al. (2023) and Ye et al. (2024) is stated but not deeply differentiated—the paper does not clearly explain why SIT is fundamentally better than prior local reconstruction approaches beyond empirical results. (3) Recent work on neural solvers for large-scale CO (e.g., graph neural network approaches) could have been discussed. (4) Comparison with HGS is presented as a major achievement, but HGS is not a learning-based method; comparisons with other recent learning-based solvers for large-scale instances would strengthen positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper does not include an ethics section or discussion of broader impacts. There is no discussion of: (1) Data provenance or licensing for TSPLIB and CVRPLIB benchmarks. (2) Potential societal implications of deploying learned routing policies (e.g., labor impacts, fairness in route assignment). (3) Limitations or failure modes of the approach. (4) The paper uses synthetic and publicly available benchmark datasets, which mitigates some concerns, but the absence of any ethical reflection is notable for a top-tier venue. This omission is a compliance issue with modern conference standards."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 22,
+    "confidence": 0.72,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper makes solid practical contributions to scaling neural combinatorial optimization via a lightweight cross-attention mechanism and a self-improved training algorithm, demonstrating impressive empirical results on large-scale VRPs (up to 100K nodes). However, it falls short of acceptance at a top-tier venue due to several critical issues: (1) **Technical Soundness**: Key architectural choices (representative nodes, partial solution conditioning) lack rigorous justification; theoretical guarantees are absent. (2) **Empirical Validation**: The ablation study uses different data distributions (small-scale for w/o SIT vs. large-scale for the full method), compromising fairness; no statistical significance testing or multiple runs reported; PRC iteration counts vary between methods, complicating fair comparison. (3) **Reproducibility**: While code is promised, critical hyperparameters and implementation details are missing from the main paper; convergence criteria are vague. (4) **Novelty**: The cross-attention mechanism, while effective, is not conceptually novel (linear attention is well-established); SIT builds incrementally on existing local reconstruction. (5) **Missing Ethics**: No discussion of data provenance, fairness, or societal implications. (6) **Related Work**: Insufficient comparison with linear attention literature from NLP; limited differentiation from prior local reconstruction work. The work is technically competent and practically useful, but the combination of incomplete experimental rigor, missing justifications, and compliance issues prevents recommendation for acceptance. The paper would benefit from: (i) rigorous ablation studies with matched data distributions, (ii) theoretical analysis of the cross-attention design, (iii) comprehensive hyperparameter sensitivity analysis, (iv) an ethics statement, and (v) detailed reproducibility information in the main paper."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "Maintaining per-client local models (BMT) and training disjoint sub-FL models organized as a tree (MMT) for warm-starting post-unlearning is an interesting combination and tailored to federated unlearning. However, the high-level ideas overlap with partitioned training/aggregation strategies (e.g., SISA-style partitioning and FedCIO’s clustered intermediate models). The paper itself acknowledges conceptual proximity. A key unverified assumption is that parameter averaging of independently trained local models provides a consistently superior and stable initialization across tasks; the paper does not theoretically justify when this averaging is beneficial or safe."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Reducing performance drop immediately after exact unlearning is practically valuable, and the approach could influence how FL systems plan for client departures. However, the approach incurs substantial storage/compute overhead (maintaining per-client local models and multiple sub-FL models), and scalability/operational costs are not rigorously quantified. The real-world deployability under realistic numbers of clients and frequent join/leave events remains uncertain. An unverified assumption is that organizations can afford and manage the required additional models and communications without compromising latency or cost."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The central claim of “exact” federated unlearning is not rigorously justified. Weight averaging of independently trained local models and sub-FL models does not, in general, replicate the retrained-from-scratch model on the retained clients. The method may ensure the new initialization depends only on remaining clients, but equality to the retrained model (the common definition of exact unlearning) is neither proved nor carefully formalized. There is no theoretical analysis of when the aggregation is equivalent or what conditions guarantee exactness. Notation has issues and the method lacks proofs or precise guarantees. A critical unverified assumption is that restarting training from an aggregation of remaining-client local/sub-FL models yields a model that is functionally identical to retraining under the same randomness; this is not established. Per RBCL §2 Fatal-Flaw Logic, the ≤2 score here mandates a Reject."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover several datasets and include some baselines, but key aspects are missing: no multiple seeds or statistical tests, no confidence intervals, and limited reporting on the number of clients and client selection variability. The sequential unlearning setting appears to use a small fixed set of leaving clients; generality across orders and scales is unclear. Crucial system-level metrics (storage/compute/communication overhead, latency) are absent, despite being central to practicality. NLP experiments use small samples and unconventional label prediction via next-token generation with sparse details. A major unverified assumption is that improvements are robust across seeds, client permutations, and realistic client counts; the paper does not provide evidence."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "While some hyperparameters and hardware are stated, code is not provided, random seeds are missing, data partitioning details (e.g., client counts, split seeds) are incomplete, and the construction algorithm for MMT trees (including Shannon–Fano/Huffman variants) is not specified to a reproducible level. Without code and detailed protocols, independent reproduction is unlikely. Per the rubric, missing code and incomplete reproducibility details cap this criterion at 2. An unverified assumption is that provided descriptions suffice for faithful reimplementation; given the complexity of FL setups, this is doubtful. RBCL §2 Fatal-Flaw Logic also applies when this score is ≤2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites key FL and unlearning works, including exact FU (Exact-Fun, FATS) and clustered aggregation (FedCIO), and it acknowledges conceptual overlap. However, a deeper contrast with partition-based unlearning (e.g., SISA-style guarantees) and formal definitions of exactness in unlearning literature is needed to clarify what notion of exactness is being claimed. It is unclear whether the guarantees match those established elsewhere. A potential weakness is the lack of discussion on when averaging models trained on disjoint subsets is known to fail or deviate from retraining outcomes."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper mentions GDPR/CCPA motivations but does not discuss new risks introduced by persisting per-client local models and multiple sub-FL models (e.g., increased attack surface, storage of models tightly coupled to single clients, or potential membership inference risks if models are compromised). The licensing/provenance for datasets and pretrained LMs is not discussed in detail, nor are consent/usage constraints for multilingual data. An unverified assumption is that maintaining additional per-client models is benign from a privacy/security perspective; this needs explicit risk assessment."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Despite an interesting combination of ideas (per-client local models and sub-FL model trees) aimed at mitigating post-unlearning performance drops, the paper lacks rigorous justification for its central claim of exact federated unlearning and provides limited, non-statistical empirical evidence without code or full reproducibility details. In particular, the technical soundness score is ≤2 due to the absence of a proof that the proposed aggregation–retraining procedure yields the same model as retraining on retained clients, and the reproducibility score is ≤2 because code and critical protocol details are missing. Per RBCL §2 Fatal-Flaw Logic and the specified overrides, these deficiencies mandate a Reject. Even absent the overrides, the empirical and practical gaps (overhead and scalability not quantified) and the ambiguity around the exactness guarantee warrant a conservative decision."
+  }
+}

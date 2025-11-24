@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a novel practical combination (CnDRM + IoBMN) targeted at sparse TTA for latency-sensitive devices, which is a meaningful engineering contribution beyond straightforward application of existing TTA methods. However, the core ideas are largely combinations and adaptations of existing concepts (coreset-like sampling, centroid-based selection, memory-based normalization), not a fundamentally new theory; a score of 4–5 would be reserved for a genuine methodological breakthrough. Potential weaknesses / unverified assumptions: reliance on pseudo-label confidence for class-representativeness (pseudo-label errors can bias sampling), the choice of first-layer stats as domain centroid is heuristic and not theoretically justified, and hyperparameter choices (confidence threshold, alpha=4, soft-shrinkage lambda) appear ad-hoc without sensitivity analysis."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing latency-aware TTA for edge/real-time systems is an important and practical problem; demonstrating latency reductions on Raspberry Pi and integration with multiple SOTA TTA methods increases usefulness. Potential weaknesses / unverified assumptions: impact is demonstrated mainly on corruption benchmarks (CIFAR-C, ImageNet-C) rather than natural real-world domain shifts or continuous non-stationary streams; assumptions about applicability to safety-critical domains (e.g., autonomous driving) are asserted but not validated in realistic, safety-relevant scenarios; results may depend on device-specific characteristics (only Raspberry Pi 4 evaluated)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical components (Wasserstein distance on mean/variance, soft-shrinkage adjustment of memory BN/LN stats, selection rules) are coherent and the equations appear consistent. The approach is implementable and the presented algorithmic descriptions are plausible. Potential weaknesses / unverified assumptions: there is limited theoretical analysis of convergence or guarantees that the memory statistics remain representative over long skipped intervals; the assumption that first-layer mean/variance alone capture domain shifts is heuristic and not justified formally; sensitivity to batch size, memory capacity=M, and non-i.i.d. streams is not analyzed; possible failure modes when pseudo-labels are systematically wrong are not studied."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experimental suite is reasonably comprehensive: multiple corruption benchmarks (CIFAR10/100-C, ImageNet-C), several SOTA TTA baselines, ablations (sampling strategies, IoBMN variants), multiple model architectures (ResNet, ViT), and latency measured on a real device (Raspberry Pi 4). The paper reports averages and some standard deviations (three seeds). Potential weaknesses / unverified assumptions: limited statistical analysis (no hypothesis tests or confidence intervals beyond std reported), only three seeds (marginal for some comparisons), reliance on synthetic corruption benchmarks vs. natural domain shifts, inconsistent or unclear presentation of some latency numbers (very large variation for some methods, e.g., CoTTA), and no runtime/breakdown overhead for CnDRM selection itself; hyperparameter sensitivity (confidence threshold, alpha, memory size) and robustness to different stream dynamics are insufficiently explored."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper states implementation details and hyperparameters are in the appendix and reports using standard public benchmarks, and it reports random-seed averages. However, there is no explicit link to code or released implementation in the main text, and key experiment-level reproducibility artifacts (complete training/evaluation scripts, full hyperparameter sweeps, exact device/software environment, seeds for all experiments) are not clearly provided. Potential weaknesses / unverified assumptions: absence of a public code release (or explicit statement of one) prevents verification and reuse; appendix details may be incomplete; missing exact instructions to reproduce Raspberry Pi measurements. Note: capped at 2 because of missing/unclear code release per evaluation rules."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and compares against a broad set of relevant TTA methods (Tent, CoTTA, EATA, SAR, RoTTA) and references data-efficient sampling and normalization literature; appendices purportedly contain more detailed related work. Potential weaknesses / unverified assumptions: the positioning could better discuss prior memory- or stat-driven normalization adaptations, coreset/coreset-selection literature in online settings, and limitations relative to recent continuous-adaptation protocols; missing discussion of potential failure modes in relation to prior negative results on pseudo-label-driven sampling."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper contains a brief Limitations section but does not include an explicit Ethics / Broader Impacts section, discussion of data licensing, or treatment of safety risks in deploying TTA in safety-critical systems. Potential weaknesses / unverified assumptions: advocating deployment in latency-sensitive applications (autonomous driving, health monitoring) without thorough safety analysis could be dangerous; lack of discussion of misuse, fairness, and data provenance; no explicit licenses or data/weight provenance statements. Note: capped at 2 due to missing explicit ethics/broader impacts statement."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical problem (latency-aware sparse TTA for edge devices) and presents a coherent, empirically supported engineering approach (CnDRM sampling + IoBMN inference normalization) that integrates with multiple SOTA TTA methods. Experiments cover standard corruption benchmarks, multiple architectures, ablations, and a real-device latency evaluation, showing promising latency-accuracy trade-offs. However, several critical concerns prevent acceptance in its current form: (1) Reproducibility is insufficient (no explicit public code release or complete reproducibility artifact), which caps that criterion and is treated as a fatal concern under the review rules; (2) the technical contributions are largely heuristic and engineering-driven without theoretical guarantees or in-depth analysis of failure modes (e.g., systematic pseudo-label errors, long-term non-stationarity); (3) empirical evaluation, while broad, lacks deeper statistical analysis and tests on realistic continuous domain shifts and safety-critical scenarios; (4) ethics and broader impact considerations are missing. According to the mandatory RBCL rules, reproducibility score <= 2 triggers a required overall decision of Reject (RBCL §2 Fatal-Flaw Logic). I also applied the anti-inflation safeguard and conservative presumption of rejection in scoring (the reviewer reductions described in RBCL were used to avoid mid-range inflation). Given these critical issues (notably missing code and incomplete safety/ethics discussion), the appropriate action is to Reject; the paper could be reconsidered after a revision that (a) releases code and full reproducibility artifacts, (b) provides sensitivity analyses and stronger empirical validation on realistic continuous streams and device variability, (c) includes a clear ethics/broader-impacts discussion, and (d) better justifies technical assumptions or provides theoretical analysis."
+  }
+}

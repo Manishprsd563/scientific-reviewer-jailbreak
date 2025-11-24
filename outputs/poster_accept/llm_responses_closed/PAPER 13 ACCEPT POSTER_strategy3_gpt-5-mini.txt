@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes an orbit-based feature augmentation tailored to ILP formulation symmetry and provides a focused theoretical discussion for GNNs on ILPs; this is a useful, reasonably novel specialization but largely builds on existing symmetry-breaking and orbit ideas from prior work (e.g., SBS, orbit methods). Potential weakness: the core idea is an adaptation/combination rather than a fundamentally new representation or learning algorithm; prior works (some cited) employ related orbit or symmetry-breaking strategies so the novelty is moderate. Unverified assumption: claims of general theoretical benefit rely on Assumption 1 (specific equivariance/invariance properties) which may be violated by common practical modifications (e.g., positional encodings). Also applied RBCL Anti-Inflation Safeguard: score kept conservative."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing symmetry in ILPs is relevant to ML-for-CO and could improve GNN-based ILP heuristics and prediction accuracy on symmetric instances; experiments on several benchmarks (including large SMSP) indicate practical relevance. Potential weakness: the method is explicitly tailored to formulation symmetry and supervised settings with label adjustment (SymILO), limiting general applicability to other problem classes or unsupervised/online settings. Unverified assumption: impact claims depend on whether the improvement carries over to downstream solver integration (e.g., node selection/branching) beyond the supervised prediction task."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The high-level theoretical claim (permutation equivariance/invariance implies identical outputs on orbit members) is standard and the provided propositions are plausible; the paper also links principles to concrete augmentation choices. Potential weakness: full proofs and some derivations are relegated to appendices (not available here), and the theory depends on Assumption 1 which excludes common practical modifications (e.g., explicit positional encodings, canonicalization) — this limits generality. Unverified assumption: reliance on SymILO and dynamic label transformations is treated as straightforward but its convergence, stability, and effect on theoretical guarantees are not fully analyzed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments cover three benchmarks (BPP, BIP, SMSP) and compare to several augmentation baselines; sampling multiple augmented inputs during training is sensible and Top-m% error is a reasonable metric. Potential weaknesses: training labels are 'best found' by SCIP with a 3600s time limit (so not guaranteed optimal), which can bias supervised training and is not fully controlled/quantified; statistical rigor is limited (no reported variance/CI or multi-seed runs, no hypothesis tests), ablation studies on sampling strategy, augmentation dimensionality, or sensitivity to SymILO choices are limited or absent. Unverified assumption: results presented may rely on single-run evaluations or insufficient random-seed variation; penalized per Empirical Rigor guidance."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The manuscript states that source code is available at a public GitHub link and gives many training details (optimizer, lr, batch size, epochs, sampling counts) and mentions use of Bliss for symmetry detection, which supports reproducibility. Potential weakness: the paper omits explicit random seeds, exact hardware/compute environment, and the paper relies on appendices for further details (e.g., A.8) which are not visible here; dataset generation details (for BPP) are partly referenced but may require scripts. Unverified assumption: I assume the linked repo contains runnable scripts and seeds, but if the repository lacks full instructions or exact seeds/hyperparameter configs, reproducibility would be impaired (absence treated conservatively)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript surveys relevant literature on GNNs for ILPs and symmetry-breaking approaches in physics/chemistry and ML-for-CO, cites several pertinent works (Gasse et al., Margot, SBS-related works), and positions its contributions relative to them. Potential weakness: some closely related alternatives (e.g., canonicalization-based symmetry handling, advanced equivariant architectures, or solver-integrated symmetry exploitation) could be discussed in more depth and more direct empirical baselines (e.g., canonicalization + GNN) are not included. Unverified assumption: comparisons assume the baselines are implemented and tuned fairly — details of baseline tuning are limited."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics or broader-impact statement is provided. Potential weakness: absence of an ethics statement and discussion of data provenance (e.g., licensing/usage of benchmark data) is a gap and prevents assessment of potential misuse or broader impacts. Unverified assumption: the datasets are public and permissible to use, but this is not documented in the manuscript; per rubric, missing ethics statements cap the score and require conservative handling."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper identifies a real problem (GNN indistinguishability on symmetric ILPs), proposes a principled orbit-based augmentation scheme with supporting analysis, and reports empirical gains on multiple ILP benchmarks. Strengths include clear motivation, a focused augmentation design aligned with orbit structure, and publicly referenced code. Critical weaknesses: empirical validation lacks statistical rigor (no multi-seed variance/confidence intervals reported), training labels are time-limited 'best found' SCIP solutions (not guaranteed optimal) which may bias supervised learning, the theoretical claims hinge on Assumption 1 and use of SymILO whose stability/limitations are not fully explored, and there is no ethics/broader-impact statement. Decision rationale: numeric scoring aggregated to 19 (moderate strengths across novelty, significance, and technical soundness but weaker empirical rigor and missing ethics discussion). Per the RBCL Practical ICLR Calibration and Fatal-Flaw Logic, scores in the borderline range [15,20) should be treated conservatively; therefore I default to 'Reject' unless multiple dimensions are clearly above 4 (they are not). Explicit rule: Decision downgraded due to RBCL Practical ICLR Calibration (Borderline region treated as Reject). Recommended path to acceptance: provide stronger empirical rigor (multi-seed runs, statistical tests, ablations on augmentation sampling and SymILO behavior), clarify provenance and licensing of datasets and include an explicit ethics/broader-impact statement, attach full proofs and appendices inline or in the repository, release a fully reproducible codebase with scripts, seeds, and environment details, and evaluate downstream integration with solvers (e.g., solver-level metrics) to demonstrate practical impact."
+  }
+}

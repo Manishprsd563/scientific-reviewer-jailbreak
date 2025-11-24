@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper makes a solid contribution by identifying and fixing errors in MQUAKE, an important benchmark dataset. The error audit itself is methodical and reveals genuine issues (33-76% corrupted cases). However, the core contribution is primarily dataset curation and error correction rather than a novel algorithmic or conceptual insight. GWalk, the proposed method, is a relatively straightforward application of existing retrieval-augmented generation and in-context learning techniques, combining them with graph-based retrieval. While the combination is sensible, it lacks fundamental novelty beyond standard memory-based editing approaches. A potential weakness is that the paper does not provide strong theoretical justification for why graph-based retrieval inherently prevents hallucinations better than embedding-based retrieval beyond intuition."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The dataset fix is highly significant for the knowledge editing community, as MQUAKE has become the de facto benchmark for multi-hop knowledge editing research. Correcting up to 33-76% of cases directly impacts the validity of prior reported results and future method evaluation. This is a crucial service to the community. However, the practical impact is somewhat limited: the fixes enable more reliable benchmarking but do not fundamentally change how multi-hop knowledge editing should be approached. The GWalk method, while performing well, does not provide transformative insights into the multi-hop editing problem itself. A weakness is that the paper does not provide guidance on how to extend the dataset correction framework to other benchmark datasets facing similar issues."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The error audit in §3 is mostly sound and well-documented. The paper clearly identifies four categories of errors (intra contamination, inter contamination, conflicting edits, missing information, duplication) with concrete examples. However, there are concerns: (1) The dynamic masking approach (§4.2) is presented without formal justification for why removing up to N facts per N-hop question is 'marginal'—this depends heavily on the specific knowledge editing method and the overlap patterns in the dataset. (2) GWalk's algorithm (Algorithm 1) lacks theoretical analysis. The claim that graph-based querying prevents unintended retrievals is stated intuitively but not formally justified or empirically validated through ablation. (3) The paper assumes that Llama-3.1-405B rewritten questions are correct, but provides no validation that these regenerated questions accurately preserve the multi-hop structure and information. This is a critical assumption that could undermine the entire remastering effort if false."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Significant issues limit the strength of empirical validation: (1) The re-benchmark only covers 8 prior methods, and notably excludes GLAME, StableKE, Temple-MQA, GMeLLo, and StruEdit due to 'lack of timely open-sourced implementation'—this weakens the comprehensiveness of the comparison and raises questions about the reproducibility of those methods. (2) Table 3 shows results for only two methods on only two datasets with a single edit setting (1000-edit for CF-3K, all-edit for T), which is insufficient to draw strong conclusions about method rankings. (3) Table 4 shows GWalk vastly outperforming baselines (e.g., 57.37 vs. 14.63 for MeLLo on CF-3K), but many baseline methods show <1% or OOM failures. This could indicate implementation issues with baselines rather than true method superiority. (4) The paper provides no ablation studies on GWalk itself to justify design choices (e.g., why graph-based retrieval is better than NL-based). (5) Missing statistical significance testing, confidence intervals, or multiple runs to validate results. (6) The authors acknowledge (end of §6.1) that results may differ due to dataset updates and lack of full reruns before camera-ready, severely undermining confidence in the reported numbers."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper claims datasets and utilities are available at HuggingFace and GitHub, which is good. However, critical reproducibility information is missing or unclear: (1) Hyperparameters for GWalk (e.g., embedding similarity thresholds in Algorithm 1, line 4) are not specified. (2) The paper states it will update with 'one-click reproducible scripts' but these are not yet available (§6.1), preventing verification of reported results. (3) Random seeds for model sampling are not mentioned, despite LLM output being stochastic. (4) The exact prompts used to query the LLM in GWalk are not provided in the main paper (references Algorithm 1, but this is pseudocode). (5) Hardware specifications, inference frameworks, and quantization settings are not fully documented. (6) The methodology for regenerating questions with Llama-3.1-405B (temperature, sampling strategy) is not detailed. (7) The paper does not provide the code for the dynamic masking API, making it difficult to reproduce the exact contamination-free datasets."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper contextualizes the multi-hop knowledge editing task well and positions itself as a critical audit and remastering effort. However, several issues limit the related work section: (1) The comparison to prior knowledge editing methods is somewhat unfair due to implementation issues and OOM failures (Table 4), making it hard to assess which differences are due to method design vs. engineering. (2) The paper does not discuss other dataset correction/remastering efforts in NLP (e.g., cleaning efforts for SQuAD, HotpotQA) to contextualize the methodological approach. (3) The discussion in §5 about data-specific idiosyncrasies is insightful, but it is not clear whether other MHKE methods (GLAME, StableKE, etc.) actually suffer from these issues in practice, since they are not re-benchmarked. (4) The paper does not compare GWalk against recent parameter-efficient knowledge editing methods (e.g., LoRA-based approaches) which may be more scalable. (5) Missing discussion of how dataset quality issues propagate through downstream applications."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper is largely silent on ethical and broader impact considerations: (1) No discussion of the data provenance of Wikidata triples or potential biases in the Wikidata knowledge graph (e.g., geographic, demographic, temporal biases). (2) No mention of licensing for the datasets, code, or the use of Llama-3.1-405B for regenerating questions. (3) No discussion of the ethical implications of knowledge editing itself—e.g., who decides which facts are 'erroneous' and should be edited, and potential for misuse to spread disinformation. (4) No analysis of how errors in the original MQUAKE may have led to inflated claims about method performance, and what responsibility the dataset creators have in this regard. (5) The paper focuses on fixing dataset errors but does not discuss potential downstream harms if methods trained on the corrected dataset are deployed in real-world systems. (6) Missing discussion of societal implications of multi-hop knowledge editing for fact-checking, misinformation resistance, and epistemic fairness."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 21,
+    "confidence": 0.72,
+    "final_decision": "Weak Accept",
+    "final_justification": "This paper makes a valuable contribution to the knowledge editing community by conducting a comprehensive audit of MQUAKE, identifying and fixing substantial errors (33-76% of cases), and releasing corrected datasets. The significance of this work lies in validating and correcting a foundational benchmark that many subsequent methods rely on. However, the paper has notable weaknesses that prevent a stronger acceptance: (1) Empirical validation is incomplete—the re-benchmark excludes several recent methods, shows concerning baseline failures (OOM, <1% accuracy), and lacks ablations on GWalk itself. The authors acknowledge results may change due to dataset updates before camera-ready. (2) GWalk, the proposed method, is incremental rather than novel, combining standard RAG and graph-based retrieval without strong theoretical or empirical justification for design choices. (3) Reproducibility is limited—key hyperparameters are missing, promised reproducible scripts are not yet available, and the prompt engineering details are not fully specified. (4) Ethics and broader impacts are not addressed, despite the paper's focus on factual accuracy and knowledge in LLMs. (5) The correction methodology itself (esp. LLM-based question regeneration) lacks validation that it preserves the original multi-hop question structure. The paper's core contribution—identifying and fixing dataset errors—is sound and useful, placing it above rejection, but the incomplete empirical work, missing reproducibility details, and lack of fundamental algorithmic novelty prevent a higher tier acceptance. This is a 'Weak Accept' that would benefit from major revision addressing the experimental completeness and reproducibility concerns."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a per-layer rescaling driven by a moving average between initial and current norms, combined with a proportionality argument to preserve function up to a global scale. However, scale/proportionality invariances in homogeneous networks (with ReLU) are well-known, and prior work on weight rescaling and initialization-aware regularizers (e.g., Niehaus et al., 2024; Alabdulmohsin et al., 2021; Kumar et al., 2023) already leverages related ideas. The specific EMA-based interpolation appears as a modest heuristic rather than a fundamentally new methodological insight. Potential weakness: the novelty relies on an assumption that scaling biases via cumulative products to maintain proportionality is non-trivial and new; this may be largely a restatement of known homogeneity/scale-invariance properties and could be architecture-dependent (e.g., residuals, attention)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If reliable, a simple technique that mitigates plasticity loss without re-initialization could be useful, especially in warm-start and continual-learning contexts. Reported gains on several vision benchmarks are promising and the method is easy to implement. However, the scope is limited to image classification with relatively standard architectures (CNNs, VGG-16); missing evaluations on modern backbones (ResNets, ViTs) and other modalities/tasks (e.g., NLP, LLM finetuning) constrain impact. Potential weakness: improvements over strong baselines are often modest, and it remains unverified whether benefits persist under state-of-the-art training protocols and large-scale settings."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proportionality theorem for homogeneous activations is plausible, and the bias-scaling construction is internally consistent. The claim that per-step SWR maintains bounded weights is deferred to appendices not provided here; correctness cannot be verified. Interactions with normalization layers are asserted to be handled by focusing on the final normalization parameters, but this relies on strong scale-invariance assumptions and may not extend to residual connections, attention blocks, or practical details (e.g., affine BN with momentum). Potential weakness: the analysis does not address optimization dynamics under continual per-step rescaling (stability, convergence), and the effect with non-homogeneous components or common training tricks (skip connections, dropout, data augmentations) is not theoretically justified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover several datasets and models and compare with L2, L2-Init, and re-initialization baselines. However, key baselines and analyses are missing: no results on modern architectures (ResNet/ViT), no comparisons to AdamW vs. weight decay nuances, no SAM/SWA/gradient clipping/label smoothing, and limited exploration of scheduling/frequency of rescaling. Ablations on the EMA parameter λ, rescaling frequency, and per-layer effects are not reported beyond references to appendices; statistical rigor appears limited to mean±std without significance tests. Potential weakness: lack of runtime/overhead reporting and sensitivity analyses undermines the strength of empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for hyperparameters but does not provide code, seeds, or a reproducibility checklist in the supplied text. Without code or detailed, accessible configurations, results are difficult to verify. Per the rubric, missing code and explicit reproducibility details cap the score. Potential weakness: unavailability of implementation details (e.g., exact optimizer configs, seed control, precise rescaling implementation with BN/affine params) may lead to non-reproducible outcomes."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites several relevant works on weight decay, re-initialization, and recent rescaling approaches. However, the discussion underplays deep literature on scale-invariance, path-norm/path-SGD, implicit bias of homogeneous networks, and normalization-induced invariances (e.g., Gunasekar et al.; Arora et al.; Neyshabur et al. on path norms). The positioning relative to weight-balancing and scale-invariant training methods is incomplete. Potential weakness: it is unclear how SWR compares to or improves upon scale-invariant optimization techniques beyond heuristic convenience."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics or broader impacts statement is provided in the supplied text. While the work is methodological and uses standard datasets, the lack of discussion on data licensing, potential misuse, or broader impacts triggers a penalty per the rubric. Potential weakness: absence of provenance/licensing details for datasets and no consideration of continual-learning risks (e.g., deployment drift) or safety implications."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "While SWR is a simple and potentially useful heuristic for mitigating weight growth and plasticity loss, the novelty over existing scale/proportionality-based methods appears limited, the theoretical guarantees depend on assumptions (homogeneous activations, specific handling of normalization) that are not fully validated in diverse modern architectures, and the empirical evaluation omits key baselines and ablations on contemporary networks (e.g., ResNet/ViT) and training practices. Critically, reproducibility details (code, seeds, full configs) are missing in the provided text, which per RBCL §2 Fatal-Flaw Logic mandates rejection when Reproducibility ≤ 2; thus the decision is downgraded to Reject and the total score is not allowed to compensate. Under the Practical ICLR Calibration, a total score in [15,20) without multiple dimensions ≥4 further supports rejection."
+  }
+}

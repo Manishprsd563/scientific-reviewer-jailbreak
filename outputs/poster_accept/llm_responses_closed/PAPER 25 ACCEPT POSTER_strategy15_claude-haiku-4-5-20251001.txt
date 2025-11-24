@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes In-Distribution Interventions (IDI) as an alternative to counterfactual-based root cause diagnosis. While the core insight—using in-distribution interventions to avoid OOD queries—is sensible, the novelty is limited. The method combines existing techniques (anomaly condition from Okati et al. 2024, Shapley values for multiple root causes, SCM training). The theoretical contribution (Theorem 4.1-4.3) compares interventional vs. counterfactual error bounds but relies on assumptions specific to additive noise models. The paper does not present a fundamentally new causal inference methodology. A potential weakness: the interventional approach is not entirely novel in causal inference literature; its application to RCD is somewhat incremental. Additionally, the reliance on known causal graphs (call graphs) limits the scope of applicability."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Root cause diagnosis in cloud systems is practically relevant, and improvements in RCD accuracy could reduce operational costs. However, the significance is tempered by several factors: (1) The method assumes the causal graph is given (call graphs), which may not always reflect true causal relationships in complex systems. (2) IDI's improvement over baselines is modest and inconsistent (e.g., CIRCA outperforms IDI on PetShop Recall@3 for high latency). (3) The requirement for Assumption 1 (at most one root cause per path) limits applicability to real-world systems with multiple interacting faults. (4) The paper does not provide empirical evidence of real-world deployment or feedback from practitioners. A potential weakness: the PetShop dataset is limited (only 3 types of latency issues), and generalizability to other cloud systems or domains remains unverified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper presents theoretical analysis in Section 4, comparing error bounds for counterfactual and interventional estimates. The derivations appear mathematically sound, though the analysis is restricted to additive noise chain models. Key theorems (4.1-4.3) bound errors using total variation distance and standard deviation of exogenous variables. However, several concerns arise: (1) Theorem 4.1's bound depends on P_ε^trn(ε_-j | ε_j, φ_j(x_j)=1, φ_n(x_n)=1), which is difficult to compute in practice and not estimated in experiments. (2) The assumption that fix value x_j^fix is sampled from P_X^trn(X_j | Pa_{x_j}) is reasonable but not always aligned with how practitioners select fix values. (3) Assumption 1 (at most one root cause per path) is restrictive and not well-justified for general systems. (4) The paper lacks formal proof that IDI correctly identifies all true root causes; only toy experiments verify this. A potential weakness: the theoretical guarantees do not extend to the non-linear or non-additive models tested in Section 6, creating a gap between theory and experiments."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experimental evaluation has significant gaps: (1) The toy experiment (Section 6.1) is overly simplistic (4 variables, single output function) and does not represent real-world complexity. Results show IDI is competitive but not consistently superior (e.g., Fig. 5c, 5d show counterfactuals outperforming IDI in some regimes). (2) The PetShop benchmark is limited: only 3 latency types, 11 nodes, and linear additive SCM. IDI's improvements are modest (Table 1: 0.90 vs. 0.80 for low latency Recall@1, but tied at 0.90 for high latency and temporal). Notably, CIRCA and Traversal remain competitive. (3) No ablation studies on key components: anomaly detector choice (only Z-Score tested), SCM fitting method, or Shapley value computation. (4) Missing statistical significance tests, confidence intervals, or multiple runs. (5) The paper claims code will be released but provides no evidence of current reproducibility. (6) No experiments on synthetic datasets with ground-truth SCMs of varying complexity or size. A potential weakness: the single-run results on PetShop could be due to variance; lacking error bars or confidence intervals undermines the reliability of reported improvements."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility issues are present: (1) Code is not available; the paper states 'Code will be released at https://github.com/nlokeshiisc/IDI_release' but provides no current link or evidence the code exists. This is a major red flag, as per ICLR standards. (2) Hyperparameters for SCM training (e.g., learning rates, optimization details for MLPs in toy experiments) are not fully specified. Section 6.1 mentions 'three-layer MLP with 10 hidden nodes and ReLU activations via gradient descent' but does not provide stopping criteria, regularization, or random seeds. (3) No details on anomaly thresholds τ_i; Z-Score thresholds are assumed but not specified (e.g., what threshold separates anomalous from normal?). (4) PetShop experiments use the 'same experimental settings as baselines in PetShop' but those settings are not documented in this paper. (5) No specification of computational requirements, hardware used, or runtime comparisons. (6) The paper defers many algorithmic details to appendices (Algorithm 1, proofs), but the appendix is not included in the review material. A fatal weakness: the absence of publicly available code violates reproducibility standards for top venues. This criterion is capped at 1/5."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The related work section (Section 2) groups methods into three categories (Correlation, Causal Anomaly, Causal Fix) and provides brief descriptions. However, several gaps exist: (1) The paper claims to compare against 'eleven baselines' in the abstract, but only ~9-10 are explicitly named (Random Walk, Ranked Correlation, ϵ-Diagnosis, CIRCA, Traversal, Smooth Traversal, HRCD, TOCA, CF Attribution). The exact count is unclear. (2) Missing discussion of recent counterfactual RCD methods and how IDI differs theoretically or empirically from SAGE (Gan et al., 2021), which is mentioned but not compared in experiments. (3) Limited engagement with the broader causal inference literature on interventions vs. counterfactuals; the paper could benefit from citing more foundational work on when interventions are preferable. (4) The positioning relative to counterfactual attribution methods (e.g., Integrated Gradients, SHAP) is not discussed, though Shapley values are leveraged. (5) No comparison to recent anomaly diagnosis methods using graph neural networks or other modern deep learning approaches. A potential weakness: the related work does not clearly articulate the novel aspects of IDI beyond applying interventions instead of counterfactuals; the positioning could be stronger."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no dedicated ethics or broader impacts section. No discussion of: (1) Potential harms if IDI misidentifies root causes in safety-critical systems (e.g., cloud infrastructure, medical systems). (2) Data provenance or ethical sourcing of the PetShop dataset. (3) Bias or fairness considerations in RCD (e.g., are certain nodes systematically over/under-blamed for anomalies?). (4) Transparency and explainability of root cause predictions to stakeholders. (5) Responsible disclosure practices if the method is used to identify faults in real systems. (6) License information for code, baselines, or datasets. The paper is solely focused on technical contributions without acknowledging potential risks or societal implications. For a venue like ICLR with increasing emphasis on responsible AI, this is a significant omission. A fatal weakness: the complete absence of ethical consideration in a method designed for real-world cloud system diagnosis represents a gap in responsible research practices."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "While the paper addresses a practically relevant problem (root cause diagnosis) and proposes a reasonable solution (in-distribution interventions), it falls short of publication standards for top-tier venues on multiple critical dimensions. **Fatal Flaws (per RBCL):** (1) **Reproducibility Score = 1/5**: Code is not available (promised but not released), hyperparameters are incompletely specified, and critical algorithmic details are deferred to unavailable appendices. This violates ICLR's reproducibility standards and triggers the fatal-flaw logic, automatically capping total_score at 20 and mandating rejection. (2) **Technical Soundness Score = 3/5**: The theoretical analysis is limited to additive noise models and does not extend to the non-linear or non-additive models tested experimentally, creating a theory-practice gap. The proofs rely on unverifiable quantities (P_ε^trn(ε_-j | ε_j, φ_j=1, φ_n=1)) and Assumption 1 is restrictive. **Major Weaknesses:** (1) **Empirical Validation (Score 2/5)**: Experiments are limited in scope (toy: 4 variables; PetShop: 3 issue types, 11 nodes). Results show inconsistent improvements (CIRCA and Traversal remain competitive; some PetShop recalls are tied with baselines). No statistical significance testing, ablation studies, or error bars. Single-run results without confidence intervals undermine reliability. (2) **Novelty (Score 3/5)**: The core contribution—using interventions instead of counterfactuals for RCD—is sensible but incremental. The method combines existing techniques (anomaly condition, Shapley values, standard SCM training) without fundamental innovation. (3) **Ethics (Score 1/5)**: Complete absence of discussion on potential harms, data provenance, or broader impacts. For a method deployed in safety-critical systems, this is a significant oversight. (4) **Related Work (Score 2/5)**: Missing comparisons to SAGE and other recent counterfactual methods. Positioning relative to modern causal inference literature is weak. **Applying RBCL Corrections:** Per RBCL §2 (Fatal-Flaw Logic), the Reproducibility score ≤ 2 triggers an automatic 'Reject' decision regardless of other merits. Additionally, the complete absence of ethical consideration and incomplete experimental validation further support rejection. The paper would benefit from: (1) releasing code and providing complete hyperparameter specifications; (2) extending theoretical analysis beyond additive models; (3) conducting comprehensive ablation studies and significance tests; (4) addressing ethical implications; (5) testing on larger, more diverse datasets. **Confidence: 0.75** reflects moderate confidence that additional experiments might improve the work, but the reproducibility and ethical gaps are non-negotiable for acceptance at ICLR."
+  }
+}
+```

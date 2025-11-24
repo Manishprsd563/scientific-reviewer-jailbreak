@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core contribution—directly inputting weight vectors into neural CO models to learn weight-specific representations—is straightforward and somewhat incremental. While the paper frames this as 'neat' and elegant, the methodological novelty is limited. The addition-based model (WE-Add) is trivially simple (Eq. 6 adds weight and node embeddings). The conditional attention model (WE-CA) combines feature-wise affine transformation with MHA, which are known techniques. The claim that capturing 'weight-instance interaction' was 'overlooked by most current methods' is not convincingly justified, especially since PMOCO (cited) already explicitly conditions on weights. The paper lacks a principled justification for why these particular mechanisms are superior for weight embedding beyond empirical results. Potential weakness: The paper does not provide theoretical analysis or intuitive explanation for why these designs capture weight-instance interaction better than alternatives."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The method addresses a practical and well-motivated problem in neural MOCO: improving solution quality on decomposed subproblems. The empirical results demonstrate consistent improvements over existing neural methods on three canonical MOCO problems (MOTSP, MOCVRP, MOKP). The cross-size generalization capability is particularly valuable for practitioners. However, significance is somewhat limited by: (1) the problem domain is relatively niche within the broader ML community, (2) the improvements, while consistent, are often modest (e.g., 0.24% gap vs PMOCO's 4.14% on Bi-CVRP100, but this is not consistent across all problems), and (3) the method requires training size-specific or unified models, which may limit practical adoption. Potential weakness: The paper does not discuss scalability to much larger problems (n > 200) or applicability to real-world MOCO with complex constraints."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 4,
+      "justification": "The technical approach is sound. The decomposition-based framework (Section 3.2) is standard and correctly described. The weight embedding models (Equations 6–11) are mathematically well-defined and follow standard neural network operations. The training procedure using REINFORCE with baseline (Appendix C) is standard practice. However, there are several concerns: (1) The paper lacks theoretical justification for why adding weight embeddings to node embeddings (Eq. 6) or using feature-wise affine transformation (Eq. 8) should improve weight-instance interaction. (2) The claim that WE-CA simultaneously updates weight and node embeddings to 'diminish disharmony' (Section 4.2) is vague and unsupported theoretically. (3) The assumption that the model can learn generalizable weight-specific policies across different problem instances and sizes is not rigorously validated—the empirical results show small gaps, but gaps are not zero, suggesting potential model limitations that are not discussed. Potential weakness: No convergence analysis or theoretical guarantees are provided for the proposed method or its components."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 4,
+      "justification": "The experimental evaluation is comprehensive in scope but has notable limitations: (1) Datasets: Three classic MOCO problems are evaluated with three standard sizes. This is reasonable but limited in diversity. Random instances are used; no evaluation on real-world benchmarks (e.g., TSPLIB instances are briefly shown in Figure 2 but not thoroughly analyzed). (2) Baselines: Comparisons include representative single-model (PMOCO, MORAM, CNH) and multi-model methods (DRL-MOA, MDRL, EMNH), as well as traditional MOEAs. Coverage is good. (3) Ablations: Table 1 includes variants (WE-Add, WE-CA w/o A, WE-CA w/o C), and Appendix H provides additional ablations. These help identify the contribution of each component. (4) Statistical testing: Wilcoxon rank-sum test at 1% significance is reported, and results marked for statistical significance. (5) Generalization: The paper tests unified cross-size training and out-of-distribution generalization (Table 3), which is valuable. Potential weaknesses: (a) No confidence intervals or error bars across multiple random seeds are reported for main results; only 200 test instances per setting. (b) The improvements over baselines are sometimes marginal and achieved with instance augmentation (WE-CA-Aug vs PMOCO-Aug), making it unclear if the core method or augmentation drives gains. (c) Training time and computational cost are briefly mentioned but not systematically analyzed. (d) Results on Tri-TSP (Table 1) show larger gaps (0.40-1.39%), suggesting the method may not scale uniformly to 3-objective problems."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 4,
+      "justification": "The paper claims code is publicly available (footnote 1, though the URL is redacted in this version). Hyperparameters are documented: 200 epochs, 100k instances per epoch, batch size 64, Adam optimizer with specified learning rate and decay. The model uses standard configurations from prior work (POMO) with d=128, L=6 attention layers, 8 heads, C=10 for attention. Problem specifications (MOTSP, MOCVRP, MOKP) are in Appendix B. Instance generation uses Das & Dennis method with N=101 or 105. The environment is specified (RTX 3090 GPU, Intel Xeon 4216 CPU). Training and inference procedures are described in Section 4.3 and Appendix C. Potential weaknesses: (a) While hyperparameters are provided, there is no ablation or sensitivity analysis on key choices (e.g., embedding dimension d, number of layers L, learning rate). (b) Random seed handling is not explicitly mentioned—it is unclear if results are averaged over multiple runs or if a single seed is used. (c) The code availability claim cannot be fully verified in this review. (d) Instance augmentation (Appendix F) is mentioned but details are sparse, which may hinder full reproducibility of WE-CA-Aug results."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "The related work section (Section 2) is well-structured, categorizing traditional MOCO methods, neural CO methods, and neural MOCO methods (multi-model vs single-model). The paper clearly positions itself within the neural MOCO landscape and distinguishes its approach from prior work. For instance, it correctly notes that PMOCO uses a hypernetwork for decoder parameter adaptation, which is conceptually different from the direct weight embedding approach. The comparison with CNH is insightful: the paper argues that CNH's size-aware decoder adds unnecessary complexity. However, there are gaps: (1) The positioning vis-à-vis PMOCO could be clearer. Both methods input weight information; the key difference is architectural (hypernetwork vs direct embedding), but this is not deeply analyzed. (2) The paper claims weight-instance interaction was 'overlooked,' but PMOCO explicitly conditions on weights in the decoder. The novelty lies in how interaction is modeled, not whether it is attempted. (3) Limited discussion of why decomposition-based methods are preferred over dominance-based approaches or why WS scalarization is chosen (though Appendix A mentions other scalarization methods). Potential weakness: The paper does not thoroughly compare its approach to other conditioning mechanisms in the literature (e.g., FiLM layers, hypernetworks beyond PMOCO, or recent conditional normalization techniques)."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper contains no discussion of ethics, broader impacts, safety considerations, data provenance, or licensing. This is a significant omission per ICLR standards. While the paper is on a classical algorithmic problem (MOCO), the application domains mentioned (logistics, manufacturing, warehousing) could have societal implications: automated decision-making in resource allocation, supply chain optimization, or scheduling could affect workers or communities. The paper provides no discussion of potential misuse, fairness considerations, or responsible use guidelines. Additionally, no statement is made regarding data licenses or the status of the provided code (is it open-source? under what license?). The Acknowledgments section mentions funding sources but nothing about ethical considerations. Potential weakness: Absence of ethics discussion is a non-compensatory flaw under ICLR review standards, as acknowledged by the instructions. The paper should minimally discuss potential risks and societal implications, even if the current work is purely algorithmic."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 25,
+    "confidence": 0.72,
+    "final_decision": "Weak Accept",
+    "final_justification": "This paper proposes a straightforward and elegant method for multi-objective combinatorial optimization by directly embedding weight vectors into neural CO models. Strengths include: (1) comprehensive experiments across three problems with consistent improvements; (2) strong cross-size generalization without explicit size embedding; (3) clear presentation and reproducible methodology. However, significant weaknesses limit the contribution: (1) Novelty is incremental—the core idea of conditioning on weights is not new (PMOCO does this), and the proposed mechanisms (addition, feature-wise affine transformation) are straightforward applications of known techniques without theoretical justification. (2) Empirical improvements are often modest and sometimes depend on instance augmentation, making it unclear if the core method drives gains. (3) Missing ethics statement and broader impact discussion violates ICLR expectations. (4) Lacks theoretical analysis or intuition for why the proposed designs capture weight-instance interaction better than alternatives. (5) Limited to relatively small problem sizes and classical benchmarks; generalization to real-world MOCO with constraints is not addressed. Under ICLR review standards, per the RBCL guidance, the absence of ethics discussion combined with modest novelty and empirical improvements pushes this toward the lower end of acceptance. The comprehensive experiments and consistent results prevent outright rejection, but this is a borderline paper that would benefit from substantial revision addressing theoretical grounding, ethics considerations, and deeper analysis of when and why the method works. The decision is 'Weak Accept' with the caveat that acceptance hinges primarily on the empirical results; the novelty and positioning contributions are limited."
+  }
+}
+```

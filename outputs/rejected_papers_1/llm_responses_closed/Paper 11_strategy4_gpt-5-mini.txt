@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes pooling and globally broadcasting recurrent memory vectors across agents (SRMT), which is a plausible extension of memory transformers to multi-agent settings and appears to provide some new architectural detail (shared recurrent memory as a global workspace). However, the core idea is an incremental combination of existing components (memory transformers, cross-attention, shared/global memory concepts) rather than a fundamentally new algorithmic paradigm. Potential weaknesses/unverified assumptions: (1) the novelty claim rests on engineering choices (pooling/broadcasting) rather than a new theoretical insight; (2) it is unclear whether the shared memory mechanism scales or generalizes beyond the specific POGEMA setups (unverified assumption about generality); (3) design choices (e.g., ordering of memory vectors, memory update rule) are not deeply justified theoretically. I applied RBCL conservatism in awarding only modest above-baseline credit (see note: RBCL anti-inflation / presumption of rejection applied)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If SRMT reliably improves decentralized coordination in lifelong MAPF settings, it would be of interest to MARL and robotics communities because decentralized coordination with partial observability is important in practice. The empirical results on POGEMA and the Bottleneck task indicate practical utility. Potential weaknesses/unverified assumptions: (1) significance depends on reproducibility and runtime/resource requirements (training for 1B steps is expensive and may limit practical adoption); (2) the method's benefit relative to hybrid planning + learning approaches is not conclusively shown across varied, realistic scenarios; (3) claims of decentralization during training are inconsistent in the text (possible hidden centralization), reducing confidence in applicability. RBCL influenced a conservative score."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The architectural description is plausible and grounded in prior work (memory transformers, cross-attention), but the paper contains several technical ambiguities and contradictions and lacks rigorous theoretical analysis. Specific issues: (1) the manuscript asserts that training remains decentralized yet also states that the policy is shared across agents during training — this is contradictory and leaves unclear whether centralized information was used during training; (2) key algorithmic details (exact memory update equations, memory ordering semantics, capacity/complexity analysis) are insufficiently specified; (3) no failure-mode analysis or theoretical justification for why pooled recurrent memory avoids deadlocks is provided. Because of these unclarities and contradictions, I cap the technical soundness score at 2 (per rule: missing/unclear information caps criterion). This triggers RBCL Fatal-Flaw Logic (technical_soundness <= 2) and contributes to the final decision downgrade: 'Decision downgraded due to RBCL §2 Fatal-Flaw Logic; technical_soundness <= 2 triggered override.'"
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper presents a range of experiments: toy Bottleneck tasks, broader LMAPF on POGEMA maps, comparisons to multiple baselines (MAMBA, QPLEX, ATM, RATE, RRNN, RMT, planning baselines), and several ablations (RMT, Attention, Empty, RNN). Reported metrics (CSR, ISR, SoC, throughput) and plots with 95% confidence intervals strengthen the empirical claim. Potential weaknesses/unverified assumptions: (1) details on number of seeds, exact randomization procedure, full hyperparameter lists, and compute used are deferred to an appendix not available here (limits ability to assess experimental rigor); (2) training costs (e.g., 1B environment steps) may make results irreproducible for the community and raise concerns about practicality; (3) some comparisons mix planning-based and learned methods where differing priors/inputs may advantage one class — careful matching of settings is not fully documented. The empirical evidence is promising but incomplete in reproducibility-critical details."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appended hyperparameters and training details (Appendix A.1, Table 1) but does not provide code, exact seed lists, release of trained models, nor an explicit statement of which artifacts will be released. Potential weaknesses/unverified assumptions: (1) absence of a public code repository and missing explicit hyperparameter tables in the main text impede reproducibility; (2) it is unclear how many random seeds or independent runs were used to compute the confidence intervals; (3) the reported training budgets (e.g., 1B environment steps) create practical barriers to replication. Per the evaluation rules, missing/unclear reproducibility information caps this score at 2/5. Because reproducibility <= 2, RBCL Fatal-Flaw Logic requires that the overall decision be 'Reject' (and triggers the mandatory override): 'Decision downgraded due to RBCL §2 Fatal-Flaw Logic; reproducibility <= 2 triggered override.'"
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript includes a reasonably comprehensive related-work section situating SRMT relative to memory transformers, ATM, RATE, RRNN, and several MARL communication and planning approaches. The authors compare to a broad set of baselines on POGEMA tasks. Potential weaknesses/unverified assumptions: (1) some recent or alternative centralized/decentralized hybrid approaches might be missing or under-discussed (e.g., further planning-augmented learning works); (2) the paper sometimes asserts distinctions (e.g., 'fully decentralized training') that are contradicted elsewhere, weakening the positioning; (3) more discussion is needed on trade-offs (compute, communication overhead) compared to transformer-based communication approaches like SCRIMP. The related work is adequate but could be more critically positioned and exhaustive."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The submission contains no dedicated ethics, broader impacts, or safety discussion. Potential weaknesses/unverified assumptions: (1) no assessment of risks in deploying learned decentralized controllers in real-world robotics (collision, safety guarantees) is provided; (2) no discussion of compute/resource environmental costs despite large training budgets; (3) no provenance/licensing statements for benchmarks or code are included. Per the rubric's guidance, lack of any ethics statement is a serious omission; I therefore assign a low score. RBCL evidence-severity guidance (absence of evidence treated as evidence of absence) informed this downgrade."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The manuscript presents a practically-motivated architecture (Shared Recurrent Memory Transformer) that extends memory-transformer ideas to multi-agent settings and demonstrates promising empirical performance on POGEMA benchmarks and a toy bottleneck task. Strengths include a clear architectural idea, multiple ablations, and comparisons to several baselines. However, there are critical weaknesses that prevent acceptance in its current form: (1) Technical ambiguities and contradictions (e.g., claims about decentralized training vs. shared policy) and insufficient specification of key algorithmic details undermine confidence in correctness and claims — technical_soundness is <= 2. (2) Reproducibility is inadequate: no code release, missing explicit hyperparameters/seeds in the submission, and very large reported training budgets make replication unlikely — reproducibility is <= 2. Both points trigger the RBCL Fatal-Flaw Logic and the mandatory override to 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical_soundness <= 2 and reproducibility <= 2 triggered override). (3) The empirical evidence, while promising, lacks complete transparency on runs/seeds and compute; (4) No ethics/broader-impacts discussion is provided. Given these fatal and non-compensable issues (per RBCL rules), the appropriate decision is Reject. To be reconsidered, the authors should (a) resolve contradictions about training regime and provide full, unambiguous algorithmic details and theoretical justification for memory operations; (b) release code, trained checkpoints, full hyperparameters, and seeds and document compute used; (c) expand experimental details (number of independent runs, statistical tests) and provide analyses of failure cases and scalability limits; (d) include a thorough ethics/broader-impacts and resource-cost discussion. Confidence in this review is moderate-high (0.78) because the main strengths are empirical but the missing reproducibility and technical clarity are decisive under the prescribed RBCL rules."
+  }
+}

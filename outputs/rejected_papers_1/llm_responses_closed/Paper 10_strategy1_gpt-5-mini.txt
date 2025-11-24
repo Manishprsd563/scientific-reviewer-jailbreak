@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a layerwise scaling toward initialization with an EMA — an intuitive and practical variant of existing weight-rescaling / initialization-preserving regularizers (e.g., L2-init, prior weight rescaling methods). This reads as an incremental methodological contribution rather than a fundamentally new paradigm. Potential weaknesses / unverified assumptions: (1) The method is closely related to prior work (L2 Init, Weight Rescaling) and the novelty over those is not strongly argued or quantified; (2) Theoretical claims rely on homogeneous activations and specific bias-scaling rules — it is unclear how broadly these assumptions hold (e.g., for non-homogeneous activations or complex modules); (3) proofs are in appendices not available here, so correctness of the new theoretical claims cannot be verified from the main text."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If SWR reliably recovers plasticity without losing prior information and scales to realistic architectures, it would be useful for warm-starting and some continual-learning scenarios and could influence regularization practice. Potential weaknesses / unverified assumptions: (1) The experiments focus on small-to-medium vision models (CNNs, VGG-16, TinyImageNet) and do not demonstrate impact on modern large architectures (ResNets, Transformers) or large-scale tasks; (2) practical significance depends on hyperparameter sensitivity (lambda, EMA decay) and computational overhead, which are not fully characterized in the main text; (3) applicability to optimization setups (different optimizers, learning-rate schedules) is claimed but insufficiently demonstrated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "Theorem 1 (existence of proportional networks via layerwise rescaling with bias adjustments) is plausible under the stated assumptions (affine/convolutional layers and homogeneous activations), and the boundedness argument for SWR is reasonable in outline. Potential weaknesses / unverified assumptions: (1) Key assumptions (homogeneous activations, ability to rescale biases appropriately) may not hold or may be nontrivial to satisfy in architectures with complex components (e.g., attention, non-homogeneous activations); (2) interaction with normalization layers (batchnorm/LayerNorm) is discussed at a high level but the practical implications and corner cases are not fully derived or empirically validated; (3) proofs are deferred to appendices — I could not verify detailed derivations or edge-case assumptions from the provided content."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The authors evaluate on MNIST, CIFAR-10/100, TinyImageNet and multiple network families (MLP, small CNN, VGG-16), and compare to several baselines (L2, L2 Init, Head Reset, S&P). However, the empirical validation has important limitations. Potential weaknesses / unverified assumptions: (1) Baselines are limited — missing comparisons to other modern regularization / optimizer variants and to more recent continual-learning or plasticity-specific methods; (2) Ablations are insufficient in the main text (e.g., sensitivity to lambda, EMA window, per-layer vs global scaling, interaction with optimizers); (3) Statistical rigor is unclear: number of seeds, significance tests, and whether reported ± are from sufficient independent runs are not fully documented in the main text; (4) No large-scale or architectural variety (e.g., ResNets, Transformers) to show scalability; (5) Possible single-run or small-n effects (some figures mention 5 runs but this is inconsistent). These empirical gaps weaken confidence that results generalize."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Reproducibility information is incomplete or not provided in the main text. Potential weaknesses / unverified assumptions: (1) No link to code or release is provided in the submitted manuscript; (2) While the text references Appendix D for experimental settings, full hyperparameters, random seeds, exact data splits, training schedules, and compute environment are not available here to verify; (3) Without code or exhaustive configuration details, exact reproduction (and verification of claimed improvements) is not possible. Note: per the review rubric, missing/unclear code or reproducibility details caps this criterion at 2/5. Because reproducibility ≤ 2, RBCL/Fatal-Flaw Logic applies and forces an overall decision of 'Reject' (see final_justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a number of relevant prior works on weight magnitude, regularization, and re-initialization, and positions SWR relative to L2 and re-init strategies. Potential weaknesses / unverified assumptions: (1) The comparison could be deeper — several adjacent areas (e.g., optimizer implicit regularization, AdamW decoupled weight decay, spectral regularization, and recent continual-learning regularizers) are not discussed or empirically compared; (2) The manuscript does not fully articulate limits of SWR relative to these other approaches (when SWR helps vs when it might hurt); (3) Some claimed advantages (e.g., balancing across layers) are only argued at a high level and would benefit from a more thorough literature contrast."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The submission contains no explicit ethics / broader impacts statement in the main text. Potential weaknesses / unverified assumptions: (1) No discussion of data provenance, licensing, or consent for datasets used (common vision datasets are likely fine but provenance should be stated); (2) No assessment of potential misuse, environmental costs, or fairness implications of applying SWR at scale; (3) Missing ethical commentary or dataset licensing information — per rubric, missing/unclear ethics statement caps this criterion (I assign a low score reflecting absence)."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The manuscript presents a practical and reasonably-motivated method (Soft Weight Rescaling) to limit unbounded weight growth and recover plasticity by scaling weights toward initialization via a per-layer EMA scheme. The idea is pragmatically appealing and could be useful in some warm-start and continual-learning settings. However, the contribution appears incremental relative to prior weight-rescaling and initialization-anchoring methods; theoretical claims rely on assumptions (homogeneous activations, specific bias-scaling) that are not fully validated in diverse architectures; and the empirical evidence — while promising on small-to-medium vision tasks — lacks sufficient baselines, ablations, and large-scale/modern-architecture experiments to convincingly establish broad usefulness. Critically, reproducibility materials (code, exhaustive hyperparameters, seeds, environment) and an ethics/broader-impacts statement are absent from the submission, which limits verification and raises concerns. Per the review rubric and RBCL (Reviewer Bias Correction Layer): because the reproducibility score is ≤ 2, this triggers the Fatal-Flaw Logic / Overrides — the overall decision is downgraded to 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility ≤ 2). The numeric total is 16 (sum of per-criterion integer scores); note the rubric requires capping or rejecting when reproducibility ≤ 2, which I have applied. To improve: (1) provide a public code release with full training scripts, seeds, and exact hyperparameters; (2) include more extensive ablations (lambda, EMA decay, per-layer vs global scaling), sensitivity analyses, and statistical tests across multiple seeds; (3) expand empirical evaluation to additional architectures (modern ResNets, transformers) and tasks to demonstrate scalability; (4) provide more detailed proofs and discussions of corner cases (batchnorm/LayerNorm, attention modules, non-homogeneous activations); and (5) add an explicit ethics/broader-impacts and data provenance statement. With those improvements and reproducible artifacts, the work could be reconsidered."
+  }
+}

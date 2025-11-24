@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper combines existing techniques—VQ-VAE for discretization, MCTS for planning, and Transformers for modeling—in a novel configuration. The key contributions are: (1) a masked-input regularization technique within VQ-VAE to decouple state-action representation from return variability, (2) integration of macro-actions with MCTS and progressive widening for latent space planning, and (3) application to offline RL in stochastic environments. However, these are largely engineering contributions rather than fundamental algorithmic innovations. The masked embedding approach is a reasonable design choice but lacks theoretical novelty. The combination of temporal abstraction with MCTS is sensible but incremental given prior work (MuZero, TAP). The paper does not introduce new theoretical insights into planning or representation learning. Potential weakness: The novelty lies primarily in engineering integration rather than new methodological or theoretical insights, which limits scoring above 3."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper addresses a real problem—planning in high-dimensional continuous action spaces with stochasticity—which is practically important. If L-MAP achieves the claimed performance gains, it could be useful for robotics and autonomous systems. However, significance is limited by several factors: (1) the offline RL setting, while important, is narrower than online or real-time planning; (2) the empirical validation is restricted to MuJoCo and Adroit tasks, which may not represent the full scope of real-world deployment; (3) no evidence of adoption or deployment in practice is provided; (4) the method's computational overhead during planning (pre-construction + MCTS iterations) is not thoroughly analyzed relative to baselines. Potential weakness: The practical impact is not demonstrated beyond simulated environments, and the scope of applicability remains unclear without real-world case studies or deployment evidence."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Multiple technical concerns reduce confidence in soundness: (1) The VQ-VAE loss function (Equation 1) is presented without rigorous justification for the specific form of the regularization term. Why is the L2 distance between z_e(x^mask) and z_e(x) the appropriate regularizer? Ablations on this choice are absent. (2) The claim that taking expectations over latent transitions mitigates uncertainty from non-injective mappings (Section 3.2) lacks formal justification. The relationship between sampling under the transition model and reducing representation uncertainty is not rigorously established. (3) The pre-construction procedure (sampling M latent codes, then N subsequent codes, caching top-k) is heuristic. Why is this specific sampling strategy optimal? No convergence analysis is provided. (4) The choice of hyperparameters (M, N, B, λ, α, ε) appears arbitrary; sensitivity analysis is missing. (5) The Appendix C 'detailed analysis of uncertainty sources' is not provided in the submitted paper, making claims in Section 3.2 unverifiable. Potential weakness: The technical approach relies on design choices that lack theoretical or empirical justification, and key analyses are deferred to an inaccessible appendix."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Empirical validation has significant gaps: (1) No details are provided on the number of random seeds, error bars, statistical significance tests, or confidence intervals. Reproducibility of results is questionable without this information. (2) Baselines are limited to CQL, IQL, Trajectory Transformer, and TAP. Missing comparisons to other temporal abstraction methods (OPAL, ACT, PRISE mentioned in related work) and recent model-based offline RL approaches. (3) The paper claims 'significantly outperforms existing model-based methods' but provides no figure, table, or quantitative results in the submitted text. Figures 1b shows only latency improvement, not performance. (4) No ablation studies are presented to validate key design choices: the masked regularization in VQ-VAE, the specific form of the MCTS integration, the progressive widening parameters. (5) Evaluation is limited to MuJoCo and Adroit; generalization to other domains is unknown. (6) Decision latency is discussed (Fig. 1b) but only qualitatively—no precise timing comparisons or wall-clock time analyses. Potential weakness: The paper lacks quantitative empirical results, statistical rigor, ablations, and diverse baselines, making it impossible to verify the claimed performance improvements from the submitted paper alone."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised: (1) No code is provided or promised to be released. (2) No hyperparameter values are specified for key components: VQ-VAE architecture (encoder depth, latent codebook size, learning rates), Transformer prior model (depth, heads, hidden dims), MCTS parameters (M, N, B, λ, α, ε, c). (3) Random seed handling is not mentioned. (4) Dataset splits, offline RL data collection procedures, and behavior policy details are not provided. (5) Implementation details for the decoder are minimal. (6) The cited Appendix C, which presumably contains critical experimental details, is not included. (7) No reference to an open-source implementation or supplementary materials repository. (8) The 'polling control mode' is mentioned but not formally defined. (9) The modified VQ-VAE loss (Eq. 1) uses notation inconsistently ('mak' vs 'mask'). Potential weakness: Without code, hyperparameters, seeds, or sufficient implementation details, the work cannot be reproduced, failing a core requirement for venue acceptance."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is broad but positioning is incomplete: (1) The paper cites temporal abstraction methods (CompILE, RPL, OPAL, PRISE, ACT) but does not compare against most of them empirically. The positioning relative to these methods is descriptive rather than contrastive. (2) Connections to MuZero, Stochastic MuZero, and MuZero Unplugged are discussed, but the specific limitations of MuZero Unplugged are not thoroughly analyzed with experiments. Why is L-MAP better? (3) The paper mentions robust RL (Section 5) but dismisses it without empirical comparison, claiming 'generalizing to continuous, high-dimensional spaces is challenging'—but this is not demonstrated. (4) The relationship to Hamilton-Jacobi-Bellman approaches is acknowledged but not leveraged. (5) The paper claims to address 'stochasticity in both environment and behavior policy' but does not clearly distinguish how L-MAP differs from prior stochastic planning methods beyond using macro-actions and progressive widening. (6) TAP (Jiang et al., 2023) is the most similar baseline, yet the conceptual and empirical differentiation is not detailed. Potential weakness: The paper does not convincingly argue why L-MAP is superior to alternative temporal abstraction or stochastic planning methods; comparisons are largely descriptive rather than empirical or analytical."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Ethics and broader impacts are entirely absent: (1) No ethics statement or broader impact section is provided. (2) The paper does not discuss potential misuse of planning algorithms in autonomous systems (e.g., autonomous vehicles, robotics). (3) No discussion of fairness, bias, or safety considerations in offline RL or stochastic planning. (4) Data provenance for MuJoCo and Adroit benchmarks is not addressed (e.g., whether these benchmarks have known biases or limitations). (5) No discussion of failure modes or robustness to adversarial inputs. (6) The motivating application (autonomous driving) is mentioned but not critically examined for ethical implications. (7) No discussion of responsible AI practices, interpretability, or explainability of decisions made by the planner. (8) Licensing of code and datasets is not mentioned. Potential weakness: Complete absence of ethical consideration is a critical shortcoming for a venue like NeurIPS/ICLR, which increasingly emphasizes responsible AI."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "L-MAP presents a reasonable engineering contribution—combining VQ-VAE discretization, Transformers, and MCTS for planning in high-dimensional continuous action spaces—but falls short of acceptance standards for a top-tier venue. Critical weaknesses: (1) **Reproducibility Failure (Score: 1/5)**: No code, no hyperparameters, no random seeds, incomplete implementation details, and missing appendices fatally undermine reproducibility. Per RBCL §2 Fatal-Flaw Logic, this alone warrants rejection. (2) **Insufficient Empirical Validation (Score: 2/5)**: The paper claims strong empirical results but provides no quantitative tables, error bars, or statistical tests in the main paper. Comparisons are limited, ablations are absent, and the sole figure (Fig. 1b) shows only latency, not performance. (3) **Limited Technical Novelty (Score: 3/5)**: The work is primarily an engineering combination of existing techniques (VQ-VAE, MCTS, Transformers). The masked regularization in the VQ-VAE loss is reasonable but not theoretically justified. The claim about mitigating uncertainty via expectations is unsubstantiated. (4) **Weak Theoretical Justification (Score: 2/5)**: Key design choices—the VQ-VAE loss form, the sampling strategy, hyperparameter selection—lack rigorous justification. Appendix C, allegedly containing 'detailed analysis,' is missing. (5) **Missing Ethics (Score: 1/5)**: No broader impact statement, ethical discussion, or safety considerations despite an autonomous driving motivation. (6) **Incomplete Related Work Positioning (Score: 3/5)**: The paper describes but does not empirically differentiate from prior temporal abstraction methods (OPAL, ACT, PRISE) or stochastic planning approaches. The claim that L-MAP is superior to MuZero Unplugged in stochastic settings is not demonstrated. **Overrides Applied**: Per RBCL Reproducibility Rule: reproducibility score ≤ 2 triggers mandatory 'Reject' and caps total_score at 20. Total is capped at 15 (below 20 threshold). Per RBCL Fatal-Flaw Logic: Reproducibility failure is non-compensatory; no other strengths can offset this. **Verdict**: The paper addresses a relevant problem but lacks the rigor, transparency, and empirical depth expected for acceptance. The authors should: (1) release code and detailed hyperparameters, (2) provide comprehensive empirical results with error bars and statistical tests, (3) include thorough ablations, (4) justify technical choices theoretically, (5) add an ethics/broader impacts section. Resubmission after addressing these issues is encouraged."
+  }
+}
+```

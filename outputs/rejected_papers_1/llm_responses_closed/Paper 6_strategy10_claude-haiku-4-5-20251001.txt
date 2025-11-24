@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes BMT and MMT, which are essentially variations of data partitioning strategies for federated unlearning. BMT maintains local models for each client in isolation—a straightforward idea with limited novelty. MMT extends this by training sub-FL models on disjoint client subsets, which is similar to existing work (Bourtoule et al., 2021; Qiu et al., 2023). The core insight—aggregating sub-models as better initialization—is incremental rather than fundamentally novel. The application of Huffman/Shannon-Fano coding to tree construction is borrowed from information theory and not methodologically original. The paper lacks a genuinely new theoretical framework or algorithmic innovation."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "While federated unlearning is a relevant problem, the practical applicability is limited by severe computational overhead. BMT requires maintaining and updating a local model for every client—doubling the training cost. MMT requires pre-training multiple sub-FL models (potentially exponential in the worst case), which is computationally expensive and limits scalability to realistic federated settings with hundreds or thousands of clients. The paper acknowledges this is 'infeasible for large-scale experiments' but does not quantify the overhead or propose solutions. The improvement over retraining-from-scratch, while empirically shown, comes at prohibitive computational cost that may outweigh practical benefits."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper lacks rigorous theoretical analysis. There is no formal proof that BMT or MMT achieve 'exact' unlearning beyond the tautological claim that they discard the global model and retrain. The statement that local models are 'isolated from the influence of other clients' training data' is imprecise—they are only isolated in round 1; after aggregation begins, information flows indirectly. Critical assumptions are unverified: (1) whether aggregating local models from remaining clients truly provides a better initialization than random is assumed but not theoretically justified; (2) the claim that MMT 'avoids double influence' is not formally defined or proven; (3) how the sub-FL models actually capture joint influence is unclear. The paper provides no convergence analysis, no formal unlearning guarantees, and no theoretical complexity bounds."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Multiple critical gaps undermine empirical validation: (1) experiments are limited to small-scale settings (2-10 clients, <1000 samples per client); no evaluation on realistic federated scenarios with hundreds of clients; (2) the authors admit 'it is infeasible for large-scale experiments like CIFAR-100,' suggesting scalability concerns are acknowledged but unresolved; (3) no error bars, confidence intervals, or statistical significance tests are reported—all results appear to be single runs; (4) the comparison baselines (FedCIO, Exact-Fun, FATS) are not thoroughly discussed; implementation details are missing, raising questions about fair comparison; (5) the 'combined test set' metric combining all clients' test data is non-standard and not well justified; (6) ablation studies on branching factor and tree construction are interesting but do not validate the core unlearning mechanism; (7) language tasks (Section 4.5) use only 200-500 samples and two simple tasks, insufficient to validate scalability claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper provides no code, no supplementary materials, and no statement committing to code release. Hyperparameters are partially specified (learning rates, batch sizes, optimizer) but critical details are missing: (1) random seeds are not reported; (2) initialization schemes for sub-FL models are not fully described; (3) the exact aggregation procedure for local/sub-FL models is vaguely described; (4) how clients are partitioned in MMT is not algorithmically specified; (5) details on data preprocessing and non-IID partitioning are minimal; (6) no information on how many runs were executed or whether results are averages; (7) the paper is anonymous but does not mention future code release plans. These omissions make independent reproduction impossible and raise concerns about result validity."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (1.1) covers federated learning, machine unlearning, and federated unlearning adequately, citing key papers. However, the positioning has issues: (1) the paper claims to 'touch on both ideas' of Xiong et al. (2023) and Qiu et al. (2023) but does not clearly articulate what is genuinely novel beyond their approaches; (2) the connection to Bourtoule et al. (2021)'s data partitioning is mentioned but not clearly differentiated—BMT/MMT appear to be straightforward extensions; (3) recent work on machine unlearning (e.g., gradient-based methods, influence functions) is not discussed; (4) no experimental comparison on small-scale settings where prior methods' performance is documented, making it unclear whether improvements are due to the method or experimental setup differences; (5) the practical trade-offs (computational cost vs. performance gain) versus prior methods are not quantitatively analyzed."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no discussion of ethical implications, broader societal impacts, or safety concerns. While federated unlearning touches on privacy and the right to be forgotten (GDPR/CCPA), the authors do not address: (1) whether the computational overhead makes the method impractical for actual privacy-critical applications; (2) potential adversarial scenarios where clients could exploit the unlearning mechanism; (3) the security of maintaining multiple local and sub-FL models (increased attack surface); (4) data provenance or licensing of the datasets used; (5) potential harm if the method is deployed without proper validation; (6) limitations or recommendations for practitioners. The motivation cites GDPR/CCPA but provides no substantive ethical analysis. This omission is particularly concerning given the privacy-sensitive nature of federated learning."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses a relevant problem (exact federated unlearning with good post-unlearning performance) but suffers from significant weaknesses across multiple dimensions. The core contributions—BMT and MMT—are incremental extensions of existing data partitioning ideas (Bourtoule et al., 2021; Qiu et al., 2023) lacking genuine methodological novelty. Critically, the proposed methods trade unverified improvements for substantial computational overhead (doubling training for BMT, exponential sub-FL models for MMT), which undermines practical applicability. Technical soundness is compromised by the absence of rigorous theoretical guarantees, formal proofs of 'exact unlearning,' and unjustified core assumptions (e.g., why aggregating local models provides better initialization than random). Empirical validation is severely limited: experiments use toy settings with 2–10 clients and <1000 samples; the authors admit scalability is 'infeasible' for realistic datasets; no statistical significance testing or error bars are provided; and comparison baselines appear to be re-implemented without published code for fair comparison. Reproducibility is critically compromised—no code is provided, random seeds are missing, and algorithmic details are vague. The paper lacks any discussion of ethical implications despite invoking GDPR/CCPA motivations. Per RBCL §2 (Fatal-Flaw Logic), the combination of weak reproducibility (score 1), limited technical soundness (score 2), and insufficient empirical rigor (score 2) triggers a downgrade to 'Weak Reject.' The practical utility remains undemonstrated given computational costs and experimental limitations."
+  }
+}
+```

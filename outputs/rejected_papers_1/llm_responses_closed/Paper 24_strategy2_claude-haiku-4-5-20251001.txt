@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes SEAL, a method for scaling attention heads/channels to improve long-context retrieval. While the core observation about differential head importance is valuable, the execution is relatively incremental. The method amounts to learning scalar/vector multipliers on attention outputs using gradient descent on synthetic data—this is a straightforward application of existing fine-tuning principles. The novelty lies primarily in the specific motivation (per-head analysis via pruning) and application domain (long-context retrieval), not in introducing fundamentally new mechanisms. The distinction between SEAL-H, SEAL-C, and SEAL-L is clearer in concept, but the technical innovation beyond parameter-efficient scaling is limited. Unverified assumption: The claim that these scaled heads directly target 'retrieval-specific' functionality rather than general performance improvements remains unproven despite the circuit analysis attempt."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "SEAL addresses a real problem (performance degradation in long-context retrieval) and demonstrates practical improvements on benchmarks like Needle-in-a-Haystack and LongEval. The combination with training-free context extension methods (NTK, Self-Extend) offers practical value. However, the significance is limited by several factors: (1) improvements on LongBench QA tasks are modest and inconsistent (Table 3 shows marginal gains, sometimes negative), (2) the method requires task-specific synthetic data generation, reducing generalizability, (3) the approach does not extend context windows beyond their design limits—it only recovers performance within existing windows, (4) MMLU results remain unchanged, suggesting the method's impact is narrowly scoped. Potential weakness: The paper does not establish whether improvements persist on substantially different retrieval tasks or whether the method has clear, reproducible improvements across diverse domains."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Critical technical concerns undermine soundness: (1) The pruning experiments (Section 3.1) are conducted on a single model (LongChat-7B-32K) and single task (LongEval line retrieval), with no statistical significance testing or error bars. The ±20% variance claim lacks rigor. (2) The causal interpretation of pruning results is assumed but not validated—pruning a head can indirectly affect performance through numerous pathways beyond direct retrieval. (3) Section 5's direct effect analysis (Equation 1) is oversimplified and excludes normalization terms, making the interpretation questionable. Figure 4 shows MLPs dominate, yet the method focuses on attention heads, creating an explanatory gap the paper does not adequately address. (4) The claim that synthetic data 'focused on format' is sufficient is not validated empirically—no ablation compares synthetic vs. real data. (5) The paper lacks theoretical justification for why gradient-based scaling of attention outputs should specifically improve retrieval without degrading other capabilities. Unverified assumption: The assumption that learned scales remain effective across different context lengths and task variations is never tested."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experimental validation is insufficient and contains methodological issues: (1) Main results rely on only two synthetic tasks (Needle-in-a-Haystack and LongEval line retrieval), both with limited semantic complexity. Generalization to real retrieval scenarios is not convincingly demonstrated. (2) Table 3 shows out-of-domain results are marginal or inconsistent (e.g., Qasper: 29.16→32.61 in-domain but MultiField QA-ZH: 35.15→36.94 out-of-domain), yet this is treated as validation of generalizability. (3) No statistical significance testing, confidence intervals, or multiple runs reported. Given only 50 training samples, variance should be quantified. (4) Baselines are limited: comparisons with other attention-focused methods or modern retrieval enhancement techniques are absent. SEAL-L and SEAL-D are introduced but not thoroughly compared. (5) The paper lacks ablation studies: no analysis of the effect of dataset size (why exactly 50 samples?), learning rate sensitivity, or number of training epochs. (6) Section 7 combines SEAL with context extension methods but does not isolate SEAL's contribution—improvements could be from interactions rather than SEAL's intrinsic value. Potential weakness: No cross-dataset or cross-model generalization experiments beyond LongChat-7B."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is critically compromised. (1) No code, data, or model checkpoints are provided or promised in the paper. (2) The synthetic data generation is described only informally with two brief examples; the full prompt templates or generation logic are not disclosed. (3) Hyperparameters are given (learning rates: 1e-2 to 5e-2 depending on task/model, AdamW optimizer, 1 epoch), but no random seed is mentioned. Without seeds, exact reproduction is impossible. (4) The paper does not specify the LLM used to generate synthetic data or its temperature/generation parameters. (5) Direct effect calculations (Section 5) use a non-standard version excluding normalization; the exact implementation is unclear. (6) Evaluation metrics are not fully specified—how are scores computed for Needle-in-a-Haystack? Are multiple runs averaged? (7) The paper does not indicate how training data was split or whether validation was performed. (8) Figure 2(a) shows pruning methodology, but exact execution details (e.g., how pruning is applied during inference) are vague. This paper fails the reproducibility threshold for a top-tier venue. Fatal flaw per RBCL: Reproducibility score ≤ 2 triggers a cap at total_score ≤ 20 and must result in 'Reject' decision."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work coverage is superficial and positioning is insufficient. (1) Circuit analysis literature (Elhage et al., Ferrando et al., Wu et al.) is mentioned but not deeply engaged with. The paper does not explain how SEAL's direct effect method differs or improves upon existing circuit analysis approaches. (2) Context window extension methods (position interpolation, NTK, Self-Extend, YaRN) are listed but not compared experimentally. Only Table 2 and Figure 6 show combination with NTK/Self-Extend, not head-to-head comparisons. (3) PEFT literature is acknowledged (LoRA, QLoRA), and SEAL-L (LoRA) is introduced as a baseline, but comparisons are incomplete. No comparison with other attention-manipulation methods or recent retrieval-specific tuning approaches. (4) The paper cites benchmarks (Needle-in-a-Haystack, LongEval, LongBench) but does not discuss related work on addressing 'lost in the middle' phenomenon comprehensively. (5) No discussion of related attention-scaling or head-importance work beyond pruning (e.g., lottery ticket hypothesis, attention head pruning surveys). The paper positions SEAL as orthogonal to context extension, but this positioning lacks rigorous validation. Unverified assumption: The implicit claim that head-wise scaling is superior to other fine-tuning strategies is never substantiated with fair, controlled comparisons."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Ethical considerations are entirely absent. (1) No discussion of potential misuse: improved long-context retrieval could facilitate generation of more convincing misinformation or hallucinations if scaling inadvertently amplifies certain reasoning pathways. (2) No analysis of data provenance for synthetic data generation or licensing implications of using LLMs to generate training data. (3) No mention of computational/environmental cost of the synthetic data generation or fine-tuning process, despite claims of efficiency. (4) No discussion of fairness: do improvements apply uniformly across languages, domains, or model architectures? Table 3 shows inconsistent results across tasks. (5) No transparency statement or societal impact discussion. (6) The paper does not address risks of using task-specific scaling—could these scales inadvertently degrade performance on safety-critical tasks or bias model outputs? (7) No mention of responsible release considerations or recommendations for practitioners. Per RBCL guidelines, absence of ethics considerations caps this score at ≤ 2 and should downgrade overall assessment."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper presents an interesting observation about the role of attention heads in long-context retrieval and proposes SEAL, a method to scale these heads using synthetic data. However, the work exhibits multiple critical flaws that preclude acceptance at a top-tier venue. Most critically, reproducibility is severely compromised (score: 1/5)—no code, seeds, or detailed data generation pipelines are provided, making independent verification impossible. This alone triggers the RBCL fatal-flaw logic and caps the total score at 20. Second, technical soundness is questionable (score: 2/5): the pruning experiments lack statistical rigor, are limited to a single model/task, and the causal interpretation is unjustified. The direct effect analysis contradicts the main claims (MLPs dominate, not attention heads), creating an unresolved explanatory gap. Third, empirical validation is weak (score: 2/5): experiments rely on only two synthetic tasks with limited semantic complexity, out-of-domain generalization is marginal and inconsistent (Table 3), and no statistical significance testing is reported. Fourth, ethics and broader impacts are entirely absent (score: 1/5). While novelty (3/5) and significance (3/5) are moderate, and related work positioning is addressed (albeit superficially at 2/5), the fundamental deficiencies in reproducibility, technical soundness, and experimental rigor outweigh these contributions. Per RBCL §2 (Fatal-Flaw Logic), the reproducibility score ≤ 2 combined with technical soundness ≤ 2 mandates a 'Reject' decision regardless of numeric total. The paper would benefit from: (1) releasing code and detailed reproduction instructions, (2) conducting rigorous statistical analysis with multiple runs and significance tests, (3) resolving the attention vs. MLP contradiction in the direct effect analysis, (4) expanding experiments to diverse retrieval scenarios and models, and (5) adding ethics considerations. In its current form, the work is not ready for publication at a top conference."
+  }
+}
+```

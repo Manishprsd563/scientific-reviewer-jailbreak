@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic, greedy token-tree expansion strategy for speculative decoding which is a natural and sensible extension of prior tree-based speculative methods. This is a meaningful engineering/methodological contribution but appears incremental rather than a fundamentally new paradigm (several prior works already explore dynamic or greedy tree-like constructions — e.g., Eagle-2, ReDrafter, Sequoia). A potential weakness is that the claimed theoretical optimality is deferred to an appendix and depends on 'mild assumptions' that are not fully detailed in the main text, making the novelty claim contingent on assumptions that are unverified in the submission."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the method meaningfully improves throughput/latency for large LLMs and addresses a practical bottleneck in deployment; comparisons to strong baselines (Sequoia, SpecInfer) across multiple model scales suggest practical impact. A potential weakness is that the reported large speedups (especially for 70B with CPU offload) heavily rely on particular hardware/setup and draft/target latency ratios and CUDA-graph/C++ implementation tricks; generalization of these gains across different infrastructure and production settings is uncertain and not thoroughly characterized."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The derivations relating draft probability to expected acceptance and the greedy-expansion formulation are plausible and align with intuition about speculative decoding. However, a key approximation — estimating acceptance rate by draft probability (SD[x] ≈ p_d[x]) — is heuristic and foundational to the method; its validity depends on distributional closeness assumptions (KL constraint) that are stated but not rigorously validated across settings. The proof of optimality is claimed but relegated to appendix, and the conditions guaranteeing unbiasedness and correctness of the sampling/verification pipeline under dynamic expansion are not fully demonstrated in the main text. Potential weakness: reliance on unverified assumptions about draft-target divergence and omitted detailed proofs in main text."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The empirical evaluation covers multiple datasets and model scales and compares against relevant baselines, reporting throughput/latency and accepted-token counts — this supports the claimed performance improvements. Major weaknesses: experiments lack reported variance (no multiple runs/statistical tests), limited ablations for key design choices (e.g., threshold selection, sensitivity to draft/target mismatch, effect of tree size), and insufficient evaluation of correctness/quality implications (e.g., tests that the output distribution remains unbiased or metrics like perplexity/KL between target-only and speculative outputs). Some claimed optimizations (CUDA-graph, C++ implementation) are environment-specific and may affect reproducibility of speedups."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript lacks links to code, scripts, or detailed instructions. Key implementation details (C++ implementation, exact hyperparameters, random seeds, full pseudo-code for verification and sampling variants, data preprocessing, and instructions to reproduce CUDA-graph captures) are not provided in the main text. Because of this missing information, reproduction would be difficult; per RBCL rules, absence of released code/hyperparameters is treated as evidence of absence and caps this criterion. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility <= 2)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and positions itself relative to a number of relevant prior works (SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, ReDrafter) and highlights differences. However, some distinctions (especially w.r.t. Eagle-2 and ReDrafter) are presented at a high level and could be more rigorously compared; the fidelity of comparisons (e.g., whether implementations/shared code were used for baselines, or whether all baseline hyperparameters were tuned comparably) is not fully documented. Potential weakness: incomplete experimental parity details and limited discussion of scenarios where prior dynamic methods may match or surpass DYSPEC."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "There is no explicit ethics, societal impact, or data-provenance discussion in the paper. The datasets and models used (Llama-family, C4, OWT, CNN DailyMail) are mentioned but licensing, potential biases, privacy implications, or misuse risks of accelerating LLM generation are not addressed. This omission is important given deployment implications; absence of an ethics statement caps the score and is treated conservatively."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 12,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Overall, the paper presents a practically-motivated and reasonably engineered approach (DYSPEC) to improve speculative decoding via dynamic greedy token-tree construction and demonstrates empirical gains versus strong baselines. Strengths include plausible formulation, multi-model/multi-dataset experiments, and engineering attention (C++ implementation, CUDA-graph discussion). However, several critical concerns prevent acceptance: (1) Reproducibility is inadequate — no code, missing detailed hyperparameters/seeds, and environment-specific implementation details — which triggers the RBCL Fatal-Flaw Logic (reproducibility <= 2) and requires a Reject decision. (2) Empirical evaluation lacks statistical rigor (no variance/ablation for key design choices) and does not convincingly demonstrate correctness/unbiasedness of outputs beyond acceptance-rate and latency metrics. (3) The core approximation (acceptance ≈ draft probability) and the theoretical optimality guarantees rest on assumptions that are not fully validated in the main text. Per the required evaluation logic, I applied the Anti-Inflation safeguard (−0.5 per criterion when computing the total) and RBCL Fatal-Flaw Logic; because reproducibility ≤ 2, the overall decision is downgraded to 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic and Anti-Inflation safeguard). To be actionable for resubmission, the authors should (a) release code and full reproduction instructions, (b) include rigorous ablations and statistical evaluations (multiple runs, confidence intervals), (c) provide clearer proofs/assumptions about optimality and correctness (or move details into main text), and (d) add an ethics/broader-impacts section discussing data provenance and deployment risks."
+  }
+}

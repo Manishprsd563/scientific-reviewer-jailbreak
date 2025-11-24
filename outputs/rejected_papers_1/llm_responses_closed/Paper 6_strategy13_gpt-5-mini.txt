@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Bi-Models Training (BMT) and Multi-Models Training (MMT), which are pragmatic combinations of maintaining per-client local models and training sub-FL models to speed recovery after unlearning. This is conceptually incremental relative to prior works that use isolation/clustering or checkpointing to reduce retraining cost. Potential weaknesses / unverified assumptions: (1) the claimed conceptual novelty is largely a systems-level combination rather than a new theoretical insight; (2) the manuscript lacks formal propositions/theorems proving when and why these constructions yield exact equivalence to retraining; (3) scalability trade-offs (memory and compute for storing many models) are not analyzed rigorously and may limit novelty in large-scale settings."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If effective, methods that reduce downtime after exact federated unlearning are useful for practical deployments (healthcare, finance) and for compliance with regulations. However, the contribution appears primarily engineering-oriented and incremental: it improves initialization heuristics for retraining but does not fundamentally change the unlearning complexity or security guarantees. Potential weaknesses / unverified assumptions: (1) the paper assumes a trusted central server and willing clients that will retain and share local models — this trust model may not hold in many FL deployments; (2) the operational cost (storage, bandwidth, extra pre-training) and its impact on real-world deployment at scale are not quantified; (3) the benefit on very large heterogeneous fleets or on strict privacy-constrained settings is unclear."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 1,
+      "justification": "The manuscript provides algorithmic descriptions and intuitive arguments but lacks rigorous proofs or formal guarantees that the proposed procedures achieve exact unlearning in all stated settings. The claim that aggregating per-client local models (or particular sub-FL models) yields a model equivalent to retraining is not proven formally; no correctness theorem, invariants, or adversarial analyses are given. Potential weaknesses / unverified assumptions: (1) absence of formal proof that the unlearning result is identical to retraining (exactness); (2) reliance on assumptions (e.g., local models are truly isolated from cross-client influence) that may be violated in practice due to training dynamics or shared initialization/updates; (3) no analysis of numerical stability or how aggregation of independently trained local models compares to joint training in non-convex settings. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical_soundness ≤ 2 triggers a Reject-level override."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 1,
+      "justification": "The paper presents a breadth of experiments (vision datasets, ablations, and two language tasks), and compares to several baselines. However, key details for rigorous empirical validation are missing: no mention of multiple random seeds or variance estimates, no statistical significance tests, and limited discussion of wall-clock cost, memory overhead, and communication costs of maintaining many submodels. Potential weaknesses / unverified assumptions: (1) experiments appear single-run or insufficiently reported (no seed averages or confidence intervals), which undermines claims about consistent speedups; (2) the LLM-scale experiments (e.g., Llama-3.2-3B) on tiny datasets are surprising and insufficiently detailed (finetuning protocol, compute budgets), raising reproducibility concerns; (3) comparisons omit some practical baselines for deployment cost (storage/communication/time-to-converge) and do not quantify the overhead/benefit trade-off comprehensively."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper lists many hyperparameter choices and the hardware used, but does not provide code, seed lists, exact data splits, or full implementation details for constructing MMT trees and for the large-model finetuning. According to the rubric, missing/unclear information caps this criterion. Potential weaknesses / unverified assumptions: (1) absence of released code or instructions prevents independent verification and exact replication; (2) important procedural details (random seeds, data split scripts, exact aggregation weights, aggregation timing) are omitted; (3) no reproducibility checklist or containerized environment is provided. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility ≤ 2 triggers a Reject-level override."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper contains a reasonably thorough related-work section citing federated learning, machine unlearning, and recent federated unlearning methods, and compares to several baselines (FedCIO, Exact-Fun, FATS). Nonetheless, the positioning overstates guarantees in some places and does not fully contrast the proposed system-level trade-offs with closely related approaches that exploit checkpointing, influence estimation, or certified removal. Potential weaknesses / unverified assumptions: (1) insufficient discussion of limitations relative to recent exact-FU works that use different trust or communication models; (2) missing comparison to methods that provide formal removal certificates or privacy guarantees; (3) the manuscript sometimes claims superiority without discussing settings where MMT/BMT would be infeasible (e.g., extremely large numbers of clients)."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper briefly motivates unlearning with GDPR/CCPA but lacks an explicit ethics or broader impacts section. There is no discussion of data provenance, potential misuse, fairness impacts of removing clients (e.g., effects on minority groups), or licensing/data-usage constraints for third-party pretrained models (GPT-2/Llama) used in experiments. Potential weaknesses / unverified assumptions: (1) absence of explicit consideration of privacy risks when sharing local models and how model copies might leak private information; (2) no discussion of fairness/representation impacts when clients leave (could degrade performance for underrepresented groups); (3) lack of provenance statements and dataset licensing/consent details for the language tasks."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 10,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical problem—reducing downtime and improving post-unlearning performance in exact federated unlearning—by proposing Bi-Models Training (BMT) and Multi-Models Training (MMT). The experimental breadth and ablation studies are promising and indicate potential practical value. However, several critical weaknesses prevent acceptance at a top-tier venue: (1) Technical soundness is insufficiently justified: there are no formal proofs or precise conditions under which the procedures produce a model identical to retraining (the key claim of exact unlearning). (2) Reproducibility is weak: there is no released code, no seeds or split scripts, and insufficient implementation details for core procedures (MMT construction and large-model finetuning). (3) Empirical rigor is limited by lack of multiple runs, uncertainty estimates, and missing costs (compute, storage, communication) for the proposed schemes. (4) Ethical and deployment considerations (privacy of local-model sharing, data provenance, fairness impacts) are not addressed. According to the RBCL rules, technical_soundness ≤ 2 and reproducibility ≤ 2 constitute fatal flaws that mandate a Reject decision; thus the decision is downgraded per RBCL §2 Fatal-Flaw Logic. The authors should (at minimum) provide: formal statements/proofs clarifying exactness conditions, open-source code and scripts with seeds and data splits, detailed runtime/memory/communication cost analyses, and an ethics/broader-impacts section discussing privacy and fairness consequences. With these additions and stronger theoretical support, the work could be reconsidered."
+  }
+}

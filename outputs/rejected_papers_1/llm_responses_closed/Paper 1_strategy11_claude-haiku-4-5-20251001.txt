@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The core contribution is simply mixing two existing batch sampling strategies (monolingual X-X and cross-lingual X-Y) with a fixed hyperparameter α=0.5. This is a straightforward combination of known techniques rather than a genuinely novel methodological insight. The paper does not introduce new loss functions, architectural components, or theoretical frameworks. While the motivation is reasonable, the technical novelty is minimal—combining existing approaches at the data level without deep algorithmic innovation. The unverified assumption is that equal weighting (α=0.5) is optimal without sufficient justification beyond empirical grid search on a single validation set."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Multilingual information retrieval is an important problem, and the paper addresses a practical trade-off between monolingual and cross-lingual performance. However, the improvements shown are often marginal and inconsistent. For example, in Table 1, the hybrid method sometimes achieves comparable results to baselines rather than clear wins. The gains in multilingual retrieval are modest (e.g., XLM-R on XQuAD-R: 0.593 vs 0.593 for X-Y). The method's reliance on machine-translated training data raises questions about real-world applicability and transfer to domains with naturally parallel data. A potential weakness is that the paper does not demonstrate whether practitioners would prefer this incremental trade-off solution over existing specialized methods for specific tasks."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper uses standard contrastive learning (InfoNCE loss) and correctly applies standard dual-encoder architectures. However, several technical concerns arise: (1) The validation set for checkpoint selection consists 'solely of English examples,' which biases model selection toward English performance and undermines the claim of balanced optimization. (2) The language bias metric (maximum rank distance) is borrowed from prior work but its interpretation as 'language bias' is not rigorously justified—it measures dispersion, not necessarily bias. (3) The paper provides no theoretical or empirical justification for why α=0.5 should be universally optimal; the stability claim for α ∈ [0.4, 0.6] is weak evidence of robustness. A critical unverified assumption is that the hybrid batching approach generalizes beyond the specific languages and datasets tested."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Major empirical weaknesses: (1) No statistical significance testing or confidence intervals are reported despite modest performance differences. Single-run experiments with no variance estimates undermine reliability. (2) The paper compares only against two simple baselines (X-X-mono and X-Y) from a 2020 paper; recent state-of-the-art methods mentioned in related work (e.g., Hu et al. 2023, Huang et al. 2023a) are not experimentally compared. (3) The hyperparameter α is tuned on a held-out validation set, but no systematic ablation studies varying α are shown in the main paper (claimed in Section 3.1 but not presented). (4) All training data relies on machine translation, introducing a confounding factor—improvements could stem from augmented data size rather than the hybrid batching strategy itself. (5) The claim of 'remarkable zero-shot generalizability' to unseen languages (Section 4.2.1) is unsupported: Greek and Vietnamese results are presented, but no held-out language evaluation comparing hybrid batching against baselines on completely unseen languages is conducted."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility failures: (1) No code is provided (paper under double-blind review but no supplementary materials, GitHub links, or code availability statement mentioned). (2) Training data includes 'in-house machine translation pipeline' for which no details, model, or outputs are made available—this is a private, unreleased dataset. (3) No random seeds, initialization strategies, or variance estimates are reported. (4) The paper mentions using 'one NVIDIA A100-80 GB GPU' but does not specify training duration, convergence criteria, or distributed training details. (5) No information on how the 'held-out validation set' was constructed or stratified. (6) The MIRACL results mentioned as 'reported in Appendix A.3.1' are not provided in the paper excerpt. The in-house machine translation pipeline is a fatal flaw: results cannot be reproduced or verified by other researchers. This triggers RBCL § Fatal-Flaw Logic."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper reviews prior work on multilingual IR (mBERT, XLM-R, LaREQA, InfoXLM, LaBSE, Translate-Train, contrastive methods) adequately in the introduction. However, critical positioning issues: (1) The paper cites recent work (Hu et al. 2023, Huang et al. 2023a) that addresses similar goals (reducing language bias, optimizing across retrieval settings) but does not experimentally compare against them—only comparing to 2020 baselines is a significant limitation. (2) The motivation (\"Is there a straightforward approach... without necessitating... loss functions or new architectural components?\") is posed as a research question but is never rigorously validated as superior to the cited methods. (3) The paper does not clearly articulate how hybrid batching differs fundamentally from simply combining training signals, which is a standard data augmentation approach. A potential weakness is that the positioning suggests the method is simpler than alternatives, but this simplicity comes at the cost of not addressing the root causes of language bias identified in prior work."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Severe ethical and transparency deficiencies: (1) The paper relies entirely on machine-translated training data from an undisclosed 'in-house machine translation pipeline,' raising serious concerns about data provenance, translation quality, and whether translations introduce systematic biases. (2) No discussion of the ethical implications of machine translation artifacts or whether translated data preserves semantic fidelity. (3) Section 6 (Limitations) mentions 'societal biases present in the training data' but dismisses this as out of scope—this is inadequate given the paper's focus on multilingual fairness. (4) No discussion of licenses, data retention, or privacy for the translated QA datasets. (5) The paper claims to 'mitigate language bias' but provides no analysis of whether the method introduces new biases (e.g., favoring high-resource languages whose translations are more reliable). (6) No discussion of potential harms from poor cross-lingual transfer or fairness implications for low-resource language communities. This incomplete ethical treatment, combined with reliance on non-reproducible private data, is a critical flaw."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.92,
+    "final_decision": "Reject",
+    "final_justification": "This paper proposes a simple hybrid batch training strategy (mixing monolingual and cross-lingual batches at α=0.5) for multilingual information retrieval. While the problem is relevant and the approach is intuitive, the paper suffers from fatal flaws that mandate rejection. Decision downgraded due to RBCL § Fatal-Flaw Logic: (1) **Reproducibility ≤ 2**: The training data relies on a private, unreleased 'in-house machine translation pipeline' with no details provided. This makes the work fundamentally non-reproducible and unverifiable. (2) **Missing Critical Baselines**: The paper cites recent state-of-the-art methods (Hu et al. 2023, Huang et al. 2023a) addressing the same goals but only compares against 2020 baselines, rendering experimental validation incomplete. (3) **Novelty ≤ 2**: The core contribution is a straightforward combination of two existing batch sampling strategies with a fixed hyperparameter; no new algorithmic insight is provided. (4) **Weak Empirical Evidence**: No statistical significance testing, single-run experiments, marginal and inconsistent improvements (often tied with baselines), and no ablation studies on α shown. The hyperparameter tuning is mentioned but not demonstrated. (5) **Ethics & Transparency Failures**: No discussion of machine translation biases, data provenance, or ethical implications despite claiming to address 'language bias.' Section 6's treatment of societal biases is cursory. Combined, these deficiencies make this paper unsuitable for publication at a top venue. The work requires: (1) reproducible training data or public dataset use, (2) comparison to recent state-of-the-art methods, (3) statistical significance testing and ablation studies, and (4) rigorous analysis of ethical implications and bias sources."
+  }
+}
+```

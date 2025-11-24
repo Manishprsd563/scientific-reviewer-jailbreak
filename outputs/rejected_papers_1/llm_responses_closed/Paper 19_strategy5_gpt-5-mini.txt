@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic token-tree expansion strategy (DYSPEC) for speculative decoding which is a meaningful variation over fixed-tree or purely offline constructions. However, the core idea—steering speculative drafts using draft-model probabilities and greedy expansion—appears to be an incremental extension of prior tree-based speculative methods (Sequoia, SpecInfer, Eagle-2, ReDrafter). The novelty is moderate rather than a fundamentally new methodological paradigm. Potential weakness: the claimed theoretical optimality depends on assumptions (e.g., using draft probability to estimate acceptance rate, KL-boundedness) that are not strongly validated, which may limit generality. Note: RBCL anti-inflation adjustments applied (score conservative relative to initial baseline)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Improving throughput/latency for LLM inference is an important and practical objective; achieving multi-x speedups for large models (e.g., Llama2-70B) would be impactful for deployment. The empirical claims (up to ~9x) suggest practical usefulness. Potential weakness: reported speedups rely on particular hardware/software engineering choices (CPU-offloading, CUDA-graph usage omitted in some settings) and very large T_t/T_d ratios; benefits may degrade under different stack configurations or when draft/target latency gap shrinks. Also, significance assumes correctness and reproducibility of experiments which are not fully evidenced."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper provides derivations connecting draft probabilities to acceptance rates (KL-based intuition) and gives a greedy expansion algorithm with a claimed optimality proof (referenced to appendix). The complexity analysis and practical system considerations are discussed. Potential weakness / unverified assumptions: (1) the KL-bound argument is heuristic and does not guarantee acceptance-rate ordering in realistic, heavy-tailed distributions; (2) the optimality proof reportedly holds under mild assumptions that are not fully detailed in the main text, making it hard to judge robustness; (3) effects of sampling noise, temperature differences, and interactions with verification mechanics (e.g., pruning vs. standard rejection) are not fully analyzed. Given these gaps, correctness is plausible but not fully verified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experimental suite covers multiple datasets (C4, OWT, CNN DM, GSM8k, MT-Bench) and a range of model scales and baselines (Sequoia, SpecInfer, SpecTr variants). Tables report throughput/latency and accepted tokens across temperatures, which is informative. Potential weaknesses: (1) no reporting of variance/statistical significance (appear to be single-run averages); (2) limited ablation studies on key design choices (e.g., impact of threshold C selection, sensitivity to draft temperature, how often greedy vs. threshold diverge); (3) limited details on implementation overheads in various runtime stacks (some settings omitted CUDA-graph for draft model due to memory but impact not fully characterized). These deficits reduce confidence that results generalize."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Key reproducibility artifacts are missing or unclear. The manuscript does not provide public code, exact hyperparameter lists, random seeds, model checkpoint identifiers, or detailed instructions to reproduce the reported numbers. While some implementation details are described (C++ implementation for tree construction, hardware used, draft temperature), these are insufficient for full replication. Potential weakness: absence of released code and exact run configurations prevents verification of speedups and acceptance-rate statistics. RBCL Fatal-Flaw Logic: per the review rules, missing reproducibility information caps the reproducibility score and forces a conservative decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL 'When information is missing or unclear: treat absence as evidence of absence')."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys a wide range of relevant work (SpecTr, SpecInfer, Medusa, Sequoia, Eagle-2, ReDrafter) and clarifies differences between DYSPEC and prior approaches (dynamic vs fixed trees, sampling vs selection/pruning). Empirical comparisons against strong baselines are included. Potential weakness: some distinctions (e.g., limitations of Eagle-2 and ReDrafter w.r.t. verification compatibility) are asserted but would benefit from stronger formalization or ablation verifying the claimed incompatibilities. Additionally, recent concurrent or implementation-focused work on speculative decoding and system-level optimizations may be incompletely cited."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "There is no explicit ethics / broader impacts section. The paper does not discuss potential misuse, data provenance, licensing of models/datasets, or downstream safety concerns related to faster LLM generation (e.g., faster propagation of harmful content). Potential weakness: omission of provenance and licensing information for draft/target model checkpoints and datasets, and lack of risk analysis for enabling higher-throughput generation; this absence reduces transparency about responsible deployment."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: DYSPEC presents a practically-motivated improvement to speculative decoding by dynamically constructing token trees at runtime. The work is well-scoped, shows promising empirical speedups across multiple datasets and model scales, and includes thoughtful engineering optimizations. However, several critical weaknesses justify rejection at this stage: (1) Reproducibility is poor—no released code, missing exact hyperparameters/seeds, and limited run instructions—triggering the RBCL Fatal-Flaw Logic that mandates a conservative decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). (2) Empirical validation lacks statistical rigor (no variance or multiple runs reported) and limited ablations on sensitive design decisions (threshold selection, sensitivity to draft/target latency ratios). (3) Technical claims (KL-based acceptance-rate ordering and optimality of greedy expansion) rest on assumptions that are not fully justified or empirically stress-tested. (4) Ethics/broader-impacts considerations are absent. Given the missing reproducibility artifacts and unverified assumptions, the paper is not yet suitable for acceptance; a resubmission with public code, thorough ablations, multiple-run statistics, clearer theoretical assumptions, and an ethics statement could change the decision. Note: RBCL rules applied — reproducibility deficiency invoked the override (Reject) and informed a conservative final score and decision."
+  }
+}

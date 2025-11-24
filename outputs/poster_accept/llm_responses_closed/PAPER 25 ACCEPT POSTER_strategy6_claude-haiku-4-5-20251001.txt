@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper introduces In-Distribution Interventions (IDI) as a novel approach to root cause diagnosis that contrasts with prior counterfactual-based methods. The key insight—that counterfactuals rely on error-prone abduction when applied to out-of-distribution anomalies, whereas interventions only probe in-distribution regions—is genuinely interesting. However, the novelty is somewhat incremental: interventions themselves are not new; the contribution is primarily their application to RCD with theoretical justification for when they outperform counterfactuals. The distinction between anomaly and fix conditions is borrowed from prior work (Budhathoki et al., 2022b). The use of Shapley values for multiple root cause diagnosis is also not novel, merely adapted. Potential weakness: The core theoretical claim (Theorem 4.1 onwards in Section 4, which is deferred to appendix) is not fully presented in the main paper, limiting clarity on how genuinely new the insight is."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "Root cause diagnosis in cloud systems is a practically important problem, and the PetShop benchmark is gaining traction. IDI's improvements are consistent across settings and outperforms multiple baselines. However, improvements are often modest (e.g., Table 1 shows IDI tied with CIRCA and Traversal in several cases). The paper is limited to two main datasets: PetShop (synthetic cloud microservices) and a toy example. Real-world applicability remains unclear. Potential weakness: The significance of using in-distribution interventions over counterfactuals appears limited to specific regime where training data is small and SCM overfitting is severe (as shown in toy experiments). The practical scenarios where this matters most are underexplored. Additionally, Assumption 1 (at most one root cause per simple path) is restrictive and may limit applicability in complex systems with multiple failure modes on the same path."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper's theoretical framework compares interventional vs. counterfactual errors, claiming interventional error is bounded by the standard deviation of exogenous variables while counterfactual error scales with total variation distance. However, critical theoretical results are deferred to the appendix, making full verification difficult. The main text provides intuition (Fig. 1) but lacks formal theorems in the main body. The toy experiment (Section 6.1) partially validates the theory, but: (1) it assumes additive noise models with Gaussian exogenous variables, limiting generality; (2) the non-linear experiment uses only a simple three-layer MLP, not realistic SCMs; (3) the claim that 'interventional error remains bounded by std. deviation of ε_4' (Fig. 5 caption) is stated informally without proof presented. Potential weakness: The paper states (Limitations, Section 7) that in additive noise models with large training sets, interventional estimates plateau at the exogenous variable std. deviation while counterfactual estimates converge to true values—this directly contradicts the claimed superiority of interventions, yet is relegated to the appendix. This suggests the theoretical advantage of IDI is narrower than claimed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments include a toy dataset (Section 6.1) and PetShop benchmark (Section 6.3). Comparison against 9-11 baselines is comprehensive. However, several limitations undermine empirical rigor: (1) PetShop uses only linear additive noise models, matching IDI's assumptions—this is not acknowledged as a potential bias favoring IDI. (2) Only 10 test samples per latency type in PetShop (implied by Recall@k definitions); statistical significance tests are absent. (3) No ablation studies on key components (e.g., impact of anomaly detector choice, sensitivity to fix value sampling strategy, impact of Shapley value computation). (4) Toy experiments use only 25-1000 training samples; modern SCM training typically uses much larger datasets where the benefit of IDI may diminish (as the authors admit in Limitations). (5) The paper claims to test on 'arbitrary SCMs' (Conclusion) but only demonstrates linear models. Non-linear experiments are limited to the toy setting. Potential weakness: The claim that IDI 'consistently identifies true root causes more accurately and robustly than nine existing state-of-the-art RCD baselines' (Abstract) is overstated—Table 1 shows IDI tied or marginally better than Traversal and CIRCA in multiple settings, and clearly worse on some metrics."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper states 'Code will be released at https://github.com/nlokeshiisc/IDI_release' but does not provide code at submission time (the URL is a placeholder). This is a critical gap for reproducibility. The PetShop experiments reference existing library implementations, but IDI's specific implementation details (e.g., MLP architecture for non-linear SCM, hyperparameters for Shapley value computation, anomaly threshold selection) are incomplete or missing. The toy experiment specifies some details (3-layer MLP, 10 hidden nodes) but lacks random seeds. Hyperparameter tuning procedures are not described. The paper does not specify how anomaly thresholds τ_i are set—are they based on the training set distribution? Validation set? These details are essential for reproducibility. Potential weakness: Deferring code to a future release at a placeholder URL, combined with incomplete algorithmic details (e.g., Shapley value computation is mentioned but Alg. 1 is said to be in the appendix, not provided in the review text), makes it impossible to verify results independently. This is a major reproducibility risk."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper provides a structured taxonomy of prior work (Correlation, Causal Anomaly, Causal Fix approaches) and clearly positions IDI within the Causal Fix category. However, the positioning has gaps: (1) The distinction between IDI and TOCA (Okati et al., 2024), which also assesses the fix condition, is understated. Both methods apply interventions, yet TOCA performs worse than IDI—the paper does not clearly explain why, beyond mentioning TOCA applies fixes 'jointly over all nodes' without elaboration. (2) The connection to SAGE (Gan et al., 2021), a VAE-based counterfactual method, is mentioned but not experimentally compared, making it unclear how IDI compares to more sophisticated OOD-handling approaches. (3) The paper claims prior work 'relies on counterfactuals inferred from SCM' (Abstract), but some methods (e.g., soft interventions by Jaber et al., 2020) are briefly cited without detailed comparison. Potential weakness: Fair comparison requires explaining why TOCA underperforms IDI if both use interventions. The paper's claim of superiority over counterfactual methods rests partly on theoretical results deferred to appendix, but the empirical advantage on PetShop could also reflect implementation quality or dataset characteristics, not fundamental methodological superiority."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper does not include any discussion of ethical implications, broader impacts, data provenance, or safety concerns. Root cause diagnosis in cloud systems can have significant operational impacts (e.g., false diagnoses could lead to incorrect remediation, cascading failures). The paper: (1) does not discuss risks of false positive/negative root cause predictions; (2) does not address data privacy—PetShop is synthetic, but real cloud data may contain sensitive information; (3) does not discuss the assumption that causal graphs are available and accurate (the paper assumes 'easily available call graphs,' but errors in causal structure could lead to systematic misdiagnosis); (4) does not discuss fairness or potential biases in the RCD process. The paper is purely technical and lacks any section addressing societal implications. Potential weakness: For a method deployed in real cloud systems, absence of ethics discussion is a significant oversight, particularly given that incorrect root cause diagnosis could have real-world consequences for service availability and user experience."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 21,
+    "confidence": 0.72,
+    "final_decision": "Weak Accept",
+    "final_justification": "The paper presents a technically sound and practically motivated approach to root cause diagnosis using in-distribution interventions rather than out-of-distribution counterfactuals. The core insight—that counterfactual abduction is error-prone for anomalies—is valuable and well-illustrated. The experimental comparisons are reasonably comprehensive, and IDI shows consistent (if modest) improvements over baselines on the PetShop benchmark. However, the work has significant limitations: (1) Critical theoretical results are deferred to appendix, limiting verification of the central claim. (2) The theoretical advantage of interventions appears limited to small-sample or high-SCM-mismatch regimes; the authors themselves note that with large training sets, counterfactual estimates eventually dominate (Limitations). (3) Empirical validation is restricted to linear SCMs on one main benchmark (PetShop); claims of testing on 'arbitrary SCMs' are overstated. (4) Reproducibility is compromised by absence of code and incomplete algorithmic details. (5) No ethics discussion for a method with real-world operational impact. (6) Assumption 1 (at most one root cause per path) is restrictive and inadequately justified. The paper makes a solid incremental contribution to RCD methodology but falls short of being a strong accept due to these limitations. The modest empirical improvements, combined with incomplete theoretical exposition and limited experimental scope, place it in the 'Weak Accept' category. The work would benefit from: (a) moving key theorems to the main text, (b) providing code and hyperparameter details, (c) testing on truly non-linear SCMs, (d) conducting statistical significance tests, (e) addressing when Assumption 1 is violated, and (f) adding an ethics discussion. The paper is above the acceptance threshold but requires revisions to address reproducibility and clarity concerns."
+  }
+}
+```

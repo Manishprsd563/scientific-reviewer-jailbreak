@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper introduces the idea of training process advantage verifiers (PAVs) that measure per-step progress under a distinct prover policy, and provides theory and empirical results showing benefits over Q-value PRMs and ORMs. This framing (advantage under an external prover) and the analysis of 'complementary' provers appear meaningfully different from prior Q-value / outcome-focused PRMs. Potential weakness / unverified assumption: the core idea may be viewed as a moderate conceptual extension of existing PRM/Q-value work rather than a wholly new methodological paradigm; claims of broad novelty depend on how different the prover-design and advantage-estimation procedures are in practice. Also, effectiveness may rely on particular (possibly brittle) choices of prover family (e.g., Best-of-K) and hyperparameters, an assumption not fully validated across tasks. Note: RBCL anti-inflation guidance (reduce scores by 0.5) has been applied in the conservative scoring choice here."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "If reproducible and generalizable, PAVs could materially improve search and RL sample/compute efficiency for multi-step reasoning—areas of active interest for LLM-based reasoning and RLHF. The reported 1.5–10x compute gains for search and 5–6x sample efficiency gains for RL (on MATH with Gemma models) imply practical relevance for model training and deployment. Potential weakness / unverified assumption: experiments are concentrated on a single reasoning benchmark (MATH) and specific model families (Gemma variants); it's uncertain whether gains translate to other reasoning domains, tasks with different structure, or larger scale production settings. Also, claims of wide impact assume the PAV training and prover selection scale affordably outside the paper's compute regime. I applied RBCL anti-inflation conservatively in the score."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper provides a clear formalization linking process rewards to reward-shaping and policy-gradient updates, and offers theoretical characterization of 'good' provers (complementary provers) with proofs claimed in the appendix. The derivations that show A^mu adds exploratory signal make conceptual sense. Potential weakness / unverified assumption: key theoretical results depend on assumptions about prover-base alignment and the statistics of Q/advantage estimators (e.g., independence, estimator bias/variance) that are not fully scrutinized in the main text; robustness to estimation noise of PAVs and impact of approximation errors in learned verifiers are not rigorously bounded. Also, proofs are in appendix which I could not fully audit here; empirical/estimation approximations (finite rollouts to estimate Q/A) introduce bias that could affect correctness of the policy gradients in practice. RBCL anti-inflation note: conservative scoring applied."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The authors present experiments across 2B/9B/27B Gemma models on MATH, ablations over prover strength (BoK), comparisons to Q-value PRMs and ORMs, and RL runs showing sample-efficiency improvements; they examine both test-time search and online RL, including Pass@N and compute-efficiency metrics. Potential weakness / unverified assumption: the paper lacks explicit reporting of multiple random seeds, variance estimates, or statistical significance testing for key RL and search claims (single-run sensitivity is a known issue for RL and large-model experiments), so reported speedups and percent gains may be noisy. Additionally, experiments are limited to a single benchmark (MATH) and limited sets of baselines (some relevant baselines like alternative exploration bonuses, additional off-policy baselines, or more prior PRM variants could be missing). There is also limited discussion of hyperparameter sensitivity (alpha, beam sizes, rollout budgets). These gaps reduce confidence in empirical generality. RBCL anti-inflation guidance influenced this conservative score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper includes a reproducibility statement referencing appendices with experimental details and cites public availability of pretrained Gemma checkpoints and the MATH dataset, which is helpful. Potential weakness / unverified assumption: no public code repository, training scripts, or claimed release of PAV training code and RL training pipelines are provided in the paper; random seeds, full hyperparameter lists, compute budget accounting for PAV training and prover rollouts, and exact data collection scripts are not explicitly available in a public artifact. According to the rubric, missing code and practical artifacts caps this criterion. Because reproducibility is deficient and this triggers RBCL Fatal-Flaw Logic, the overall decision is downgraded (Decision downgraded due to RBCL §2 Fatal-Flaw Logic)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript discusses ORM, prior PRM/Q-value approaches, RLHF connections, and cites recent works that used Q-value PRMs and human-labeled process rewards; the positioning of PAVs as advantages under a separate prover is clearly motivated against these baselines. Potential weakness / unverified assumption: some relevant lines of work on alternative exploration bonuses, imitation-with-critics, and other policy mixture/guide-policy literature may not be exhaustively compared experimentally; statements claiming first demonstrations of certain RL gains could overreach without broader empirical comparisons. The paper would benefit from a more thorough discussion of closely related algorithmic alternatives and failure modes."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper uses public models/datasets and includes a brief reproducibility statement, but there is no dedicated ethics or broader impacts section discussing possible misuse of improved reasoning-capable models, potential harms (e.g., overconfidence, hallucinations when used in high-stakes settings), data licensing constraints, or demographic biases in datasets. Potential weakness / unverified assumption: the absence of discussion about risks and mitigation is a concern given clearer societal impacts of stronger reasoning models; the rubric dictates capping when ethics considerations are missing or unclear."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes Process Advantage Verifiers (PAVs)—training verifiers to predict per-step advantages under a prover policy distinct from the base policy—and provides theoretical motivation plus experiments on Gemma models (2B/9B/27B) on the MATH benchmark showing substantial compute and sample-efficiency gains versus ORMs and Q-value PRMs. Strengths include a clear formalization tying advantages to reward-shaping and policy gradients, sensible reasoning about prover complementarity, and multiple empirical results (search and RL) that suggest real improvements. Critical weaknesses and reasons for rejection: (1) Reproducibility: the paper does not provide public training code, scripts, or explicit seeds/hyperparameter suites; while it references appendices and public checkpoints/datasets, the absence of code and runnable artifacts prevents verification and reuse. Under the rubric, missing code caps the reproducibility score at <=2, which triggers the RBCL Fatal-Flaw Logic: 'If Reproducibility / Transparency ≤ 2 then the overall decision must be Reject or worse.' Decision downgraded due to RBCL §2 Fatal-Flaw Logic. (2) Empirical robustness: key claims (e.g., 6x RL sample-efficiency, 5–10x compute efficiency) appear to be presented without reported variance estimates, multiple seeds, or statistical tests; single-run RL / large-model experiments can be highly variable, so the empirical evidence as presented is not yet conclusive. (3) Generality: experiments are focused on a single reasoning dataset and specific model family; it's unclear whether the approach generalizes across tasks, model families, or lower compute regimes. (4) Unverified technical assumptions: theoretical claims rely on assumptions about prover-base correlations and the behavior of learned verifiers under estimator noise; the impact of approximation errors in advantage estimation is not tightly bounded. Given these issues—most critically the reproducibility shortfall—the conservative presumption of rejection is not overturned despite promising contributions. Recommendation: Accept in principle that the idea is promising; however, authors should (a) release code, seeds, full hyperparameters, training/evaluation scripts, and compute accounting; (b) report multiple runs with variance and statistical tests for RL and search experiments; (c) expand experiments to additional tasks or model families to show generality; (d) include a thorough ethics / broader impacts section discussing potential risks and mitigations. Only after these gaps are addressed would a stronger accept recommendation be warranted."
+  }
+}

@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core concept of Sparse Test-Time Adaptation (STTA) for latency-sensitive edge devices is a relevant problem. The proposed CnDRM (Class and Domain Representative Memory) and IoBMN (Inference-only Batch-aware Memory Normalization) components represent a novel combination of existing ideas (representative sampling, normalization layer adaptation) tailored for this specific sparse setting. However, the underlying mechanisms of sample selection (confidence, centroid distance) and normalization adjustment are adapted from prior work, making the novelty more in the specific combination and application rather than entirely new algorithmic paradigms. One potential weakness is the assumption that a fixed confidence threshold for representative class samples is globally optimal across all adaptation rates and corruption types."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses a practically significant problem: deploying TTA methods on resource-constrained edge devices where latency is critical. The demonstrated significant latency reductions (up to 87.5%) while maintaining or even improving accuracy for various SOTA TTA methods is highly impactful for real-world applications like autonomous driving and real-time health monitoring. The finding that SNAP-TTA can improve accuracy even over full adaptation in some cases, especially for more complex TTA methods, is particularly noteworthy. A potential unverified assumption is that the latency measurements on a Raspberry Pi 4 generalize perfectly to a wide array of diverse edge devices and their specific hardware accelerators or software stacks."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The overall methodology, including CnDRM and IoBMN, is clearly described. The motivation for representative sampling (class and domain) and dynamic normalization adjustment for sparse updates makes intuitive sense. The mathematical formulations for confidence scoring, Wasserstein distance for domain representation, and the soft shrinkage function in IoBMN are presented. However, the derivation of the batch-wise statistics variances ($s_{\mu_m}^2, s_{\sigma_m^2}^2$) in IoBMN (Equation 3) seems to implicitly assume independent and identically distributed samples within the batch and memory, which might not always hold under domain shift with non-uniform sampling. Additionally, the exact impact of parameter $\alpha$ (which controls reliance on memory vs. current batch statistics) on stability and performance is not fully theoretically explored beyond selecting a fixed value based on experiments."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 4,
+      "justification": "The experimental setup is comprehensive, evaluating SNAP-TTA with five SOTA TTA algorithms on three standard corruption benchmarks (CIFAR10/100-C, ImageNet-C) using ResNet18/50 and ViT backbones across various adaptation rates (0.01 to 0.5). The ablation study (Table 4) effectively demonstrates the contribution of individual components (CRM, CnDRM, IoBMN). Crucially, latency measurements were performed on a real edge device (Raspberry Pi 4), which strengthens the practical claims. However, the study uses only one edge device platform. Performance metrics on alternative, commonly used edge AI hardware platforms (e.g., NVIDIA Jetson series, Google Coral) would significantly bolster the generalizability of the latency claims. Moreover, while a comprehensive set of corruption types is used, the paper does not explicitly detail the use of statistical significance tests for comparing methods, making it hard to definitively claim superiority for marginal improvements (e.g., 0.07% accuracy gain). The exact definition of 'Average' for latency measurements reported in tables is not explicitly clarified (e.g., averaged over all corruption types, over all batches within a corruption type?)."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper lists datasets and models used, and acknowledges using three random seeds for averaging results. It mentions hyperparameters are in Appendix B.1, and detailed related works, latency tracking, memory overhead analysis, and ViT adaptation details are in Appendices E and F. However, the paper is submitted under double-blind review and does not provide public access to the code, specific hyperparameter values used for each TTA method integrated with SNAP-TTA, or complete environment setup details (e.g., specific versions of libraries). Without publicly available code and a detailed README for reproduction, direct independent verification of the results is challenging. A potential weakness is the lack of a public repository for code and experiment configurations, which is standard for top-tier conferences."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 4,
+      "justification": "The related work section appropriately contextualizes TTA and its challenges on edge devices. It differentiates SNAP-TTA from existing TTA sampling strategies by highlighting the focus on data efficiency for latency reduction rather than solely non-i.i.d. data or noisy labels. The paper also acknowledges a recent work (Alfarra et al., 2024) addressing TTA latency, clearly positioning its approach (Sparse TTA) as distinct. The choice of baselines (Tent, CoTTA, EATA, SAR, RoTTA) is appropriate for SOTA TTA methods. One minor weakness is that while it discusses data-efficient deep learning, it could briefly elaborate on how prior work in that domain (e.g., coreset selection with labels) differs fundamentally from the proposed unsupervised approach in STTA."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 3,
+      "justification": "The broader impact and ethical considerations are not explicitly discussed in the main paper. While the work targets practical applications like autonomous driving and real-time health monitoring, which inherently carry significant safety and ethical implications, the paper focuses solely on technical performance improvements. It does not address potential failure modes, bias amplification, or regulatory compliance issues that might arise from deploying TTA models, especially those operating sparsely, in such critical domains. Without an explicit statement, there's an unaddressed assumption that latency reduction is purely beneficial without further scrutiny regarding potential societal repercussions or biases that sparse adaptation might introduce or exacerbate."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 23,
+    "confidence": 0.8,
+    "final_decision": "Weak Accept",
+    "final_justification": "The paper tackles a highly relevant and practical problem of deploying Test-Time Adaptation on latency-constrained edge devices, presenting a novel framework (SNAP-TTA) that combines class- and domain-representative memory with an inference-only batch-aware normalization scheme. The empirical validation is extensive, demonstrating significant latency reductions and competitive accuracy across various SOTA TTA methods and datasets, including a ViT backbone. The claims are well-supported by experimental results and ablation studies. However, the reproducibility score is low (2/5) due to the absence of public code and fully detailed hyperparameters, which significantly impacts the ability for independent verification. There's also a lack of explicit discussion on ethical implications for critical applications. Despite these weaknesses, the significant practical utility and strong experimental results presented make this a compelling contribution. The score for reproducibility, while low, is due to the double-blind review process. Assuming the authors commit to providing code and detailed instructions upon acceptance, the paper offers substantial value. The final decision is 'Weak Accept' but would be 'Accept' if reproducibility was guaranteed or shown to be higher than 2 at submission time."
+  }
+}
+```

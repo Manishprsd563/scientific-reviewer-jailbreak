@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of Sparse TTA (STTA) itself is not entirely new, as the paper cites prior work on reducing adaptation frequency. The novelty lies in the specific proposed components: Class and Domain Representative Memory (CnDRM) and Inference-only Batch-aware Memory Normalization (IoBMN). While selecting representative samples for efficiency is a known approach in data-efficient deep learning, its application to unsupervised test-time adaptation with this specific combination of criteria (class-representative via pseudo-labels, domain-representative via feature stats/Wasserstein distance) shows some novelty. IoBMN for normalization adjustment in sparse settings is also a fresh perspective. However, the reliance on pseudo-labels for class representation, while necessary due to lack of ground truth, makes the assumption that pseudo-labels are sufficiently accurate to pick 'class-representative' samples, which may not always hold true, especially under severe domain shift or low confidence."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The problem addressed (latency of TTA on edge devices) is highly significant for real-world deployment in latency-sensitive applications like autonomous driving. If the proposed SNAP-TTA effectively reduces latency without substantial accuracy drops, it could significantly broaden the applicability of TTA methods. The framework's ability to integrate with existing TTA algorithms also enhances its potential impact. A potential weakness is that the gains might be very sensitive to the specific edge device characteristics and the severity/type of domain shift, which might not be fully generalizable across all real-world scenarios."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical components, CnDRM and IoBMN, are reasonably described. CnDRM's logic for combining class and domain representation makes intuitive sense, building on prior work. IoBMN's soft shrinkage function for adapting normalization statistics is also a plausible approach. However, the mathematical formulation for IoBMN (Equations 3, 4, 5) could benefit from more detailed derivations and clearer justification for parameter choices (e.g., alpha=4). The assumption that 'early layers in deep learning models tend to retain domain-specific features' and thus using first layer stats for domain representation (Appendix E.1) is stated but not rigorously justified, nor is the choice of Wasserstein distance entirely elaborated beyond its general use in domain generalization. The choice of fixed memory for CnDRM management is a simplification that might not perfectly capture evolving domain representations over very long streams."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The empirical validation is fairly comprehensive, testing SNAP-TTA with five SOTA TTA algorithms on three benchmark datasets (CIFAR10-C, CIFAR100-C, ImageNet-C) across various adaptation rates and using multiple backbone models (ResNet18, ResNet50, ViT). The inclusion of a Raspberry Pi 4 testbed for latency measurements strengthens the practical claims. Ablation studies (Table 4) investigate the individual contributions of CnDRM and IoBMN. However, the evaluation focuses on average performance over corruptions. It would be beneficial to see analysis on specific corruption types or severity levels to understand where SNAP-TTA might perform exceptionally well or poorly. Additionally, while latency is measured on hardware, it is not explicitly compared against inference latency of the base models without TTA, making it harder to gauge the 'cost' added by the base TTA methods themselves versus the benefits from SNAP-TTA's reduction. The long-term stability of performance over continuous, very long data streams, especially with fixed memory, is not thoroughly evaluated."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper does not explicitly state that code will be released. While some implementation details and hyperparameters are mentioned in Appendix B.1, the absence of a confirmed code release significantly hinders reproducibility. Without the code, replicating the reported results, especially the latency measurements on a specific hardware setup like the Raspberry Pi 4, would be extremely challenging. The parameter 's' in IoBMN is mentioned as a hyperparameter that 'can be tuned', but its specific value or tuning strategy used in experiments is not provided in Section 3.2, which limits transparency."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper adequately positions its contributions against existing TTA methods, particularly in the context of latency for edge devices. It differentiates itself from traditional sampling strategies by explicitly considering both class and domain representation without ground truth. The related work section briefly mentions prior TTA work and efficiency concerns. However, a more detailed discussion contrasting SNAP-TTA's technical contributions against methods that also involve memory or normalization adjustments (even if not strictly for sparse TTA) could further strengthen its positioning. A specific weakness is that the paper claims 'existing TTA methods are not tailored for practical use on edge devices', but the discussion on *why* other methods haven't tackled this or *how* their limitations specifically manifest on edge devices could be expanded beyond general computational overhead."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper includes no explicit ethics statement or discussion on broader impacts, safety, or potential risks. Given that the target application areas include autonomous driving and real-time health monitoring, there are significant ethical and safety considerations (e.g., reliability, adversarial robustness, potential biases in adaptation) that should be addressed. The lack of any such discussion is a notable omission and automatically caps this score at 1 as per RBCL guidelines."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "The paper proposes SNAP-TTA, a framework for sparse test-time adaptation targeting latency-sensitive edge applications. While the problem addressed is highly significant and the proposed components (CnDRM and IoBMN) show some novelty in their specific application to sparse TTA, the paper has critical weaknesses that prevent acceptance. The most significant flaw is the poor reproducibility score (2/5) due to the lack of a code release. Per RBCL §2 Fatal-Flaw Logic, this immediately downgrades the paper to 'Reject'. Furthermore, the absence of any ethics statement (1/5) for a paper targeting critical safety applications like autonomous driving is a serious oversight. Although the empirical validation is extensive, deeper analysis on specific corruption types and long-term stability would strengthen the claims. The technical soundness could benefit from more rigorous derivation and justification of key assumptions. Given the critical reproducibility and ethics flaws, and a total score of 17 which falls into the 'Borderline / Major Revision' category before overrides, the RBCL §3 Practical ICLR Calibration rule suggests defaulting to 'Reject' given that the work does not present an exceptional conceptual breakthrough. The overall contribution, while positive, is not sufficient to overcome these fundamental weaknesses which are essential for a top-tier conference."
+  }
+}
+```

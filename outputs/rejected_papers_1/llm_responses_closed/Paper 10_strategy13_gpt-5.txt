@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR) with a proportionality-based rescaling rule (including bias scaling) and an EMA-softened per-layer scaling factor. While the bias-scaling to preserve proportionality is a neat insight, similar weight-rescaling ideas exist (e.g., Layerwise rescaling and recent Weight Rescaling to initialization statistics). The contribution appears incremental over prior rescaling/regularization lines, though the formal proportionality framing is interesting. Potential weakness: the novelty hinges on assumptions (homogeneous activations, specific handling of normalization layers) and may not generalize to modern architectures with non-homogeneous components (e.g., attention, residual connections, gated nonlinearities)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Addressing plasticity loss and unbounded weight growth is important for warm-start and continual learning. Reported gains (e.g., ~4% on TinyImageNet with VGG-16) suggest utility. However, the study focuses on small-to-mid-scale image classification and older architectures (CNNs/VGG-16), limiting broader impact claims. Missing evaluation on modern architectures (ResNets, Transformers) and tasks (NLP, large-scale pretraining) weakens significance. Potential weakness: improvements may not transfer to state-of-the-art training regimes (AdamW, cosine schedules, data augmentation stacks) or non-vision domains."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proportionality theorem for homogeneous activations and the bias-scaling rule are plausible, and the idea of boundedness and layer-balancedness is reasonable. However, key proofs (boundedness, normalization-layer handling) are deferred to appendices; the excerpt does not provide full details. Interaction with optimizer states (e.g., Adam moments) under frequent rescaling is not analyzed and could alter optimization dynamics. Potential weakness: balancedness is argued via Frobenius norms rather than spectral norms or path norms that are more tightly linked to generalization, and the effect in networks with residual/attention blocks is unverified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover warm-start, continual learning (full and limited access), and standard generalization across MNIST/CIFAR/TinyImageNet with CNNs/VGG-16 and a CNN-BN variant. However, key baselines are missing or underdeveloped: no comparisons with AdamW (decoupled weight decay), spectral norm regularization in practice, path-based regularizers, or recent plasticity approaches beyond L2/L2-Init and simple reinitialization. Ablations on SWR hyperparameters (e.g., λ, EMA rate, rescaling frequency) and optimizer interactions are minimal. Statistical rigor is limited (some plots average over 5 runs, but broader variance analyses and significance tests are absent). Potential weakness: lack of evaluation on modern architectures (ResNet/Transformer) and large-scale settings undermines generality of claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references standard datasets and mentions that detailed settings and hyperparameters are in an appendix, but there is no explicit statement of released code, seeds, or full training environment details in the excerpt. Without code and comprehensive configuration disclosure, reproduction is uncertain. Potential weakness: lack of publicly available implementation and precise training scripts/seeds caps reproducibility per the rubric."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a broad set of works on weight growth, regularization, and re-initialization, including recent studies that motivate plasticity loss. However, empirical comparisons exclude some closely related or strong baselines (e.g., AdamW, spectral norm in practice, sharpness-aware methods) and do not include direct empirical comparison to the cited recent Weight Rescaling method. Potential weakness: positioning relative to modern training protocols and strong regularization/optimization baselines is incomplete."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics or broader impacts statement is visible in the excerpt; dataset licenses and data provenance are not discussed. While the work is methodological and uses standard benchmarks, explicit consideration is expected for top-tier venues. Potential weakness: missing ethics statement triggers a cap per the rubric."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the idea of proportionality-aware weight rescaling with bias adjustment is interesting and potentially useful for mitigating plasticity loss, the paper lacks sufficient empirical breadth and reproducibility to warrant acceptance. Critical gaps include missing code and detailed reproducibility artifacts, limited baselines (no AdamW or strong modern regularizers), and absence of evaluations on contemporary architectures or larger-scale settings. Per RBCL §2 Fatal-Flaw Logic and the stated overrides, a reproducibility score ≤ 2 mandates rejection; decision downgraded accordingly. Strengths in conceptual framing do not compensate for these shortcomings under the non-compensatory evaluation rules."
+  }
+}

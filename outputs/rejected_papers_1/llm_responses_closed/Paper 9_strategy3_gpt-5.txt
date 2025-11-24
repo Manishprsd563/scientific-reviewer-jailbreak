@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes a sparse TTA framework with two components (class- and domain-representative sampling and an inference-only normalization adjustment). While the integration target (latency-sensitive, edge-deployed TTA) is valuable, both components appear to be composed of known ingredients: confidence-based sample selection and centroid/feature-statistics proximity for representativeness are well-explored, and the normalization update resembles existing BN/LN statistics adaptation (e.g., AdaBN/BN recalibration/Tent-style adjustments). The soft-shrinkage rule for mixing memory and batch statistics is plausible but not clearly positioned as a fundamentally new insight. Potential weakness: the assumption that Wasserstein distance on early-layer mean/variance sufficiently captures domain representativeness is unverified and may already be implicit in prior domain-alignment via normalization."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Reducing adaptation frequency and data usage while preserving accuracy is practically important for on-device/edge TTA. Reported latency reductions (up to ~87.5%) with competitive accuracy could help deploy TTA in real-time settings. Potential weakness: demonstrated benefits are limited to corruption benchmarks (CIFAR10/100-C, ImageNet-C) and a single device (Raspberry Pi 4), with no real-world streaming datasets or stricter application constraints (e.g., autonomous driving) tested; it remains unclear how robustly this transfers to non-corruption shifts or diverse hardware/energy budgets."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The methodology is a reasonable heuristic but several derivations and assumptions are weakly justified: (i) IoBMN’s variance formulas implicitly assume independence and specific sampling distributions across channels and memory without proof; (ii) the use of early-layer mean/variance as a domain centroid and a per-sample Wasserstein distance (on only mean/std) lacks theoretical support; (iii) some equations and algorithmic details are garbled or incomplete, impeding verification; (iv) reliance on pseudo-label confidence for class-representative sampling under shift may amplify confirmation bias. Potential weakness: absence of formal analysis of stability/convergence or error propagation in sparse-update regimes."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper evaluates five TTA baselines across CIFAR10/100-C and ImageNet-C, reports multiple adaptation rates, includes ablations (CnDRM vs alternatives and IoBMN vs EMA/test-BN stats), and tests a ViT variant. Latency is measured on a Raspberry Pi 4, and results are averaged over three seeds. Potential weakness: no statistical significance tests, limited hardware diversity (no GPU/other CPUs/mobile SOCs), and no real-world non-synthetic shifts or continuous/abrupt shift scenarios; several tables are hard to parse and omit some hyperparam details, and critical baselines for low-latency or alternative sampling/selection (e.g., strong OOD filters, uncertainty calibration methods) are not systematically compared."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for implementation and hyperparameters, but there is no explicit code release, no detailed training/adaptation scripts, and several equations/algorithms are partially garbled, which undermines faithful replication. Potential weakness: lack of code, incomplete hyperparameter specification (e.g., thresholding, memory handling cadence, alpha/lambda choices), and limited environment details (only one device reported) cap reproducibility per the rubric."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites key TTA baselines (Tent, EATA, SAR, CoTTA, RoTTA) and acknowledges BN-statistics adaptation literature. It partially connects to data-efficient sampling/coreset ideas. Potential weakness: positioning versus low-latency/on-device continual adaptation, stronger BN/LN calibration methods, and recent representative-sampling or memory-bank TTA variants is not comprehensive; the novelty boundary relative to AdaBN-like techniques and shrinkage-based normalization is not crisply delineated."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics or broader impact discussion is provided. The work targets safety-critical deployments (e.g., autonomous driving), yet it does not discuss failure modes, risk mitigation under mis-adaptation, or energy/privacy implications on edge devices. Potential weakness: missing ethics statement and data/label provenance/licensing details (especially for ImageNet) per conference norms caps this score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.6,
+    "final_decision": "Reject",
+    "final_justification": "While the practical focus on sparse TTA for latency-sensitive edge scenarios is timely, the contribution reads as an incremental combination of known components (representative sampling plus BN/LN statistics adjustment) with limited theoretical grounding. Empirical results are promising on corruption benchmarks but lack broader real-world validation, hardware diversity, and rigorous statistical analysis. Critically, per RBCL §2 Fatal-Flaw Logic, Reproducibility ≤ 2 (no code, incomplete algorithmic clarity) and Technical Soundness ≤ 2 (unjustified assumptions, garbled derivations) trigger an automatic downgrade to Reject; the total score is therefore not allowed to influence acceptance despite moderate empirical performance. Decision downgraded due to RBCL §2 Fatal-Flaw Logic and strict reproducibility/correctness requirements."
+  }
+}

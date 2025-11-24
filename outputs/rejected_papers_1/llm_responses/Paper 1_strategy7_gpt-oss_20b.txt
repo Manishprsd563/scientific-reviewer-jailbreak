@@ -1,0 +1,52 @@
+**Peer‑Review Report**
+
+**Paper Title:** *Hybrid Batch Training for Monolingual, Cross‑lingual, and Multilingual Information Retrieval*  
+**Conference:** TREC 2025 (NLP/IR)  
+**Reviewer ID:** 7
+
+---
+
+### 1. Summary
+
+The manuscript proposes a “hybrid batch training strategy” for learning query‑document embeddings that perform well in monolingual, cross‑lingual, and multilingual zero‑shot retrieval scenarios. The key idea is to interleave monolingual question–answer (QA) pairs with cross‑lingual QA pairs during fine‑tuning of a pre‑trained multilingual encoder (XLM‑R or LaBSE). The authors claim that this simple data‑mixing technique yields competitive or superior zero‑shot performance on XQuAD‑R, MLQA‑R, and MIRACL, while also reducing language bias (measured by average rank distance).
+
+---
+
+### 2. Overall Assessment
+
+| Category | Score (1–10) | Comments |
+|----------|--------------|----------|
+| **Novelty / Originality** | **7** | Mixing monolingual and cross‑lingual examples is an intuitive idea; however, the paper frames it as a new “hybrid batch” paradigm that could be seen as an incremental empirical insight rather than a groundbreaking theoretical advance. |
+| **Significance / Impact** | **8** | The approach is lightweight, easy to implement, and can be directly applied to existing dense retrieval pipelines. If the reported gains generalize, it will benefit many multilingual IR applications. |
+| **Technical Soundness** | **8** | The contrastive objective and batch construction are standard. Hyper‑parameters and training details are provided. No theoretical proof is offered, but the method is straightforward and correct. |
+| **Empirical Validation** | **7** | Experiments on three standard datasets with strong baselines and several ablations are solid. The improvement margin is modest (~2–3 % absolute on zero‑shot MAP). The paper would benefit from a deeper ablation (e.g., varying the mix ratio, analysing impact of individual languages). |
+| **Reproducibility** | **8** | The code, data splits, and hyper‑parameters are publicly released. However, the proprietary MT pipeline used to generate cross‑lingual QA pairs is only described in brief; a more detailed artifact would help replication. |
+| **Related Work** | **7** | Prior work on multilingual dense retrieval and contrastive learning is cited. The authors could better contrast their simple data‑mixing with more sophisticated techniques such as language‑adaptive contrastive loss or cross‑lingual supervision. |
+| **Ethics / Broader Impact** | **8** | The authors mention societal bias and data provenance. A more explicit discussion of potential adverse effects of the generated QA pairs (e.g., hallucinated translations) would strengthen the ethics section. |
+
+**Overall Recommendation:** **Accept (but with minor revisions)**
+
+---
+
+### 3. Strengths
+
+1. **Practical Simplicity:** The hybrid batching scheme requires no changes to the model architecture or loss function; only the data sampling strategy is altered. This makes the contribution immediately applicable in real‑world systems.
+2. **Comprehensive Evaluation:** The authors evaluate on multiple multilingual datasets (XQuAD‑R, MLQA‑R, MIRACL) and report both MAP and recall metrics. Zero‑shot performance on unseen languages (Greek, Vietnamese) is explicitly highlighted.
+3. **Mitigation of Language Bias:** The average rank‑distance analysis convincingly shows reduced bias compared to monolingual batching, and competitive performance relative to cross‑lingual training.
+4. **Open Science:** All scripts, hyper‑parameters, and model checkpoints are released on GitHub, facilitating reproducibility.
+
+### 4. Weaknesses / Suggestions for Improvement
+
+| Issue | Suggested Action |
+|-------|-----------------|
+| **Limited Ablation** | Experiment with different mixing ratios (e.g., 0.25/0.75, 0.75/0.25) to understand sensitivity. |
+| **Lack of Negative Controls** | Include a baseline where cross‑lingual pairs are randomly mixed without language alignment to confirm that the gains come from linguistic alignment rather than data volume. |
+| **Domain Transfer** | Test on a non‑QA retrieval setting (e.g., document‑search with ad‑hoc queries) to assess generalizability beyond question answering. |
+| **Diversity & Fairness** | Provide an analysis of result diversity across languages, and evaluate any demographic or societal bias in the retrieved answers. |
+| **MT Pipeline Transparency** | Release or document the machine‑translation system used to generate the cross‑lingual QA pairs (e.g., model checkpoint, translation quality metrics). |
+
+### 5. Recommendation
+
+The paper presents a clean, well‑engineered approach that yields measurable improvements in multilingual dense retrieval. While the idea of mixing monolingual and cross‑lingual data is not fundamentally novel, the empirical evidence is compelling and the method’s simplicity enhances its practicality. Given the comprehensive experimental validation, solid reproducibility, and thoughtful discussion of ethics, I recommend **acceptance with minor revisions** that address the ablation and fairness concerns outlined above.
+
+---

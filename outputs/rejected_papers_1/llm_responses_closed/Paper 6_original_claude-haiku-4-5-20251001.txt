@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes two methods (BMT and MMT) for federated unlearning, but both are relatively straightforward combinations of existing ideas. BMT trains local models alongside the global model and uses them for re-initialization after unlearning—this is a natural extension of prior work (Bourtoule et al., 2021) applied to federated settings. MMT extends this by training sub-FL models on disjoint client subsets, which is conceptually similar to hierarchical or clustering-based approaches already explored (e.g., FedCIO by Qiu et al., 2023, which the authors acknowledge). The connection to Shannon-Fano and Huffman coding for tree construction (Section 4.4) is interesting but feels somewhat orthogonal to the core contribution and lacks theoretical justification. The core idea of maintaining auxiliary models and aggregating them for better initialization is intuitive but not a significant methodological leap. The paper does not introduce novel theoretical insights, new optimization techniques, or fundamentally new perspectives on the unlearning problem."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Federated unlearning is a practically important problem, especially given GDPR and regulatory requirements. The motivation is clear: achieving exact unlearning while maintaining post-unlearning performance is desirable. However, the significance is limited by several factors: (1) The computational cost of BMT (maintaining one local model per client) and MMT (training multiple sub-FL models) is substantial and not thoroughly analyzed. For large-scale federated systems with thousands of clients, this overhead could be prohibitive. (2) The paper does not provide a clear cost-benefit analysis: how much computational overhead is acceptable for the performance gain achieved? (3) The experiments are limited to relatively small-scale settings (max ~10 clients in sequential unlearning). (4) The paper does not address communication costs, which are critical in FL. The practical applicability remains unclear without resource constraints and large-scale validation."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Multiple technical concerns arise: (1) The claim of 'exact unlearning' is not rigorously justified. The paper states that aggregating local models achieves exact unlearning, but this is not formally proven. Each local model is trained on the global model initialized with other clients' contributions, so how can aggregating such models guarantee complete removal of a client's influence? (2) In BMT, each client's local model is created after the first global update, which already contains influence from other clients' data. Simply discarding the global model and re-initializing from local models does not mathematically guarantee exact unlearning. (3) The optimization problem (Eq. 1) is standard but the connection to the proposed methods is not rigorously established. (4) MMT's sub-FL models are trained on disjoint client subsets, but the paper does not formally analyze how aggregating subsets of these models removes all influence of the target client. (5) No theoretical analysis of convergence rates, approximation error bounds, or conditions under which exact unlearning is guaranteed. The assumption that weighted aggregation of local models yields a model equivalent to retraining without the target client is unjustified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experimental validation has significant limitations: (1) Scale is too small. The sequential unlearning experiments involve only 3 clients leaving a federation of ~10 clients. For federated learning, which typically involves thousands or millions of clients, this is insufficient. (2) Datasets are small-scale and relatively simple (MNIST, Fashion-MNIST, CIFAR-10/100). Modern federated learning applications involve larger models and diverse data. (3) No statistical analysis: no confidence intervals, error bars, or significance tests. All results appear to be single runs, violating standard empirical rigor. (4) Missing important baselines: no comparison with recent federated unlearning methods beyond FedCIO, Exact-Fun, and FATS. (5) Limited analysis of computational costs. The paper does not report training time, memory consumption, or communication overhead for BMT/MMT vs. baselines. (6) The language tasks (Section 4.5) use only 2 datasets and fine-tuning rather than true federated learning setup. (7) No evaluation of unlearning verification: the paper claims exact unlearning but does not verify it (e.g., by checking if the unlearned model is statistically identical to a from-scratch retrained model). (8) The 'Standalone' baseline trains on centralized aggregated data, which is not a realistic comparison in federated settings."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility information is missing: (1) No code is provided, and there is no mention of code availability or release plans. (2) Random seeds are not specified, making it impossible to reproduce the exact results. (3) While hyperparameters are listed in Section 4.1, they are not comprehensive. For instance, how are sub-FL models initialized in MMT? How many communication rounds are used for each sub-FL model? (4) The paper does not specify how the combined test set (mentioned in Section 4.1) is constructed across different client scenarios. (5) Data preprocessing steps and client distribution details are vague. The statement 'client i receives the most data from the i-th class' is unclear for datasets with more classes than clients. (6) No information on how clients were selected, data splits, or whether experiments were repeated. (7) The MMT tree construction using Huffman and Shannon-Fano coding is mentioned but not detailed enough to reproduce. (8) Language task experiments lack details on fine-tuning procedures, learning rates, and stopping criteria. (9) No supplementary materials, appendix, or additional resources mentioned. This paper would receive a score of 1-2 under strict reproducibility standards because core implementation details are absent."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (1.1) is comprehensive in coverage but has positioning issues: (1) The paper acknowledges that FedCIO (Qiu et al., 2023) also uses clustering and aggregation of intermediate models, but the distinction from BMT/MMT is not clearly articulated. The paper claims to 'touch on both ideas' but does not rigorously explain what makes BMT/MMT different or better. (2) The comparison to Exact-Fun and FATS is limited to experimental results without discussing their methodologies. (3) The paper does not clearly position itself relative to the broader machine unlearning literature (e.g., influence functions, gradient-based unlearning) or discuss why federated-specific approaches are necessary. (4) Recent federated learning advances (e.g., personalization, multi-task learning) are not discussed, even though they could be relevant. (5) The fair comparison concern: baselines like FedCIO and Exact-Fun are recent and not well-established, so it is unclear if the comparison is fair or if the implementations are correct. (6) The 'Standalone' baseline is somewhat strawman-ish since centralized training is not realistic in FL. (7) No discussion of theoretical unlearning guarantees from prior work or how BMT/MMT relate to them."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "Ethics and broader impacts are insufficiently addressed: (1) The paper motivates unlearning through GDPR and CCPA compliance but does not discuss whether the proposed methods actually satisfy these regulations' requirements for verifiable data deletion. (2) No discussion of potential misuse: federated unlearning could be used to hide data from audits or regulators. (3) The paper assumes a trusted central server but does not discuss implications if the server is compromised. (4) No analysis of privacy implications: if local models are retained on clients, does this introduce new privacy risks? (5) The paper does not address fairness concerns in federated settings (e.g., if some clients have more influence due to data size, does unlearning affect fairness?). (6) Data provenance for the datasets (MNIST, CIFAR, language datasets) is mentioned but not discussed in terms of licensing, consent, or ethical concerns. (7) The paper does not discuss societal impacts of federated unlearning in domains like healthcare or finance where failures could be serious. (8) No mention of responsible disclosure or ethical review. The motivation section mentions healthcare and finance but provides no analysis of risks in these domains."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses a practical problem in federated learning—achieving exact unlearning with better post-unlearning performance—but falls short of the standards expected for a top-tier venue like ICLR. The core contribution (BMT and MMT) is relatively incremental, combining existing ideas (local model training, hierarchical federated learning, tree-based aggregation) without significant novel insights. More critically, the paper has fundamental technical soundness issues: the claim of 'exact unlearning' is never rigorously proven. The argument that aggregating local models removes all influence of the target client lacks formal justification, and the mathematical guarantee of exactness is assumed rather than demonstrated. Empirically, the validation is insufficient: experiments are limited to very small-scale settings (≤10 clients) with no statistical rigor (no error bars, confidence intervals, or significance tests), small datasets, and missing computational cost analysis—critical for a method claiming to be practically useful. Reproducibility is severely compromised by the absence of code, random seeds, and detailed implementation specifications. The paper does not adequately compare itself to related work (especially FedCIO), leaving unclear what the distinct contribution is. The experimental scope does not match the claims: the paper proposes methods for large-scale federated learning but tests on toy problems. Finally, ethics and broader impacts are largely ignored despite motivating the work through regulatory compliance. While the paper is well-written and tackles an important problem, the combination of weak technical foundations, limited novelty, insufficient empirical rigor, and poor reproducibility make it unsuitable for acceptance. The paper would benefit from: (1) formal proof of exact unlearning guarantees, (2) large-scale experiments (100s or 1000s of clients), (3) statistical significance testing, (4) detailed computational cost analysis, (5) code release, and (6) rigorous comparison to FedCIO and other recent methods."
+  }
+}
+```

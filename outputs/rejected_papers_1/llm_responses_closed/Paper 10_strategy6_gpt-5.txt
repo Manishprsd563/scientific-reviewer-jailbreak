@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a simple per-layer rescaling scheme using an EMA between current and initial weight norms, combined with proportional bias rescaling to preserve outputs. While the packaging is clean, the core proportionality argument relies on well-known positive homogeneity properties and reparameterization ideas (closely related to prior weight rescaling/normalization and path-norm literature). The existence of recent related methods (e.g., Niehaus et al., 2024) narrows the novelty margin. Potential weakness: the claim of architectural generality (e.g., with normalization layers) rests on assumptions that are not fully justified and may already be implicitly covered in prior norm-preserving works."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, a lightweight procedure to constrain weight growth while preserving plasticity could be practically useful for warm-start and continual learning. Reported gains (notably on VGG-16/TinyImageNet) suggest potential relevance. However, evidence is limited to small/medium-scale image classification and older architectures; applicability to modern large-scale models (ResNets, Transformers) and optimizers (AdamW) is untested. Potential weakness: improvements may not translate to broader settings or stronger baselines (e.g., SAM/ASAM, SWA), limiting impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proportionality theorem for positively homogeneous activations and affine layers appears standard and plausible. However, the treatment of normalization layers is informal; scale-invariance interactions with batch statistics, affine parameters, and training dynamics are not rigorously analyzed. The boundedness proof is deferred to an appendix (not available here), leaving a central claim unverifiable. Potential weakness: repeated rescaling under momentum/Adam may alter optimizer states and training dynamics; this interaction is neither modeled nor ablated."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover multiple datasets and show consistent trends; some results are averaged over five runs with mean±std. However, the baseline set omits strong modern regularizers and training protocols (e.g., SAM/ASAM, cosine schedules with warmup, SWA), and comparisons to weight normalization/path-norm controls are missing. Ablations on key design choices (λ sensitivity, rescaling frequency, optimizer interactions, overhead) are absent from the main text. Potential weakness: lack of statistical significance tests and limited architecture diversity (no ResNets/Transformers) weaken generality."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Key implementation details (full algorithm, code, seeds, environment, exact hyperparameters) are deferred to appendices or not provided; no code release is indicated. While some settings are described and results report averages over multiple runs, the absence of an explicit, accessible implementation and exact configurations hinders reproducibility. Potential weakness: unspecified handling of optimizer states during rescaling and normalization specifics. Per instructions, missing or unclear information caps this score at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites a range of relevant works on weight decay, rescaling, and re-initialization. Nonetheless, positioning vis-à-vis closely related approaches (weight normalization, path-norm/Path-SGD, Lipschitz/spectral methods, gradient clipping, SAM/ASAM) is incomplete, and empirical comparisons to the most competitive alternatives are missing. Potential weakness: the treatment of normalization-aware regularization and prior analyses on layer balancedness could be more comprehensive."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly mentions dataset biases but largely dismisses them, relying on a cited meta-analysis with strong claims (95% correlation with real-world utility) that is unverified here. There is no substantive discussion of broader impacts, data licensing, or potential misuse. Potential weakness: the ethics section is minimal and may contain an overconfident or questionable claim; per policy, unclear or missing ethics considerations cap the score at 2."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.6,
+    "final_decision": "Reject",
+    "final_justification": "While the idea of soft per-layer rescaling with proportional adjustments is neat and empirically promising on several image benchmarks, the work falls short on reproducibility (no code or full configs provided; key details in appendices) and lacks rigorous analysis of critical edge cases (normalization layers, optimizer-state interactions). Empirical validation, though positive, omits strong modern baselines and comprehensive ablations. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: Reproducibility/Transparency ≤ 2 mandates rejection; additionally, the Anti-Inflation Safeguard and Practical ICLR Calibration favor a conservative stance. A more thorough treatment of normalization, optimizer dynamics, stronger baselines, ablations, and a public code release would significantly strengthen the case."
+  }
+}

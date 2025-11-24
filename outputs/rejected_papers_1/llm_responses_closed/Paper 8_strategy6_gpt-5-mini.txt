@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper presents several ideas (predicting recall from token-level probabilities, a recall-aware beam strategy, and a loss aggregation experiment) that are interesting when applied to molecule-generation. However, much of the work is an application/combination of existing components (autoregressive probability calculus, beam search, SELFIES/SMILES randomization) rather than a fundamentally new methodological insight; the claim of a novel decoding method is a relatively minor modification (keeping a very large beam and deduplicating) rather than a new search algorithm. Potential weaknesses / unverified assumptions: (1) generalization of the recall prediction approach to non-i.i.d. or non-molecular domains is asserted but not demonstrated; (2) the beam-search-as-recall-maximizer approach relies on impractically large beam sizes (1e6–1e7) without addressing computational feasibility; (3) some claims (e.g., that this is the only work proposing LM-specific recall-improving methods) may overstate novelty versus prior diversity-oriented sampling research."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The problem of measuring and improving recall for generative LMs is meaningful (security, drug discovery, exhaustive enumerations). A reliable method to predict recall without generation could be practically useful for model selection and deployment. Potential weaknesses / unverified assumptions: (1) practical impact is currently limited to closed, enumerable domains (small-molecule sets) and it's unclear how well results transfer to open-ended or semantic-equivalence domains (e.g., security exploits, text jailbreaks); (2) the reported extremely high correlations between predicted and empirical recall (Pearson ~0.9998) are surprisingly strong and may reflect overfitting to the constructed validation sets or circular evaluation choices; (3) computational costs for the proposed beam strategy are not discussed, so real-world applicability is uncertain."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The recall/precision derivations for i.i.d. sampling are straightforward and appear correct under the stated assumptions; the use of token-level probabilities to compute string probabilities is standard. Experimental methodology largely follows reasonable ML practice. Potential weaknesses / unverified assumptions: (1) core formulas assume i.i.d. sampling and independent draws from the autoregressive model; many practical sampling schemes (e.g., beam search, nucleus sampling with stateful decoding) violate these assumptions and the paper does not fully justify when the formulas still apply; (2) some experimental claims (very large-beam improvements) lack computational feasibility discussion and theoretical justification; (3) small gaps and typos in math and notation (e.g., formatting issues) make parts harder to audit; lack of statistical hypothesis tests weakens confidence."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper runs many large-scale experiments across four molecule subsets, multiple model sizes, and representation choices; it reports precision/recall and upper bounds and explores pretraining/fine-tuning and loss aggregation. However, there are several empirical shortcomings that limit confidence in the claims. Potential weaknesses / unverified assumptions: (1) No information on multiple random seeds or statistical variability (single-run results; no confidence intervals or hypothesis tests); (2) missing comparisons to stronger or diverse baselines (e.g., other diversity-oriented generative methods like GFlowNets, modern diffusion-based molecule generators, or explicit diversity-promoting decoders) for recall-focused objectives; (3) some experimental choices appear unrealistic (beam sizes of 1e6–1e7) and no ablation on computational costs or wall-clock scaling; (4) the extraordinarily high correlations reported between predicted and actual recall warrant further scrutiny and possible leakage — not investigated in depth."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility information is missing or unclear. Potential weaknesses / unverified assumptions: (1) No public link to code, model checkpoints, or scripts is provided in the manuscript; (2) hyperparameters, optimizer settings, random seeds, exact data splits, and hardware used are only cursorily referenced (e.g., 'additional information in A.1' but that appendix is not included here), preventing precise reproduction; (3) some setups (pretraining on 848M molecules, beam sizes of 1e7) are computationally heavy and without implementation details or resource reporting, the experiments cannot be reproduced. Per the scoring rules, missing/unclear information caps this criterion ≤ 2 — I assigned 1. Also: this low reproducibility triggers RBCL §2 Fatal-Flaw Logic and forces an overall decision of 'Reject' (decision downgraded due to RBCL §2 Fatal-Flaw Logic)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys relevant lines (molecular generation, recall/precision metrics for generative models, SMILES/SELFIES representations) and cites several appropriate works. It situates its contribution as applying recall-oriented thinking to LMs for molecules. Potential weaknesses / unverified assumptions: (1) discussion lacks direct empirical comparison to several strong molecule-generation approaches that optimize diversity or coverage (e.g., GFlowNets, modern diffusion/score-based models, and some recent molecular LLM/improved-sampling works); (2) the claim that this is uniquely the only work proposing LM recall-improving methods is overstated relative to prior diversity-focused decoding/sampling literature; (3) limited discussion of sample-efficiency tradeoffs and computational cost compared to prior work."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The manuscript does not present a dedicated ethics or broader-impact section and fails to address potential misuse or biosafety concerns. Potential weaknesses / unverified assumptions: (1) generating large molecule libraries could facilitate discovery of harmful or toxic compounds (dual-use risk) but the paper does not discuss mitigation, controlled release, or risk assessment; (2) data provenance and licensing for GDB-13 subset usage and the 848M pretraining subset are not clearly stated; (3) the ad-hoc paragraph invoking a meta-analysis (Schmidt and Valenti) reads unsubstantiated and does not substitute for a proper ethics statement. Per scoring rules, missing ethics discussion caps this criterion ≤2 — I assigned 1."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 12,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "While the paper addresses an interesting and practically relevant problem (measuring and improving recall of generative LMs in a closed molecular domain) and includes extensive experiments, there are critical issues that prevent acceptance. The most important is poor reproducibility: no code, model checkpoints, hyperparameters, random seeds, or sufficient implementation details are provided, and several experimental choices (extremely large beam sizes, massive pretraining subset) lack computational feasibility discussion. Per the review rules, reproducibility ≤ 2 triggers RBCL §2 Fatal-Flaw Logic and forces a 'Reject' decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Additional concerns include limited empirical rigor (single-run reporting, no statistical tests, missing critical baselines that emphasize diversity-oriented methods), overstated claims about novelty and generality beyond the molecular domain, and the absence of an ethics/broader-impacts discussion for a work that generates chemical structures (possible dual-use). Strengths: clear problem framing, sensible derivations for i.i.d. sampling, and a thorough set of within-domain experiments that suggest promising directions. However, the combination of missing reproducibility, empirical/claim overreach, and lack of ethical consideration outweighs these strengths. To be acceptable, the authors should (at minimum) release code and checkpoints, provide full experimental details (hyperparameters, seeds, hardware, datasets), include multiple seeds and statistical analyses, compare to stronger diversity/coverage baselines, show feasible decoding resource requirements (or propose practical approximations of large-beam decoding), and add a substantive ethics/broader-impacts section addressing dual-use risks and data licensing."
+  }
+}

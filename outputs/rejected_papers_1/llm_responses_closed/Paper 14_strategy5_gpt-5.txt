@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes structure-aware parameter-efficient unlearning by learning masks over Transformer heads and filters and integrating these with second-order (influence-function-based) unlearning. Applying structure-level selection (heads/filters) to unlearning is a reasonably fresh angle relative to prior parameter-level sparsity heuristics, and the categorization of successive unlearning into memory-free vs. memory-aided is a useful framing. However, the core components (masking, greedy search, diagonal Fisher approximations) are established ideas in pruning/importance estimation; the novelty lies mainly in their combination and application to unlearning. A potential weakness is that the derivation of the mask objective is insufficiently detailed in the provided text (key equations and Section 3.1 are referenced but not present), making it unclear whether the approach is fundamentally new or a repackaging of known pruning/selection techniques."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If validated, structure-aware sparse updates could make second-order unlearning more scalable on Transformers, a relevant and timely problem. However, reported gains over standard second-order unlearning (SO) are modest in the provided tables (small improvements in MIA/accuracy and memory with slightly higher runtime for mask search), and the experiments focus on relatively small models (BERT-base, DistilBERT, RoBERTa-large) and small forgetting sets (128 points). The absence of results on larger LLMs and broader tasks limits immediate practical impact. A potential weakness is that the claimed tighter approximation error bound due to sparsity remains unsubstantiated here, and the successive unlearning advantage is not convincingly demonstrated in the provided excerpt (e.g., Figure 4 not shown, Table 1 only reports SO)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The method relies on influence-function-style second-order updates with a diagonal empirical Fisher approximation and asserts that off-diagonal terms are negligible, which may not uniformly hold for Transformers. Claims of reduced approximation error via sparsity are stated but not rigorously derived in the provided text. Critically, key derivations for the learnable mask objective (Section 3.1 and referenced equations) are missing, preventing verification of correctness. The description of the greedy warm-start optimization and how masks respect intra-layer interactions is too high-level to assess theoretical validity. Potential weakness: the use of a diagonal FIM and the assumption of small off-diagonals may introduce significant error in attention-heavy architectures; without empirical or theoretical justification of error bounds, the correctness is uncertain. Per RBCL Evidence Severity Scaling, missing or unclear derivations cap this criterion and trigger stricter evaluation."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates on several standard NLP tasks and compares against FT, GD, SA, and SO. However, the presented results appear to be single runs without error bars or statistical tests; hardware, seeds, and detailed protocols are not provided. Ablations on sparsity (beyond the claim that 90% is sufficient), mask selection strategies, and the impact of head vs. filter masking are absent in the provided text. Successive unlearning results are referenced but not shown (e.g., Figure 4), and Table 1 does not include the proposed method. MIA setup is underspecified (e.g., exact attack configuration). Potential weakness: missing ablations and statistical rigor prevent concluding that improvements are robust; per RBCL Empirical Rigor, this warrants a low score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper uses public datasets and models (HuggingFace) and mentions hyperparameters in an appendix, but the provided text does not include code, random seeds, implementation details for the mask-learning greedy algorithm, environment specs, or precise instructions to reproduce tables. Time/memory reporting lacks hardware details. Potential weakness: without code and full protocol, key results (especially mask optimization and successive unlearning pipelines) are not independently verifiable. According to the stated rules, missing code and incomplete experimental details cap this criterion and trigger stricter decision logic."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites core unlearning literature (influence functions, SO methods) and parameter-efficient unlearning/pruning works, and positions its contribution as structure-aware selection vs. parameter-level heuristics. However, coverage of recent LLM unlearning and PEFT-based unlearning variants could be broader, and there is limited discussion comparing to head/filter importance literature in Transformers (e.g., head pruning/importance metrics) and how their objective substantively differs. Potential weakness: the fairness of comparisons is hard to assess without matched sparsity/parameter budgets across baselines; GD/SA settings may not be tuned comparably for the same compute budget."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "While the paper is motivated by privacy regulations (e.g., GDPR) and the right to be forgotten, there is no explicit ethics/broader impacts statement in the provided text. There is no discussion of potential risks of incomplete unlearning, misuse, dataset licenses/provenance, or safety considerations (e.g., membership inference residual risk). Potential weakness: absence of an ethics statement and risk analysis. Per the rules, missing ethics discussion caps this criterion at 2; given the lack of content, a conservative score is assigned."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.6,
+    "final_decision": "Reject",
+    "final_justification": "Although the idea of structure-aware masking for Transformer unlearning is interesting and potentially useful, the submission lacks sufficient technical detail (missing derivations for the mask objective, unproven error-bound claims) and reproducibility artifacts (no code, seeds, or complete protocols). Empirical gains over standard second-order unlearning are modest and presented without statistical rigor or thorough ablations; successive unlearning evidence is incomplete in the provided text. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: Technical Soundness ≤ 2 and Reproducibility ≤ 2 mandate Reject, and per RBCL Evidence Severity Scaling and Error Asymmetry, absence of critical details is treated as a major flaw. The work would benefit from full theoretical derivations, code release, comprehensive ablations (including sparsity, head vs. filter contributions), statistical robustness checks, and clearer successive unlearning evaluations."
+  }
+}

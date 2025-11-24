@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic, greedy token-tree construction strategy for speculative decoding that adaptively allocates sampling budget using draft-distribution–based estimates, and introduces a thresholded layer-wise construction to reduce draft calls. While related ideas exist (e.g., Sequoia’s acceptance-rate estimation and DP optimization; EAGLE-2/ReDrafter’s dynamic tree construction without standard verification), the specific combination of sampling-based dynamic expansion under verification constraints is moderately novel. Potential weakness: the key insight (using draft probabilities as a proxy for acceptance) is heuristic and overlaps conceptually with prior methods that estimate acceptance; the claimed optimality holds only under “mild assumptions” that are not fully elaborated in the main text, leaving unclear how broadly the novelty extends beyond incremental improvements."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the reported speedups (up to ~9x throughput/latency improvements on Llama2-70B with CPU offloading) would be valuable for LLM deployment. Performance gains over Sequoia/SpecInfer on multiple datasets/temperatures indicate potential practical utility. Potential weakness: the 70B results hinge on a CPU-offloaded target model with specific systems assumptions; generality to typical GPU-only deployments and diverse hardware is unclear. Moreover, absence of broader baselines (e.g., Medusa/EAGLE-2) and limited analysis under large draft–target mismatch temper the perceived impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The method aims to preserve standard verification by sampling (not selecting) and only adapting the number of samples, which is plausible. The acceptance–draft probability link is motivated via a KL-bound argument and empirically suggested, but it remains a heuristic estimator for acceptance and may fail under larger distributional divergence. The optimality claim relies on assumptions and an appendix proof not present in the main text; correctness of the thresholded approximation (vs greedy) is not theoretically characterized. Potential weakness: conditions ensuring unbiasedness under adaptive sampling decisions and the exact impact of threshold-based layer-wise construction are not rigorously established in the main text; edge cases with miscalibrated drafts are not theoretically analyzed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports results on several datasets (C4, OWT, CNN/DM, GSM8k, MT-Bench) and models (7B, 13B, 70B) with comparisons to Sequoia and SpecInfer. However, critical elements are missing: there are no error bars or multiple runs/seeds; statistical significance is not reported; ablations for the threshold C, tree-size budget, and the proposed C++ optimization’s contribution are absent; and strong baselines such as Medusa/EAGLE-2 are not included (even if verification differs, a practical performance comparison would be informative). Potential weakness: 70B speedups rely on a CPU-offloaded setup, limiting generalizability; the acceptance–draft correlation is only briefly shown (on one dataset), and robustness under high KL draft–target mismatch or diverse temperature regimes is not systematically studied."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper specifies models, datasets, temperatures, guess length, and some systems details (CUDA Graph usage, CPU offloading), but does not provide code, seeds, or full hyperparameter/configuration details. The thresholded implementation and C++ token-tree construction are central to performance yet unreleased. Potential weakness: without code, detailed configs, and scripts, exact reproduction is unlikely; per rubric, missing code/explicit reproducibility artifacts caps this score at ≤2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper discusses SpecTr, SpecInfer, Medusa, Sequoia, EAGLE-2, ReDrafter, and dynamic-depth decoding, and articulates compatibility with standard verification. However, empirical comparisons omit some strong recent systems (e.g., Medusa/EAGLE-2), and the discussion of when dynamic sampling confers advantages over DP-optimized fixed trees could be deeper. Potential weakness: justification for excluding certain baselines is only partially convincing and may bias positioning; broader contextualization versus selection-based self-speculative methods is limited."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics statement is provided. There is no discussion of data licensing/provenance, environmental impacts of accelerating large-scale inference, or deployment risks (e.g., faster generation potentially increasing harmful content throughput). Potential weakness: absence of a dedicated ethics/broader impact section; per rubric, missing or unclear ethics content should be penalized."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "DYSPEC presents a moderately novel dynamic token-tree construction for speculative decoding with promising speedups. However, the empirical section lacks statistical rigor (no multi-run variance, limited ablations), omits strong baselines (e.g., Medusa/EAGLE-2), and relies on a specific CPU-offloaded 70B setup that may not generalize. The theoretical justification rests on heuristic acceptance estimation from draft probabilities, and optimality claims are deferred to the appendix without clear conditions in the main text. Critically, reproducibility is limited (no released code or precise scripts/configs), triggering RBCL §2 Fatal-Flaw Logic and the stated overrides: with reproducibility ≤2, the decision must be Reject and the score is capped accordingly. Overall, while the idea is interesting and potentially impactful, the paper does not meet top-tier standards of rigor and transparency in its current form."
+  }
+}

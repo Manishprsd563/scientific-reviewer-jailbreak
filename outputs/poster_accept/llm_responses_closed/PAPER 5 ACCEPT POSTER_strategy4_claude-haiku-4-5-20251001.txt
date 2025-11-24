@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper connects agent generalization with self-refinement, which is a reasonable insight. However, the core technical contribution is limited: (1) the data synthesis framework is largely a structured version of existing approaches (script + trajectory generation), (2) the refinement tuning loss (Eq. 1) is simply masking incorrect actions during training, which is straightforward, and (3) self-refinement for LLMs is not new (Madaan et al., 2024; Shinn et al., 2024). The main novelty is applying this to agent tuning data construction, but this feels incremental. The TRPG-inspired framing is creative but superficial—the actual mechanism remains conventional. A potential weakness: the paper does not clearly articulate what fundamentally novel algorithmic or theoretical insight justifies publication at a top venue."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Agent tuning is a relevant problem, and improving generalization on held-out tasks is important. However, the practical impact is questionable: (1) the held-in performance (Alfworld) drops significantly (67.2% → 44.8% success rate, Table 1), which is a major regression despite claims of better generalization, (2) on held-out tasks, improvements are modest and inconsistent (e.g., BabyAI +8.9%, SciWorld +10%, but PDDL +8.3%, Jericho +10%), (3) the method still requires GPT-4o for data synthesis, limiting accessibility and reproducibility, (4) results on reasoning tasks (HotpotQA) show modest gains (29.3→37.0 EM) compared to baselines. Unverified assumption: that modest held-out gains justify the substantial held-in performance loss."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Multiple technical concerns arise: (1) Equation 1's loss function is poorly justified—masking loss on incorrect actions (1(A_j)) is standard and not novel, yet presented as a key contribution; the mathematical notation is also unclear (what exactly is π_θ computing?), (2) the verification process (Appendix O, not shown in full) appears ad-hoc and heuristic-based; there is no formal guarantee that the generated trajectories are well-formed or representative, (3) the paper lacks theoretical justification for why self-refinement specifically improves generalization—the connection is asserted but not formally derived, (4) Figure 2's perturbation analysis conflates memorization with brittleness, but does not prove memorization is the root cause, (5) the script generation process (environment definition with JSON, action validation) lacks rigor: how are 'interfering locations' systematically designed? How is diversity quantified? Critical weakness: the loss function is presented as novel but is essentially behavior cloning with action masking, which is a standard technique. The paper does not adequately acknowledge this or justify why this specific formulation is superior to alternatives (e.g., DPO, ILO)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experimental validation has critical gaps: (1) the main result (Table 1) shows AgentRefine performs *worse* on the held-in task (Alfworld: 44.8% vs Agent-FLAN 67.2%), directly contradicting claims of generalization without memorization—the paper does not adequately explain this regression, (2) no statistical significance testing or confidence intervals are provided; results appear to be single-run experiments, (3) ablation studies are missing: what is the contribution of script diversity vs. trajectory refinement vs. loss function masking? Is the verifier necessary? (4) the perturbation study (Table 3) is limited to Alfworld; does this pattern hold across other tasks? (5) HotpotQA is tested on only 300 samples—too small for reliable conclusions, (6) the Best-of-N analysis (Table 4) inflates performance artificially (sampling 10× and taking max) and is not a realistic inference scenario; moreover, AgentRefine's BoN gains are not consistently higher than baselines, (7) no statistical tests for held-out task performance; claims like '10% improvement' lack error bars. Unverified assumption: that single-run evaluations are sufficient to validate generalization claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Reproducibility is severely compromised: (1) the paper uses GPT-4o for data synthesis, which is proprietary and expensive; reproducibility requires access to this closed model, (2) no code or dataset release is mentioned; the paper does not state whether code or data will be released, (3) hyperparameters are relegated to 'Appendix D,' which is not provided in the submission, (4) the verification process is described vaguely; detailed verification logic is in 'Appendix O,' unavailable, (5) random seeds are not mentioned; no discussion of variance across runs, (6) the persona dataset from Chan et al. (2024) is external and must be obtained separately, (7) Section 5 mentions using DeepSeek-v2.5 as an alternative, but this is an afterthought and not well integrated, (8) the paper states 'we adjust the example prompts on Llama-3-8B-Instruct and never changed them during this work (except §4.3)' but provides no details on what these prompts are. This is a fatal flaw for reproducibility: without code, data, and clear procedures, independent researchers cannot verify results. Missing critical infrastructure caps reproducibility at 1/5."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is adequate but positioning is weak: (1) the paper cites Agent-FLAN, AgentGym, and AgentGen correctly and includes them as baselines, (2) self-refinement work (Madaan et al., 2024; Shinn et al., 2024) is acknowledged, but the paper's contribution over these is not clearly distinguished—it claims to be 'step-level' refinement vs. 'instance-level,' but this distinction is not rigorously defined, (3) the connection to data synthesis (AgentGen, Chan et al., 2024) is noted, but the paper does not clearly articulate what structural or algorithmic innovation it introduces beyond better prompt design, (4) comparisons to Agent-FLAN and AgentGym are reproduced under LLaMA3 for fairness, which is commendable, but the baseline models are not consistently trained on the same hyperparameters or data scales, (5) the paper does not compare to simpler alternatives: e.g., what if you just train on successful trajectories with standard masking? What if you add synthetic noise to Alfworld instead? Unverified assumption: that the relative performance improvements are due to self-refinement and not simply better data diversity or training procedures."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Ethics and safety considerations are entirely absent: (1) no ethics statement or discussion of broader impacts is included, (2) data provenance is not addressed: the persona dataset (Chan et al., 2024) is sourced externally without discussion of licensing, consent, or potential biases, (3) the use of GPT-4o for data synthesis raises cost and environmental concerns, but these are not discussed, (4) no discussion of potential misuse of agent models (e.g., autonomous agents acting in uncontrolled ways), (5) no mention of dataset licensing or whether AgentRefine data can be released and under what terms, (6) no discussion of model bias or fairness in agent decision-making, (7) the paper does not address safety implications of agents that can 'self-refine'—could this enable adversarial or harmful behaviors? The complete absence of ethics considerations is a significant omission for a modern ML paper and violates basic publication standards for venues like NeurIPS/ICLR."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses a relevant problem (agent generalization) but suffers from multiple critical flaws that warrant rejection. (1) **Fatal Flaw – Reproducibility (Score 1):** The paper is not reproducible without access to GPT-4o, no code/data release is mentioned, and critical methodological details (hyperparameters, verification logic, prompts) are missing or relegated to unavailable appendices. Per RBCL §2, this alone triggers 'Reject.' (2) **Technical Soundness (Score 2):** The core technical contribution—masking loss on incorrect actions (Eq. 1)—is standard behavior cloning with action filtering, not novel. The loss function is poorly explained, and the theoretical justification for why self-refinement improves generalization is asserted rather than derived. (3) **Empirical Validation (Score 2):** Results are contradictory: the method regresses on the held-in task (Alfworld 67.2%→44.8%) while claiming generalization. No statistical testing, no ablations, and single-run experiments weaken claims. Best-of-N results artificially inflate performance. (4) **Novelty (Score 3):** Connecting self-refinement to agent tuning is reasonable but incremental. The data synthesis framework is largely standard; the refinement mechanism is straightforward action masking. (5) **Ethics (Score 1):** Complete absence of ethics statement, data provenance discussion, or broader impacts analysis is unacceptable. (6) **Significance (Score 3):** Modest improvements on held-out tasks, but the massive held-in regression and dependence on proprietary GPT-4o limit practical impact. Per RBCL §3, the presumption of rejection is not overturned: reproducibility and technical soundness are both ≤2, triggering mandatory rejection. The paper would benefit from: (a) releasing code and data, (b) providing ablations and statistical significance tests, (c) explaining the Alfworld performance drop, (d) adding ethics considerations, and (e) simplifying claims to match evidence."
+  }
+}
+```

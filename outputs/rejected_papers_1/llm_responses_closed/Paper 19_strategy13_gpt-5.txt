@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "DYSPEC proposes a dynamic token tree with greedy, runtime expansion guided by draft probabilities and a thresholded, layer-wise construction variant. This departs from fixed trees (e.g., Sequoia) and selection-based dynamic methods (e.g., EAGLE-2, ReDrafter) by using sampling-compatible expansion and a heap-based prioritization. However, similar ideas of dynamic expansion and leveraging draft probabilities have appeared (EAGLE-2, ReDrafter, Dynamic Depth). The claimed optimality hinges on assumptions and an appendix proof not shown in the main text. Potential weakness: the core hypothesis (higher draft prob -> higher acceptance) and the approximation SD[x] ≈ p_d[x] are unverified generally; novelty over prior dynamic strategies may be incremental. RBCL anti-inflation applied due to overlap with prior art and reliance on assumptions."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Speedups reported across multiple datasets and models, with large improvements on a 70B target under CPU offloading (up to 9.4x latency reduction). If robust, this would be useful for deployment. However, some gains seem tied to a highly skewed T_t/T_d regime (CPU-offloaded 70B vs 7B draft) and may not generalize to fully GPU-hosted settings. Improvements over strong baselines at 7B/13B appear modest. Potential weakness: unclear end-to-end gains under standard GPU-only inference and limited analysis across drafting budgets and temperatures; practical impact may be narrower than claimed. RBCL anti-inflation applied."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The method rests on approximating acceptance probability by the draft probability (SD[x] ≈ p_d[x]) and on a qualitative KL divergence argument. This does not follow from standard rejection-sampling theory and may be inaccurate when p_d miscalibrates vs T. The optimality of the greedy expansion is stated to hold under mild assumptions, but details are deferred to an appendix; in-text derivations contain notational issues and independence-like factorizations that are not rigorously justified for tree verification paths. Potential weakness: key assumptions (calibration, independence, threshold monotonicity) are unverified; theoretical claims in the main text are insufficiently detailed to validate correctness. RBCL §2 Fatal-Flaw Logic: technical soundness at or below 2 forces rejection."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports improvements on several datasets and multiple target sizes, which is positive. However, there are notable gaps: no statistical variability or multiple runs; ambiguous reporting units (\"×\" vs seconds); missing key baselines like Medusa and EAGLE-2 under compatible verification or at least a careful discussion/bridge; limited ablations (e.g., impact of threshold choice, greedy vs threshold mode, effect of calibration mismatch, depth vs breadth trade-offs, budget sensitivity); and no evaluation under standard fully GPU-resident 70B inference. Potential weakness: results may be single-run and not fully comparable; absence of robustness analyses weakens empirical support. Penalized per RBCL for missing statistical rigor."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper specifies models, datasets, prompt/completion lengths, some temperatures, and hardware (A100 40GB, 32 CPU cores). It also mentions a C++ implementation to reduce overhead and some CUDA Graph usage. However, there is no explicit code release, no seeds, incomplete hyperparameter details (e.g., exact draft logits processing, heap thresholds, normalization details), unclear reproducibility of CPU-offloading and overlap tricks, and no instructions. Potential weakness: key implementation details (C++ tree construction, CUDA graph capture set) are unreleased, hindering replication. RBCL §2 Fatal-Flaw Logic: reproducibility at or below 2 forces rejection; criterion capped per instructions."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper discusses SpecTr, SpecInfer, Medusa, Sequoia, EAGLE-2, ReDrafter, and Dynamic Depth, and claims compatibility differences (sampling vs selection) vis-à-vis standard verification. Positioning is decent. Nonetheless, empirical comparisons omit Medusa/EAGLE-2, and discussion of other recent acceleration paradigms (lookahead decoding variants, KV cache optimizations, chunked verification) is limited. Potential weakness: omission of competitive baselines and limited discussion on calibration and verification variants may bias positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics/broader impact statement is provided. While datasets used are standard (C4, OWT, CNN/DM), the paper does not discuss data licensing, potential biases, or implications of faster LLM generation (e.g., synthetic content scaling). Potential weakness: absence of an ethics discussion triggers an automatic cap per instructions; set conservatively low due to lack of any treatment."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper introduces a dynamic, greedy token-tree construction for speculative decoding with promising speedups, particularly under a CPU-offloaded 70B setup. However, the central technical assumption (using draft probability as a proxy for acceptance) lacks rigorous justification, and optimality claims depend on unspecified mild assumptions and an appendix proof not substantiated in the main text. Empirical evidence, while broad in datasets, omits key baselines (e.g., Medusa/EAGLE-2), lacks statistical rigor, and contains reporting ambiguities. Reproducibility is weak: no code, seeds, or sufficient implementation details to replicate the C++ pipeline and hardware-specific tricks. Per RBCL §2 Fatal-Flaw Logic, both Technical Soundness and Reproducibility are at or below 2, mandating rejection; severity outweighs strengths. The decision is Reject."
+  }
+}

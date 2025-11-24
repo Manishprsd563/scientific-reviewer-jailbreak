@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper claims novelty in modeling inter-agent communication as a sequence problem using transformers with 2D positional encoding. However, this is a relatively straightforward application of existing transformer architectures to TSC. The PointNet-inspired lane encoding is borrowed directly from Qi et al. (2017) with minimal adaptation. The authors acknowledge CityLight (Zeng et al., 2024) uses similar multi-agent PPO with network-independent representations; the key distinction claimed is lane-level vs. intersection-level observation, which is incremental. The contribution of a synthetic data generation pipeline, while useful, is engineering rather than methodological novelty. No fundamentally new algorithmic insight is presented. The 2D positional encoding and distance-based attention masking are standard transformer techniques, not novel contributions."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "While TSC is a practically important problem, the paper provides no evidence of real-world applicability or deployment potential. The claim that 'minimal state information is sufficient' is interesting but unsupported: experiments show performance is identical across all three state observation levels (Fig. 6b), raising questions about whether the transformer is actually leveraging communication effectively. No comparison to state-of-the-art methods (IG-RL, MuJAM, RGLight, CityLight) is provided; only static baseline comparison exists. The multi-network experiment (Section 3.3) shows the model 'has yet to show convergence,' undermining claims of generalization. The practical impact is undemonstrated when compared to existing published benchmarks (RESCO)."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Several technical concerns exist: (1) The attention mask formula M = exp(d_{i,j}/C) lacks justification for the exponential decay constant C and its selection; (2) The claim that max-pooling over lanes preserves 'information content' (via PointNet analogy) is assumed without empirical validation or ablation; (3) Padding variable action spaces and conditioning on A^i is mentioned but not formally justified—how does this avoid bias toward padded actions?; (4) The value function aggregation v = Σ V_φ_v(ŝ^i) assumes additive value decomposition without justification for TSC; (5) The paper lacks theoretical or empirical analysis of why identical performance across state observation levels occurs (Fig. 6b)—this suggests either the transformer is not using communication or there is a fundamental issue with the experimental setup. No convergence proof or analysis is provided."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 1,
+      "justification": "Critical experimental deficiencies: (1) No comparison to any published baselines (RESCO methods, IG-RL, MuJAM, RGLight, CityLight). Only a static signal baseline is used, which is trivial. (2) Simple network results (Section 3.1) show Transformer and Simple MLP perform identically—this contradicts the claimed value of communication and is not explained. (3) Complex network results (Fig. 6b) show all three observation levels achieve identical performance, contradicting the claim that limited state information is 'sufficient' (the baseline MLP likely achieves the same result). (4) Multi-network experiment explicitly states convergence has 'yet to show'—no results are provided. (5) No ablation studies: what is the contribution of lane encoding vs. transformer vs. distance masking? (6) Only 1 hour simulations reported; no long-horizon evaluation. (7) Over 300 experiments claimed but only 3 are discussed; cherry-picking is evident. (8) No statistical significance testing, error bars, or multiple runs reported. (9) Evaluation metrics are limited and cherry-picked (fuel consumption, CO2, vehicle count vs. established TSC metrics like average delay, throughput). Missing reproducibility: (10) No code, hyperparameters, random seeds, or implementation details provided."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper is severely lacking in reproducibility information: (1) No code is provided or promised. (2) No hyperparameters for training (learning rate, batch size, network architecture details, PPO clip parameters, etc.). (3) No random seeds mentioned. (4) Algorithm 1 and 2 are referenced but not included in the provided text. (5) SUMO environment configuration details are missing (simulation step size, penetration rates, vehicle insertion rates, route distributions). (6) No details on Docker/Apptainer setup, Euler cluster configuration, or exact PyTorch/RLlib versions. (7) The synthetic dataset generation procedure is described conceptually but lacks formal specification—how are road networks generated? What is the distribution over N and ρ? (8) Training curves lack error bars, confidence intervals, or indication of number of runs. (9) No supplementary materials, appendices, or link to code repository. (10) Notation is sometimes undefined (e.g., W_t^i in reward formula). This paper cannot be reproduced as written."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Table 1 provides a useful overview of related work but comparisons are superficial and incomplete: (1) No experimental comparison is provided to any method in Table 1 (IDQN, IPPO, MPLight, FMA2C, IG-RL, MuJAM, RGLight, CityLight). The paper only compares to a static baseline. (2) The positioning relative to CityLight is vague—both use multi-agent PPO and network-independent representations; the claimed distinction (lane vs. intersection level observation) is minor and not empirically validated. (3) The paper claims 'MARL is scalable while independent agents reach a limit' (citing Shi et al., 2023) but then tests only simple networks and one incomplete multi-network experiment. (4) The related work section is thin (Section 1.1, ~1 page) for a field with substantial prior work. (5) No discussion of why the proposed approach should outperform GCN-based methods (RGLight, IG-RL) or model-based approaches (MuJAM). (6) The claim of 'network independence' as a contribution is stated but not differentiated from prior work claiming the same. (7) No engagement with benchmark results—RESCO provides baseline comparisons, but these are not referenced or matched against."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper lacks any substantive discussion of ethical, safety, or societal implications: (1) No ethics statement or broader impacts section. (2) No discussion of potential risks of deploying learned traffic control (e.g., bias toward certain routes, emergency vehicle routing, pedestrian safety). (3) No mention of data licenses—real-world road networks (Zurich) are imported but licensing is not addressed. (4) Synthetic data generation methodology is not described in detail, raising questions about representativeness and potential artifacts. (5) The claim that the model reduces emissions (47% CO2 reduction in toy example) is not contextualized—is this realistic? What are failure modes? (6) No discussion of regulatory approval or validation needed for real-world deployment. (7) The paper mentions 'different stakeholders' (drivers, pedestrians, cyclists, city planners) have competing objectives but provides no mechanism to balance these; the reward function only uses vehicle waiting time. (8) No discussion of fairness (does the model create disparate outcomes for different areas or demographics?). (9) SUMO's limitations and validity are not discussed. This omission is a significant gap for a paper claiming real-world applicability."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 11,
+    "confidence": 0.92,
+    "final_decision": "Reject",
+    "final_justification": "This paper warrants rejection due to multiple fatal flaws and severe deficiencies across critical dimensions. **Reproducibility/Transparency (score 1):** The paper provides no code, hyperparameters, random seeds, or sufficient implementation details, making reproduction impossible—this alone triggers the RBCL Fatal-Flaw Logic override. **Empirical Validation (score 1):** Experiments lack any comparison to published baselines; only a trivial static control baseline is used. The claim that different observation levels yield identical performance (Fig. 6b) contradicts the paper's central premise and is unexplained. The multi-network experiment explicitly reports non-convergence, and over 300 experiments are claimed but only 3 incomplete results shown. **Technical Soundness (score 2):** Key design choices (exponential attention decay, value function aggregation, action space padding) lack justification. The paradox that all observation levels perform identically suggests either the transformer is not functioning as intended or the experiments are flawed. **Novelty (score 2):** The approach is a straightforward combination of PointNet and standard transformers applied to TSC—incremental at best. CityLight (2024) uses nearly identical architecture. **Related Work (score 2):** Despite citing multiple strong recent baselines (IG-RL, MuJAM, RGLight, CityLight), the paper provides zero experimental comparison, making positioning impossible. **Significance (score 2):** Real-world applicability is undemonstrated; the key finding (limited state info suffices) is actually evidence that the communication mechanism provides no value. **Ethics (score 1):** Zero discussion of deployment risks, fairness, safety, or data provenance. The invocation of 47% emissions reduction and other claimed benefits are unsupported by rigorous evaluation. **Overall assessment:** This work presents incomplete experiments, no reproducible results, no meaningful comparisons to state-of-the-art, and unresolved technical puzzles (identical performance across ablations). The paper reads as an early-stage workshop submission, not ready for publication at a top venue. The authors must: (1) provide complete code and hyperparameters, (2) conduct rigorous comparison to all methods in Table 1 using standard benchmarks, (3) explain why all observation levels yield identical results, (4) complete the multi-network experiments, (5) perform statistical significance testing, and (6) address ethical considerations. Until these are resolved, the work cannot be accepted."
+  }
+}
+```

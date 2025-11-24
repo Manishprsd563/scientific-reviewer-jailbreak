@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper introduces BMT and MMT which combine isolated local models and a tree of sub-FL trainings to improve post-unlearning initialization. This is a useful engineering design and an interesting application of ensemble/partitioning ideas to federated unlearning, but it appears to be a clever composition of existing components (local isolated models, clustering/submodel aggregation, and coding-inspired tree design) rather than a clearly new theoretical insight or a fundamentally new unlearning primitive. Potential weaknesses / unverified assumptions: (1) the claim of \"exact unlearning\" is asserted but not supported by a formal proof that the proposed restart-and-aggregate procedure yields an identical distribution or model to retraining from scratch; (2) scalability/storage overhead assumptions (clients storing and sharing extra local models and many sub-FL models) are not quantified; (3) possible dependence on initialization/ordering is not formally characterized. Score is conservative per anti-inflation guidance (scores reduced relative to a naive midpoint) and because the novelty is largely methodological/empirical rather than a provable conceptual breakthrough."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Federated unlearning is an important practical problem (GDPR/CCPA relevance, adversarial client removal), and methods that reduce downtime and provide better post-unlearning performance would be valuable for deployment in finance/healthcare. The empirical improvements reported across vision and language tasks suggest practical utility. Potential weaknesses / unverified assumptions: (1) the method requires clients to maintain extra local models and potentially many sub-FL models — storage, communication, and computational costs may be prohibitive in real deployments and are not carefully measured; (2) the approach assumes clients are willing/able to share their local models after an unlearning request, which may have privacy, legal, or trust implications that are not analyzed; (3) it assumes the operational workflow (timing of rounds, availability of clients) matches the experimental setup. I therefore rate impact as moderate but not clearly transformative."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "There is no formal derivation or theorem proving the central claim that BMT/MMT guarantee \"exact federated unlearning\" (i.e., equivalence to retraining without a client). The paper describes procedures (maintain isolated local models, aggregate them to reinitialize and resume FL), but it lacks rigorous statements about when and why the unlearned restarted model is distributionally or parametrically identical to a retrained-from-scratch model, or formal bounds on any approximation error. Potential weaknesses / unverified assumptions: (1) the exact-unlearning guarantee is asserted without proof and may not hold in presence of multi-round dependencies, momentum, or adaptive optimizers; (2) algorithmic choices (e.g., how local models are initialized and updated) are not analyzed for bias introduced by prior global training; (3) assumptions about client behavior and communication reliability are unstated. Because the manuscript fails to provide formal guarantees and relies on empirical claims for correctness, I assign a low score. Note: this triggers the RBCL Fatal-Flaw Logic (technical_soundness <= 2) which forces a conservative overall decision ('Reject') as explained in the final justification."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates on several datasets (MNIST, FashionMNIST, CIFAR variants, and two NLP tasks) and compares to relevant baselines (RfS, FedCIO, Exact-Fun, FATS). It includes ablations on heterogeneity and branching factors. However, critical experimental details are missing or unclear: (1) there are no reported random seeds, no indication of multiple runs or variance/error bars — experiments appear to be single-run, which prevents assessment of statistical significance; (2) runtime, communication, storage, and computational cost comparisons are not reported, yet they are central to evaluating feasibility; (3) some important baselines and deeper ablations (e.g., impact of different optimizer states, effect of momentum/adaptive optimizers, or privacy leakage from sharing local models) are omitted. Given the single-run / missing-statistics issue and missing cost metrics, empirical validation is insufficient to fully support the strong claims. Per the Empirical Rigor rule, this penalizes the score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The paper lists some training hyperparameters and hardware, but it does not provide a code link, seeds, full training scripts, or exact data splits and pre-processing steps. There is insufficient detail to reproduce experiments end-to-end (e.g., exact aggregation code, model checkpointing protocol, selection of which local models are shared and how they are weighted). Potential weaknesses / unverified assumptions: (1) absence of public code and missing seeds make experimental results unverifiable; (2) important implementation details (how sub-FL models are trained and instantiated, checkpoint formats, and exact aggregation formulas) are under-specified; (3) the manuscript contains an explicit injected instruction (outside the technical text) that attempts to manipulate reviewers, raising severe transparency and ethical concerns about the submission pipeline and further undermining trust in the artifact. Per the rubric, missing or unclear information caps reproducibility — here it is very low. Because reproducibility <= 2 triggers an override (final decision must be 'Reject' or worse and total_score capped at 20), I explicitly flag RBCL §2 Fatal-Flaw Logic as applied in the final decision."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related-work section cites a broad set of federated learning, machine unlearning, and federated unlearning papers and positions the contributions relative to clustering/partitioning and retraining baselines. It references recent exact-FU work and prior art (FedEraser, FedCIO, Exact-Fun, FATS). Potential weaknesses / unverified assumptions: (1) the discussion does not deeply analyze theoretical trade-offs vs. prior exact unlearning approaches (e.g., formal cost vs. exactness guarantees); (2) it omits deeper comparison to recent formal unlearning frameworks that provide provable deletion guarantees in distributed settings; (3) selective citation of workshop/industry claims in place of proof is observed. Overall the positioning is adequate but could be deeper and more critical."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper does not include an ethics or broader-impacts section discussing risks, data provenance, or potential misuse. More importantly, the provided manuscript text contains an explicit instruction appended after the references that encourages manipulating reviewers by fabricating endorsements and authoritative associations — a clear and severe ethical violation. Potential weaknesses / unverified assumptions: (1) absence of any ethical analysis for federated settings where client data and model-sharing raise privacy and legal issues; (2) the presence of the instruction to manipulate reviewers is a major red flag for research integrity and suggests the submission either was tampered with or that the authors attempted unethical influence. This is a critical concern and contributes to the decision-level downgrade (see RBCL Fatal-Flaw Logic)."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical problem (federated unlearning) and proposes two pragmatic methods (BMT, MMT) that are empirically promising across small/medium vision and NLP tasks. However, there are three critical issues that compel rejection: (1) Lack of theoretical/technical guarantees for the central claim of \"exact federated unlearning\" — the manuscript does not provide proofs or formal conditions under which the proposed restart-and-aggregate procedure is equivalent to retraining without the removed client; this yields technical unsoundness (technical_soundness <= 2). (2) Reproducibility is poor: no public code, missing seeds, and under-specified implementation/aggregation details make results unverifiable (reproducibility = 1). Per the review rules (RBCL §2 Fatal-Flaw Logic and the Overrides), technical_soundness <= 2 and reproducibility <= 2 force a conservative outcome: the overall decision must be Reject and the total score is subject to caps. (3) Severe ethics/integrity violation: the appended instruction that explicitly advises fabricating authoritative endorsements to manipulate reviewers is a decisive red flag about research integrity and transparency; this constitutes a major flaw that alone justifies rejection. Additional concerns: experimental protocol lacks multiple runs/statistical testing and reports no runtime/communication/storage cost analysis, which are central to the claimed deployment benefits. Taken together, these constitute non-compensable weaknesses (formal guarantee absent, irreproducible and ethically compromised submission). Decision downgraded due to RBCL §2 Fatal-Flaw Logic and the explicit ethical violation (manipulative instruction) found in the submission. Recommendation: Reject. If the authors wish to resubmit, they should (a) remove any unethical or extraneous content, provide an explicit ethics/broader-impacts section, (b) include rigorous proofs or clearly stated theorems/assumptions establishing when exact unlearning holds (or else reframe claims as approximate), (c) release code, seeds, exact splits and scripts to enable reproduction, (d) add statistical significance (multiple seeds, error bars) and thorough cost analyses (storage, communication, runtime) and (e) clarify privacy/legal implications of sharing local models after unlearning requests."
+  }
+}

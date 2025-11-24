@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes pooling per-agent recurrent memory and globally broadcasting it via cross-attention within a transformer policy, enabling implicit coordination. This is a reasonably original integration of memory transformers into a shared global workspace for MARL, though it resembles existing transformer-based communication (e.g., scalable attention-based comms) and shared-memory-style mechanisms in MARL. A potential weakness is that the contribution could be viewed as a composition of known components (RMT + cross-attention across agents) rather than a fundamentally new principle; the boundary with prior attention-based communication frameworks is not sharply delineated."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, enabling decentralized agents to coordinate through a shared recurrent memory could be useful for PO-MAPF and related MARL tasks. The method shows strong results in a toy bottleneck and competitive performance on POGEMA, with gains in certain congested settings when aided by heuristic planning. However, impact is tempered by mixed results (often competitive rather than clearly superior), focus on grid pathfinding, and reliance on additional heuristics to excel in Warehouse. A potential weakness is the lack of demonstrated benefits in broader domains and no analysis of communication bandwidth/latency or constraints that would affect real deployments."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The overall architectural description is plausible, but key details are missing: the exact RL algorithm (e.g., PPO/A2C), loss functions, regularization, training stability measures, and how gradients flow through shared memory are not clearly specified. The claim of being fully decentralized during training conflicts with a global shared memory that effectively centralizes information exchange; this decentralization assumption is insufficiently justified. There is also no complexity analysis of cross-attention over all agents (potential O(N^2) scaling and memory costs). A potential weakness is that baseline modifications (e.g., changing RATE initialization) may bias comparisons without standardized protocols, and no formal guarantees or convergence analysis are provided."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The study includes multiple environments (bottleneck toy, POGEMA variants), comparisons to several MARL and planning baselines, ablations (RMT, Attention, GRU), and reports 95% confidence intervals. The long-corridor generalization analysis and memory-initialization study are informative. However, fairness and completeness are unclear: training budgets, hyperparameters, and compute for baselines are not transparently matched; important transformer-based communication baselines (e.g., SCRIMP) are discussed but not evaluated; and the strongest results in Warehouse rely on an added heuristic planner. A potential weakness is that the number of seeds and statistical tests are not consistently specified, and the core advantages on large-scale multi-agent settings are not isolated from heuristics."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "While Appendix A.1 is referenced for some hyperparameters, the paper does not clearly provide code, exact training scripts, seeds, or environment versions. Reproduction would be challenging without these artifacts, especially given the complexity of shared-memory attention and long training horizons. A potential weakness is the absence of an explicit code release and end-to-end instructions, triggering the RBCL cap on this criterion due to missing/unclear information."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper reviews MARL communication paradigms and memory transformers, and it positions SRMT as extending recurrent memory to a shared global workspace. However, the connection and differentiation from established communication architectures (e.g., CommNet, TarMAC, DGN/graph-based comms) are not thoroughly analyzed, and experimental comparisons omit some closely related transformer-based communication methods mentioned in the text. A potential weakness is that the novelty boundaries relative to prior global-attention-based communication are not rigorously established."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work uses synthetic environments, which reduces data-related risks, but there is no explicit ethics/broader impacts statement detailing societal implications, potential misuse (e.g., coordinated swarms), licenses, or data provenance. A potential weakness is the lack of a discussion on safety constraints and deployment risks; per RBCL, missing/unclear ethics content caps this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "Despite an interesting pooled shared-memory transformer design and promising results on a toy bottleneck and competitive POGEMA performance, the submission lacks essential reproducibility artifacts (no clear code/seeds/instructions) and omits critical technical details (training algorithm specifics, stability, and complexity/scalability analysis). Baseline fairness and completeness are also uncertain, with some closely related transformer-based communication methods not evaluated and the strongest Warehouse results dependent on heuristic planning. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: Reproducibility/Transparency ≤ 2 mandates Reject, and practical calibration at total_score ∈ [15,20) further supports a conservative decision."
+  }
+}

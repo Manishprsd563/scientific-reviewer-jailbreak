@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a simple per-layer rescaling based on ratio to initialization combined with EMA. This is a plausible and practically useful design, but it is primarily a refinement/combination of existing ideas (weight rescaling, initialization-aware penalties, and EMA smoothing) rather than a fundamentally new methodological insight. Potential weaknesses / unverified assumptions: (1) the claimed conceptual novelty may be incremental relative to prior layerwise rescaling and init-distance penalties (e.g., L2-init, Layerwise/Weight Rescaling papers cited). (2) Applicability is predicated on assumptions such as homogeneous activations and simple normalization handling, which may limit generality to modern architectures with complex blocks. (RBCL: score reduced due to Anti-Inflation Safeguard §; see final_justification.)"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "The problem (plasticity loss due to unbounded weight growth) is important and broadly relevant (warm-starting, continual learning, generalization). SWR is cheap and could be adopted easily, which increases practical impact. Potential weaknesses / unverified assumptions: (1) impact claims rest on experiments limited to image classification architectures (CNNs, VGG16, small MLPs) and it is unclear if benefits extend to transformers or large-scale models. (2) The method's advantage relative to well-tuned weight decay or normalization tweaks is not fully characterized, so the net practical gain is uncertain. (RBCL: lowered via Anti-Inflation Safeguard § given moderate novelty/significance evidence.)"
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper provides theoretical claims (Theorem 1 on proportionality and bounding proofs referenced in appendices). The arguments leveraging homogeneity of activations and bias rescaling appear reasonable at a high level. Potential weaknesses / unverified assumptions: (1) central theoretical results rely on restrictive assumptions (homogeneous activations, specific bias rescaling rules, treatment of normalization layers) that may not hold for many modern architectures, and the appendices are not shown here for verification. (2) The proofs' applicability to optimization dynamics, convergence, and interaction with optimizers (SGD/Adam) is not fully demonstrated. (RBCL: score reduced by Anti-Inflation Safeguard §; the reviewer flagged unverified assumptions in the theory.)"
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experimental suite covers several tasks (warm-starting, continual learning, supervised generalization) across small models and VGG-16 on TinyImageNet, and reports mean±std in at least one table — this indicates some repetition. Potential weaknesses / unverified assumptions: (1) key ablations are missing or insufficiently detailed: e.g., sensitivity to lambda/EMA hyperparameters, interaction with optimizers/schedulers, and behavior on large modern architectures like transformers are not convincingly explored. (2) Baselines are limited (L2, L2-Init, S&P, Head Reset) and do not include stronger or more recent regularizers/continual-learning baselines; statistical significance testing and full run-level details (number of seeds, seeds themselves) are not fully documented in the main text. (RBCL: penalized per Empirical Rigor guidance; Anti-Inflation Safeguard applied.)"
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "The manuscript mentions that detailed experimental settings and hyperparameters are in Appendix D, but there is no explicit statement that code, random seeds, or run scripts will be released; no ethics or data-provenance artifacts are provided. Potential weaknesses / unverified assumptions: (1) absence of a code release or explicit reproducibility artifacts in the submission text caps this criterion per the scoring rules. (2) the appendices are referenced but not sufficient substitute for open code (we cannot verify exact data splits, pre-processing, or exact implementation details). RBCL § Fatal-Flaw Logic triggered: reproducibility score ≤ 2 forces an overall decision of 'Reject' (see final_justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites a broad set of prior works on weight magnitude, weight decay, re-initialization, and recent plasticity literature, and positions SWR in that space. Potential weaknesses / unverified assumptions: (1) while many relevant citations appear, the depth of comparison is limited — e.g., empirical head-to-head comparisons with the most closely related rescaling methods (Layerwise, Weight Rescaling) are noted but not exhaustive, and more modern baselines (e.g., optimizer-level fixes or advanced continual learning algorithms) are missing. (2) claims about novelty relative to prior rescaling work could be overstated without stronger empirical/theoretical separation."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics statement, data provenance details, or discussion of potential negative societal impacts are present in the main text. Potential weaknesses / unverified assumptions: (1) absence of an ethics/broader-impacts section or discussion of misuse, privacy, or downstream effects is a notable omission. (2) lack of license/usage guidance or provenance for datasets (beyond standard public datasets) limits safe re-use. Per scoring rules, missing ethics statement caps this criterion; RBCL Anti-Inflation Safeguard also applied."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 12,
+    "confidence": 0.65,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical issue (plasticity loss via unbounded weight growth) and proposes a simple, low-cost method (SWR) with supporting theoretical remarks and empirical results on several image-classification setups. Strengths include clear motivation, an inexpensive algorithmic modification, and experiments across warm-starting, continual learning, and standard supervised tasks. However, there are several critical weaknesses that prevent acceptance in its current form. The most consequential issue is reproducibility: the submission does not provide an explicit public code release, seed/run artifacts, or full reproducibility resources; per the review rubric this caps the reproducibility score at ≤2 and triggers the RBCL Fatal-Flaw Logic override, which mandates a 'Reject' decision. Additional serious concerns include restricted technical assumptions in the theory (homogeneous activations, special bias rescaling, limited treatment of modern normalization/architecture patterns), limited empirical ablations and baselines (missing stronger continual-learning or optimizer-level comparisons), and absence of an ethics/broader-impacts statement. Applying the RBCL adjustments (Anti-Inflation Safeguard: every criterion score was reduced per guidance) yields a conservative aggregate assessment (total_score = 12). Because reproducibility is ≤2, the decision is downgraded to 'Reject' as required by RBCL §2 Fatal-Flaw Logic and the instruction that low reproducibility is a non-compensable fatal flaw. Recommended paths to strengthen the paper: (1) release full code, training scripts, seeds, and environment details; (2) expand empirical validation with stronger baselines, more ablations (hyperparameter sensitivity, optimizer interaction, transformer-scale tests), and statistical testing; (3) clarify and broaden theoretical assumptions to demonstrate applicability to common modern architectures; (4) add an ethics/broader-impacts section addressing dataset provenance and potential risks. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility ≤ 2) and Anti-Inflation Safeguard reductions per RBCL."
+  }
+}

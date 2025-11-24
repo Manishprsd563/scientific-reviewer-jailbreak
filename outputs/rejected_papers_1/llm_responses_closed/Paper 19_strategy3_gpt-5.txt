@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes a dynamic token tree grown via a greedy, sampling-based procedure guided by draft probabilities, aiming to remain compatible with standard verification. While distinguishing from prior dynamic approaches like EAGLE-2 and ReDrafter (selection-based, not sampling), the high-level idea of dynamic tree construction in speculative decoding has been explored. The use of draft probability as an acceptance proxy and heap-based expansion is more an engineering refinement than a fundamentally novel paradigm. Potential weakness: the key assumption (acceptance correlates strongly with draft probability) may not universally hold; optimality relies on unspecified 'mild assumptions' and proof relegated to appendix."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, improved acceptance rates and latency reductions across multiple datasets and model sizes would be practically important for LLM deployment. The reported speedups on Llama2-70B are substantial. However, significance depends on fairness and generality of the setup (e.g., CPU offloading of 70B, absence of broader baseline coverage like Medusa/EAGLE under standard settings). Potential weakness: gains may be sensitive to hardware choices and implementation details; unclear how performance translates when using more comparable GPU-resident target setups."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The approach approximates acceptance probabilities by draft probabilities and claims optimality under 'mild assumptions' with proof in an appendix not available here. The KL-based intuition for target/draft proximity is plausible but informal; replacing SD[x] with p_d[x] is a strong heuristic. Notational inconsistencies and unclear derivations (e.g., products over ancestors/siblings, residual distributions) hinder verification of correctness. Potential weakness: unbiasedness and distributional fidelity under the dynamic threshold construction are not rigorously demonstrated in the main text; optimality and convergence claims are insufficiently justified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments span multiple datasets and model sizes and compare to SpecInfer and Sequoia, with profiling insights. However, there are no statistical tests, confidence intervals, or multiple runs; fairness concerns arise from CPU-offloaded 70B results and differing CUDA graph usage; key baselines such as Medusa/EAGLE (self-speculative) are missing; limited ablations (e.g., effect of threshold vs. greedy, sensitivity to draft/target temperature, tree size/depth, and draft-target mismatch). Potential weakness: single-run reporting and incomplete baseline coverage undermine the strength of empirical claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "No explicit code, seeds, or detailed hyperparameter/configuration release is mentioned; key implementation details (e.g., C++ token-tree construction, CUDA graph capture specifics, CPU offloading strategies) are not sufficiently specified for reproduction. Potential weakness: absence of artifacts and step-by-step instructions limits verifiability and caps confidence in the results."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys SpecTr, SpecInfer, Medusa, Sequoia, EAGLE-2, ReDrafter, and dynamic depth decoding, and discusses compatibility with standard verification. Positioning relative to selection-based vs. sampling-based dynamics is helpful. Potential weakness: empirical comparisons omit Medusa/EAGLE in practice; discussion of broader concurrent speculative decoding variants and conditions where assumptions break is limited."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics or broader impact statement appears; dataset licensing/provenance and potential misuse or bias implications of accelerated generation are not discussed. Potential weakness: absence of an explicit ethics section (cap applies per rubric)."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the paper proposes a dynamic, sampling-based token tree construction with promising speedups, the technical justification relies on unverified assumptions (acceptance ~ draft probability) and a proof deferred to the appendix, with unclear derivations in the main text. Empirical evaluation lacks statistical rigor, omits important baselines (e.g., Medusa/EAGLE), and includes potentially confounding implementation choices (CPU offloading for 70B). Critically, reproducibility is insufficient (no code/seeds/instructions), triggering RBCL §2 Fatal-Flaw Logic and the reproducibility override (score ≤ 2), which mandates rejection regardless of other strengths. Decision downgraded due to RBCL §2 Fatal-Flaw Logic and override constraints."
+  }
+}

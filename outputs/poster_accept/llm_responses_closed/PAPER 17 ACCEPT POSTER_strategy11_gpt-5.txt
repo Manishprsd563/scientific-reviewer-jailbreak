@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes partial rank sharing across layers with layer-specific diagonal weighting, forming a shared rank pool. This distinguishes RaSA from fully shared approaches (e.g., VeRA, Tied-LoRA) and dynamic rank allocation (e.g., AdaLoRA, PriLoRA). Theoretical framing via reconstruction error is a useful perspective. However, the contribution is relatively close to prior sharing/tying paradigms and may be seen as a structured variant rather than a fundamentally new paradigm. Potential weakness: the method hinges on the same-dimension-across-layers assumption, and it remains unclear how different this is in practice from learning a shared basis with per-layer coefficients as in previous works."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the approach could improve parameter utilization in PEFT for challenging domains (code, math), offering a way to increase effective rank without extra parameters. Reported gains over LoRA/MoRA/VeRA are consistent across two models and tasks, which is promising. Potential weakness: improvements are modest in some settings and lack uncertainty estimates; the generality to broader tasks (beyond code/math) and different architectures remains unverified."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The claim that RaSA’s minimum reconstruction error is upper-bounded by LoRA’s is plausible and the constructive proof idea (stacking shared components with per-layer diagonal selection) is reasonable, though the presented derivations contain notation glitches and simplifying assumptions (e.g., restricting D_i to operate on the shared part) that are not fully justified. Potential weakness: training dynamics and interference across layers due to the large shared pool are not theoretically analyzed; stability and convergence properties remain unaddressed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments cover two tasks (code, math), two open LLMs, and a broad set of PEFT baselines, with both efficiency and effectiveness reported. There is an optimization-based reconstruction error analysis and a small hyperparameter exploration for k (on reconstruction). Potential weakness: no multiple runs or statistical significance; results appear single-seed with \"BEST\" vs \"LAST\" reporting, which risks cherry-picking; limited end-task ablations (e.g., sensitivity to k on downstream metrics, effect of different sharing patterns); no leakage/contamination checks discussed for code/math data; no robustness tests to sampling temperature variations or decoding strategies."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "A public code repository is provided, tasks and evaluation harnesses are named, and many training hyperparameters are listed (optimizer, LR, batch size, epochs, r and k setting). Potential weakness: random seeds, full environment specs, and detailed run scripts/logs are not described in the text; there is no report of variance across runs; some tables contain formatting inconsistencies that make exact replication unclear. These gaps prevent top-tier reproducibility confidence."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates RaSA among LoRA variants (MoRA, VeRA, OLoRA, AdaLoRA, PriLoRA) and recent parameter-sharing/combination approaches, with empirical comparisons to several of them. Potential weakness: while coverage is broad, the differentiation from methods that learn shared bases with per-layer weights could be sharpened; discussion of potential equivalences or limitations in representational capacity relative to those bases is limited."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics or broader impacts section is provided in the excerpt. The work fine-tunes on datasets (e.g., MetaMathQA generated by GPT-3.5, Magicoder-Evol-Instruct-110k) where data provenance, licensing, and potential contamination risks are relevant and not discussed. Potential weakness: absence of clarity on data licensing, leakage checks, and societal impacts caps this criterion per the rubric."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "RaSA is a reasonable and potentially useful variant of LoRA with partial rank sharing and per-layer weighting, supported by a plausible reconstruction-error argument and consistent empirical gains on code/math across two models. However, the experimental evidence lacks statistical rigor (no multi-seed results or significance tests, BEST vs LAST reporting), theoretical exposition has notation/simplification issues, and reproducibility and ethics details are incomplete. While the numeric total maps to Borderline/Major Revision, per RBCL Practical ICLR Calibration, we default to Reject for total scores in [15,20) without multiple dimensions clearly above 4. Decision downgraded accordingly due to RBCL calibration and the empirical rigor shortcomings."
+  }
+}

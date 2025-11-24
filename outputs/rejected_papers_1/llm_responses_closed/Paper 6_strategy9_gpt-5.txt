@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "Maintaining per-client local models (BMT) and aggregating disjoint sub-FL models (MMT) for initialization after unlearning is a plausible adaptation combining ideas from SISA-style partitioning and clustered/one-shot FL (e.g., FedCIO). While the specific two-model and tree-based sub-FL constructions are interesting, they appear incremental rather than fundamentally novel. Potential weakness: the claim of achieving exact unlearning via these architectures is asserted without a formal proof or equivalence characterization to a retraining-only-on-remaining-clients process."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "Improving post-unlearning performance while ensuring exact deletion is important for practical FL deployments. However, the approach incurs substantial extra compute/storage/training overhead (per-client local models and multiple sub-FL models) without rigorous system-level analysis of scalability, communication cost, or resource trade-offs. Potential weakness: real-world viability is unclear in large-scale settings; the paper does not quantify overhead, latency, or long-run maintenance costs that may limit practical impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The core claim of exact unlearning relies on discarding the global model and reinitializing from aggregates of models trained without the target client's data. However, no formal proof establishes equivalence to a model trained exclusively on remaining clients (e.g., under a defined randomness model), nor are conditions provided under which parameter aggregation preserves exactness. For MMT, aggregating \"best\" sub-FL models risks reintroducing influence if any sub-model includes the unlearned client; the avoidance rules and guarantees are not formalized. Potential weakness: lack of formal exactness guarantees, convergence analysis, and a precise argument that the resulting trajectory is independent of the removed client. There is also an apparent textual inconsistency in Sec. 4.2 (\"Therefore, it is infeasible for large-scale experiments like CIFAR-100\") that raises clarity concerns."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover several datasets and include some baselines (RfS, FedCIO, Exact-Fun, FATS) with ablations on heterogeneity and branching factor. However, results lack multiple runs, error bars, or statistical tests; there is no evaluation of runtime, memory, communication costs, or scalability; and no verification that the post-unlearning model is identical or provably independent of the removed client (e.g., via equivalence checks or influence audits). Potential weakness: reliance on single-run curves without statistical rigor and missing system-level metrics undermines the empirical support for exactness and practicality."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Public datasets and some hyperparameters are given, but there is no code, no random seeds, and no detailed training scripts or environment specs to fully reproduce results. Per the rubric, missing code and seeds cap this criterion. Potential weakness: without released implementations and exact setups, the results are not independently verifiable."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites FL, MU, and FU literature (e.g., SISA, FedCIO, Exact-Fun, FATS) and offers some positioning. However, the distinctions from clustered/ensemble-style approaches and partition-based unlearning are not rigorously contrasted, and theoretical guarantees relative to prior exact FU methods are not discussed. Potential weakness: comparative positioning is qualitative and does not clarify under what assumptions the proposed methods improve over or differ fundamentally from existing exact or approximate FU techniques."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper briefly references GDPR/CCPA and practical motivations but lacks a dedicated ethics statement, dataset licensing/provenance details, risk analysis (e.g., failure modes, bias under unlearning), or discussion of model misuse. Potential weakness: missing explicit ethical considerations and dataset licensing statements cap this dimension."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the goal—exact federated unlearning with improved post-unlearning performance—is compelling, the paper lacks a formal guarantee that BMT/MMT produce models equivalent to training only on remaining clients, and the empirical evidence does not verify exactness or provide statistical rigor. Reproducibility is limited (no code/seeds), and system-level overheads are unquantified. Per RBCL §2 Fatal-Flaw Logic and Decision & Overrides, the low Technical Soundness (≤2) and Reproducibility (≤2) trigger a mandatory Reject; strengths in other dimensions cannot compensate."
+  }
+}

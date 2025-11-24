@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper proposes UNICBE, a unified framework that combines three decoupled sampling probability matrices (accuracy, convergence, scalability) through element-wise multiplication. While the core insight about uniformity-driven evaluation is valuable, the individual components (ELO, Bradley-Terry, uncertainty-based sampling) are well-established. The novelty lies primarily in the integration strategy and the analytical framework connecting sampling bias, uncertainty management, and scalability. However, the actual technical innovation is somewhat incremental—the paper essentially combines existing techniques (uncertainty estimation, uniform sampling principles, Bradley-Terry model) rather than introducing fundamentally new methodological concepts. The theoretical analysis in Section 3 is insightful but relies on relatively straightforward extensions of prior work."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The work addresses a practically important problem: efficient evaluation of LLMs through preference signals is highly relevant as model iteration accelerates. The claimed 17% budget savings on AlpacaEval and 50% savings in dynamic scenarios (new models added) are substantial and practically meaningful. However, the impact is somewhat limited by: (1) applicability mainly to pairwise comparisons (list-wise conversion is mentioned but not thoroughly explored), (2) dependence on high-quality preference signals (the framework does not address label noise), and (3) unclear generalization beyond the specific benchmarks tested. The method's utility would be significantly higher if it could handle noisy or weak preference signals, which are common in real-world scenarios."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The paper presents a mathematically coherent framework, but several concerns arise: (1) The proof in Section 3.2 that uniform sampling minimizes bias (referenced in Appendix A, not included in the submission) is not fully visible for verification. The informal argument that sampling T numbers from MN numbers summing to zero is minimized by uniform selection is intuitive but the mathematical rigor is unclear. (2) Equations 10-13 construct probability matrices through exponential weighting with parameter α, but the justification for this specific functional form is not provided—why exponential decay rather than linear or other forms? (3) The convergence analysis in Section 3.3 assumes variance estimates are accurate, but variance estimates themselves may be biased with small sample sizes, which is not addressed. (4) Equation 13 integrates three matrices via element-wise multiplication without theoretical justification for why this particular aggregation is optimal. Additive or other combination schemes are not considered. (5) The claim that greedy sampling (selecting argmax) is superior to probabilistic sampling lacks theoretical support—it could simply reduce variance at the cost of potential mode-seeking behavior."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Strengths: The paper reports results over 10,000 random seeds, includes ablations of key components, and tests across multiple judges (GPT-4o, GPT-3.5-turbo, Qwen-Plus, humans). Weaknesses: (1) AlpacaEval experiments use only 20 randomly selected LLMs from a larger pool—the selection criteria and diversity are unclear. (2) MT-Bench results show 'relatively larger fluctuations' due to limited preference data, weakening confidence in generalization claims. (3) Ground truth is obtained by sampling all NM(M-1)/2 tuples, but this is computationally expensive and may not reflect true ground truth (preference signals are inherently noisy). (4) No statistical significance testing (confidence intervals, p-values) is provided for performance comparisons. (5) The β metrics (βacc, βcon, βsca) in Table 2 are introduced without prior definition in the main paper—Appendix E is referenced but not provided. (6) The scalability experiment (Figure 4) uses a synthetic scenario where new models are added every 2000 iterations; real deployment patterns may differ. (7) No analysis of computational cost: how much overhead does UNICBE incur compared to simpler methods?"
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical gaps: (1) No code or repository link is provided. (2) Hyperparameter α is set to 2 with only a brief mention that results are insensitive in [1.5, 3]; detailed sensitivity analysis is relegated to Appendix F.1 (not provided). (3) The full prompt used for GPT-4o and GPT-3.5-turbo judgments is said to be in Appendix D (not provided). (4) Implementation details are sparse: How are the three probability matrices exactly combined? Is there numerical normalization to prevent underflow with exponential terms? (5) Random seed management is mentioned (10,000 seeds for averaging) but the actual seeding strategy is unclear. (6) Appendices A, E, and F are referenced but not included in the submission, making it impossible to verify critical derivations and design choices. (7) No mention of code release or data availability. This severely impacts reproducibility—independent researchers cannot verify the work or build upon it without significant reverse-engineering effort."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Strengths: The paper clearly positions UNICBE against three relevant baselines (RANDOM, ARENA, ALPACAEVAL) and Table 1 provides a clear comparison of optimization objectives. The discussion of bias (Section 3.2) and convergence (Section 3.3) acknowledges prior work (Vabalas et al., Kossen et al.). Weaknesses: (1) Limited discussion of active learning and adaptive sampling literature, which shares similar goals of efficient budget allocation. (2) The relationship to Bayesian optimization and bandit algorithms (Thompson sampling, UCB) is not discussed, though these fields address similar exploration-exploitation trade-offs. (3) Recent work on preference learning and RLHF is mentioned peripherally but not deeply analyzed. (4) The paper does not discuss why element-wise multiplication of three matrices is preferred over alternatives like weighted averaging or other ensemble methods—no comparison with simpler integration schemes. (5) Limited discussion of non-transitive preferences beyond citing Chatbot Arena results; theoretical implications for ranking-based models (Bradley-Terry) with intransitivity are underexplored."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Major omission: The paper completely lacks an ethics section or discussion of broader impacts. Specific concerns: (1) No discussion of potential biases in LLM judges (GPT-4o, GPT-3.5-turbo are proprietary models with undisclosed training and alignment details). Using these as ground truth judges could systematically bias evaluation toward their preferences. (2) No mention of data provenance—AlpacaEval and MT-Bench are used but the authors' ethical obligations regarding their use are not discussed. (3) The efficiency gains (17-50% budget savings) could incentivize more frequent model evaluation, potentially accelerating unsafe model deployment. This risk is not addressed. (4) No discussion of how UNICBE might be misused (e.g., gaming evaluation results by strategic model placement). (5) The paper does not address fairness: does UNICBE introduce or mitigate bias against particular model families or capabilities? (6) No statement on code/data licensing or reproducibility ethics. Given the sensitive application domain (LLM evaluation), this complete absence is a significant weakness."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "While UNICBE presents a coherent framework addressing an important problem (efficient LLM evaluation), the paper has critical weaknesses that preclude acceptance at a top-tier venue. **Fatal Flaws (Reproducibility & Ethics):** The submission is missing key appendices (A, E, F) containing proofs, design justifications, and experimental details, making independent verification impossible. No code or data access is provided. The complete absence of ethics discussion is unacceptable for work affecting LLM evaluation practices. **Technical Concerns:** The theoretical justification for key design choices is incomplete—why exponential weighting (Eq. 10-13)? Why element-wise multiplication for matrix integration? Why greedy over probabilistic sampling? These are asserted rather than proven. The proof of optimal uniform sampling (Appendix A, not provided) is cited but unverifiable. Variance estimation assumptions may not hold with small sample sizes. **Empirical Limitations:** Ground truth obtained by exhaustive sampling may not reflect true preference distributions. MT-Bench results show instability. No statistical significance testing. The β metrics (Table 2) are introduced without proper definition. Computational overhead is not analyzed. Scalability experiments use synthetic scenarios that may not reflect real deployment. **Under RBCL Fatal-Flaw Logic:** Reproducibility score ≤ 2 (missing code, appendices, hyperparameter details) triggers mandatory Reject. The paper cannot be reproduced or verified in its current form. Combined with absent ethics discussion and incomplete technical justification, this paper requires major revisions before resubmission. The core idea has merit, but execution and transparency fall well short of publication standards."
+  }
+}
+```

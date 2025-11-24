@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The idea of scaling per-head / per-channel attention to improve task-specific behavior is an intuitive extension of known circuit-analysis and PEFT techniques rather than a fundamentally new methodological insight. Strengths: the paper systematically explores head- and channel-granular interventions and reports consistent empirical gains across several models and tasks. Weakness / unverified assumption: the paper assumes a causal, generalizable role for the identified heads (that scaling them will improve retrieval broadly) but provides limited causal intervention evidence beyond pruning/scale-and-observe; it is plausible that observed gains are dataset- or prompt-format specific rather than a new general mechanism. Downgrade rationale: score reduced per RBCL anti-inflation and conservative novelty rubric (decision downgraded due to RBCL §Anti-Inflation Safeguard and Default Assumption)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If robust, a lightweight, low-cost method to recover long-context retrieval could be useful in practice, especially combined with training-free context-extension techniques. Weakness / unverified assumption: claims of broad impact rely on limited tasks (line retrieval, needle-in-haystack, selected LongBench QA subsets) and small synthetic tuning sets (50 samples); large-scale, realistic production workloads and more diverse downstream tasks are not evaluated, so practical impact remains uncertain. Downgrade rationale: conservative scoring and RBCL anti-inflation applied."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The approach (learnable head/channel scalars trained via SGD) is straightforward and the qualitative direct-effect analysis is informative. Weakness / unverified assumption: the paper lacks rigorous causal validation (e.g., randomized interventions, counterfactuals) to establish that scaled heads are the principal cause of improved retrieval; the direct-effect analysis shows MLP contributions often dominate logits, calling into question whether attention-scaling alone is the true mechanism. Additionally, theoretical justification for why such tiny parameter edits generalize across inputs and models is limited. Downgrade rationale: score capped low due to missing theoretical rigor and potential confounds; note RBCL Fatal-Flaw Logic (technical_soundness <= 2) will force a Reject decision."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 1,
+      "justification": "The paper reports experiments on multiple models (7B/13B) and tasks (LongEval line retrieval, Needle-in-a-Haystack, slices of LongBench) and compares variants SEAL-H/SEAL-C/SEAL-L/SEAL-D and some context-extension baselines (NTK, Self-Extend). Weakness / unverified assumption: experimental protocol lacks statistical rigor—no multiple random seeds or confidence intervals, no standard deviations, and small tuning dataset (50 synthetic examples) raises questions about variance and robustness. Important baselines are missing or not fully controlled (e.g., full fine-tuning baselines, more extensive ablations on synthetic-data generation choices, and tests on larger, more diverse natural datasets). Single-run results and reliance on synthetic tuning cause substantial risk of overclaiming. Downgrade rationale: penalized due to single-run/insufficient statistical testing per Empirical Rigor rule and RBCL conservatism."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Some implementation details are given (optimizer type, some learning rates, single A100 80GB used, epoch counts), and example prompts for synthetic-generation are sketched. Weakness / unverified assumption: the paper does not provide code, exact synthetic-data generation scripts, random seeds, full hyperparameter sweeps, model checkpoints, or precise prompts and tokenization details; evaluation scripts and metrics computation are not released. This makes independent verification difficult. Downgrade rationale: missing essential artifacts and seeds; per rubric missing/unclear reproducibility information and RBCL Evidence Severity Scaling, score is low. Note: reproducibility <= 2 triggers mandatory Reject per RBCL Fatal-Flaw Logic."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites circuit-analysis, RoPE/position-interpolation, NTK-based methods, and PEFT (LoRA/DoRA), and positions SEAL as orthogonal to context-extension techniques. Weakness / unverified assumption: discussion is somewhat high-level and lacks a thorough empirical comparison to the strongest recent context-extension and fine-tuning methods (e.g., more recent interpolation/position-reparametrization papers, larger-scale fine-tuning baselines) and lacks discussion on limits where SEAL fails; claims of orthogonality would benefit from clearer experimental contrasts. Downgrade rationale: moderate coverage but missing deeper empirical positioning; RBCL anti-inflation applied."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No explicit ethics or broader-impacts section is provided. Weakness / unverified assumption: the paper does not discuss risks such as potential amplification of harmful content through retrieval, privacy implications when models access very long contexts (which could include sensitive data), licensing of models/data used, or dataset provenance for synthetic and evaluation data. Absence of this discussion is notable given the claimed deployment/production potential. Downgrade rationale: absent ethics statement and missing risk analysis, score reduced per RBCL Evidence Severity Scaling."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 11,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes SEAL, a lightweight learnable scaling of attention heads/channels to improve long-context retrieval. Empirically, the method shows promising improvements on targeted synthetic retrieval tasks and some LongBench subsets, and the approach is computationally inexpensive. However, critical shortcomings prevent acceptance at a top-tier venue in its current form. The principal issues are (1) insufficient reproducibility (no released code, seeds, or exact synthetic-data generation scripts), (2) limited empirical rigor (single-run evaluations, no statistical significance or robustness checks, tiny tuning sets of 50 synthetic samples), and (3) incomplete technical causal validation (MLP contributions appear to dominate logits in examples, and causal claims about head roles are not rigorously established). Per the RBCL rules, reproducibility <= 2 and technical_soundness <= 2 are fatal: the review is therefore a Reject (Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL §Anti-Inflation Safeguard). Additional reasons: missing ethics/broader-impacts analysis, incomplete comparisons to strongest baselines, and potential overclaiming of generalization from narrow experiments. To be reconsidered, the authors should (a) release code, synthetic-data generation scripts, exact prompts, seeds, and evaluation scripts; (b) run multiple seeds and report statistical significance/variance; (c) add stronger causal interventions (e.g., randomized head/channel ablation/replacement, transfer across more diverse natural datasets) and ablations that clarify when SEAL fails; and (d) include a thorough ethics/broader-impacts discussion. Given the fatal reproducibility and soundness concerns and the RBCL presumption of rejection, the correct disposition is Reject."
+  }
+}

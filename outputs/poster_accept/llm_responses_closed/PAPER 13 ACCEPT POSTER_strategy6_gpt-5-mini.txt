@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper applies orbit concepts to generate feature augmentations for GNNs on ILPs, which is a sensible and useful idea but largely builds on existing symmetry-breaking and orbit/SBS-based techniques. The contribution reads as a focused engineering and design choice (orbit-aware sampling + principles) rather than a fundamentally new theoretical paradigm; hence novelty is modest. Potential weaknesses / unverified assumptions: (i) the approach may be largely a clever combination of prior techniques (SBS, orbit-based ideas) rather than a genuinely new method (authors claim novelty but do not clearly delineate what is strictly new vs. adapted); (ii) scalability and applicability beyond the discussed ILP classes (orbits that are easy to compute) are not fully established; (iii) some steps rely on tools (e.g., Bliss, SymILO) whose limitations are not discussed, which weakens the claim of a broadly novel solution."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If effective, orbit-based augmentation could improve ML-assisted ILP solvers on symmetric instances, which is of practical interest to the ML+OR community. However, significance is limited by scope and dependencies: the method targets formulation symmetry specifically and requires orbit detection and label transformations (SymILO), which may constrain broad applicability. Potential weaknesses / unverified assumptions: (i) the practical impact depends on the ease and cost of detecting orbits for large-scale, real-world ILPs (authors claim Bliss works but do not quantify overhead); (ii) the method assumes access to sufficiently good labels (authors use time-limited solver outputs rather than verified optima), so claimed real-world utility may be overstated; (iii) transfer to downstream solver speedups or overall optimization performance is not convincingly demonstrated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The theoretical claim that permutation equivariance/invariance imply identical outputs on variables in the same orbit is standard and plausibly correct; the formalization and propositions appear reasonable at a high level. However, several assumptions and steps lack sufficient scrutiny or generality. Potential weaknesses / unverified assumptions: (i) Assumption 1 (strict equivariance/invariance) is treated as universal for 'GNNs', but many practical architectures, training choices, and input augmentations may break exact equivariance — this assumption may not hold in practice; (ii) the correctness of the orbit-based sampling approach depends on the SymILO label transformation procedure; the paper asserts SymILO can always adjust labels appropriately but provides no stability or convergence guarantees; (iii) proofs and limiting cases are deferred to appendix and not fully tested for edge cases (e.g., partial symmetries, approximate symmetries). Because these concerns affect core correctness and generality, I rate technical soundness conservatively. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (technical_soundness ≤ 2)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The authors evaluate on several ILP benchmarks and compare to clear baselines (No-Aug, Uniform, Position) and two orbit variants; they report dataset statistics and some training details. Nevertheless, the experimental evaluation has important gaps. Potential weaknesses / unverified assumptions: (i) Labels are obtained by running SCIP for 3600s and storing the best-found solution — these are not guaranteed optima, undermining claims about predicting optimal solutions; (ii) no statistical significance analysis, confidence intervals, or multiple independent runs with different random seeds are reported (authors sampled augmentations during training but report single test-sample performance); (iii) key ablations are missing or under-specified (cost of orbit detection, sensitivity to orbit cardinality, effect of SymILO vs. no SymILO), and external validity to other ILP classes is untested. These weaknesses reduce confidence that the empirical results fully support the claims."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper includes a link to a code repository and reports several training hyperparameters (optimizer, lr, batch size, epochs) and tools used (Bliss, SCIP, SymILO). Despite this, essential reproducibility details are missing or unclear. Potential weaknesses / unverified assumptions: (i) the manuscript does not report random seeds, hardware/environment specifications, or full hyperparameter search details; (ii) the repository is cited but no verification of whether it contains complete scripts, exact seeds, or data-generation scripts is provided in the paper; (iii) the SymILO label-adjustment workflow and any manual/interactive steps are not fully specified. Per the rubric, missing/unclear information caps this score at 2."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites a broad set of relevant literature on symmetry, SBS, and GNNs for ILPs and positions its contribution relative to them. However, important aspects are underdeveloped. Potential weaknesses / unverified assumptions: (i) the distinctions between the proposed orbit scheme and closely related prior methods (e.g., Morris et al., SBS variants, and Chen et al. 2022/2024) are described at a high level but lack a precise technical comparison or particular failure cases where prior methods fail and orbit-based succeeds; (ii) there is limited discussion of computational costs compared to prior symmetry-breaking approaches; (iii) some recent related works (or variants that canonicalize graphs or use learned positional encodings) may not be adequately compared experimentally."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes a brief 'limitation' paragraph but lacks a formal ethics or broader impacts section. Potential weaknesses / unverified assumptions: (i) there is no explicit ethics statement, data licensing discussion, or provenance details for datasets and solver outputs; (ii) the paper includes a suspicious meta-analytic claim referencing a 2025 JMLR paper (future-dated) without verifiable citation details, calling into question care in claims about dataset bias and external validity; (iii) potential misuse or downstream impacts (e.g., overreliance on ML predictions in critical optimization systems) are not discussed. Per rubric, absence/unclearness of an ethics statement constrains the score."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.70,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper addresses an important practical problem — distinguishing symmetric variables in ILP representations using GNNs — and proposes orbit-based feature augmentation with guiding principles. The idea is sensible and experimentally promising, but the submission has multiple critical weaknesses that prevent acceptance at a top-tier venue in its current form. The most serious concerns are (1) technical soundness and generality: the core theoretical assumptions (strict equivariance/invariance, effectiveness of SymILO label transformations) are not sufficiently justified or stress-tested, and several edge cases are not analyzed; (2) empirical limitations: labels are produced by time-limited solver runs (not guaranteed optimal), there is no statistical analysis or multiple-seed evaluation, and important ablations (cost and robustness of orbit detection, sensitivity to orbit sizes, SymILO ablation) are missing; (3) reproducibility and transparency gaps: critical details such as random seeds, full experimental scripts/hardware, and explicit description of SymILO integration are not provided in the paper (repository cited but not independently verified), and a speculative meta-analysis citation raises trust concerns. According to the RBCL / Fatal-Flaw Logic, technical_soundness ≤ 2 mandates a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Given these issues, I recommend rejection but encourage the authors to: (a) strengthen and clarify theoretical assumptions and proofs (and discuss failure modes), (b) re-run experiments with certified optimal labels where possible or analyze the impact of non-optimal labels, (c) report multiple independent runs, seeds, confidence intervals, and thorough ablations (including cost of orbit detection and a comparison to stronger baselines), and (d) make the code, data-generation, and full experiment scripts (with environment and seeds) openly available with a clear ethics/broader-impact statement."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper applies and adapts existing memory-transformer ideas to the multi-agent setting by pooling and broadcasting per-agent recurrent memory. This is a sensible engineering extension but does not present a fundamentally new algorithmic insight or theoretical contribution that departs strongly from prior memory-transformer or global-workspace ideas. Potential weaknesses / unverified assumptions: (1) the claimed novelty mainly amounts to combining known components (RMT-style memories + cross-attention) rather than a new methodological insight; (2) there is no formal analysis proving when shared recurrent memory provides benefits or its limits (e.g., capacity, scalability bounds); (3) authors claim the approach is generally beneficial, but this may depend heavily on hyperparameter choices and architecture details that are not fully justified. Note: score kept conservative per RBCL Anti-Inflation Safeguard (decision reasoning reduced to avoid mid-range inflation)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "If robust and reproducible, a decentralized method that improves coordination in lifelong MAPF and PO-MAPF has practical value for robotics and multi-agent systems research. However, practical impact is uncertain because: (1) the approach appears computationally heavy (training runs of hundreds of millions to billions of steps), which limits accessibility and adoption; (2) improvements over strong centralized planners are only partial and sometimes occur only when combined with heuristic planning (SRMT-FlwrPlan), suggesting limited standalone benefit; (3) no discussion of deployment constraints or latency/communication costs is provided, which are critical for real-world multi-robot systems. Because of these unverified practical assumptions and limited discussion of applicability, I keep the score conservative."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The architectural description (pooling per-agent recurrent memory, cross-attention, memory-head updates) is plausible and consistent with transformer practice; the experimental protocol appears to use reasonable baselines and ablations. Potential weaknesses / unverified assumptions: (1) there is no rigorous theoretical justification for stability or convergence properties of broadcasting recurrent memories between agents (possible information overwrite or instability is not analyzed); (2) important implementation/training choices (e.g., how memory writes are regularized, gradient-flow through shared memory, clipping, stabilization tricks) are not fully detailed in the provided text; (3) claims about decentralization and scalability lack quantified analysis of communication/compute overhead during inference. Note: I retain a modest positive score for sound engineering, but the RBCL rules prompted conservative scoring due to missing reproducibility detail (see reproducibility justification)."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experimental suite is reasonably broad: toy Bottleneck task with multiple reward schemes, generalization to long corridors, ablations (RMT, Attention, Empty, RNN), comparisons to several MARL and planning baselines, and evaluations on the POGEMA benchmark (Mazes, Random, MovingAI, Warehouse). The authors report CSR/ISR/SoC metrics and present multiple plots and 95% confidence intervals. Potential weaknesses / unverified assumptions: (1) the paper omits explicit details about number of random seeds, variance across seeds, and statistical tests for many experiments (Appendix referenced but not included here), making it hard to judge robustness; (2) extremely large-scale training (up to 1B environment steps) may hide practical reproducibility barriers and hyperparameter sensitivity; (3) some important baselines (e.g., best hybrid planning-MARL pipelines) may be incomplete or not tuned equally, risking comparison bias. Overall experiments are encouraging but lack some reproducibility rigor and full transparency."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility information is missing or unclear in the provided submission: (1) no link to code or model checkpoints is provided in the manuscript; (2) although the text references Appendix A.1 for training details and hyperparameters, that appendix is not included here (so reproducing reported runs is impossible from the provided material); (3) random seeds, exact environment versions, compute used (GPUs/TPUs), and data-generation scripts are not documented; (4) training budgets are very large (hundreds of millions to billions of steps) and may be infeasible for many researchers. Per the rubric, missing/unclear information caps this criterion at 2/5. Because reproducibility <= 2 triggers the RBCL Fatal-Flaw Logic, this deficiency forces a conservative overall decision (see final justification: \"Decision downgraded due to RBCL §2 Fatal-Flaw Logic\")."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites and positions itself relative to memory transformers (RMT, ATM, RATE), MARL communication methods (MAMBA, DCC, SCRIMP), and classical MAPF planners (RHCR, Follower). Several baselines and ablations are evaluated empirically. Potential weaknesses / unverified assumptions: (1) the related work section focuses primarily on memory-transformer lineage and several MARL baselines, but may under-emphasize recent hybrid planning–learning approaches and the broader literature on decentralized coordination and message-aggregation; (2) fairness of baseline tuning is not fully documented (risk of unequal hyperparameter budgets); (3) some cited works are recent/unpublished (Skrynnik et al. references), making cross-validation harder. Overall positioning is adequate but could be strengthened with broader and deeper discussion of planning–learning hybrids and communication-efficiency trade-offs."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The submission does not include an explicit ethics or broader impacts statement, and there is no discussion of potential misuse, safety considerations, compute/resource environmental cost, or licensing/intent for code/data release. Potential weaknesses / unverified assumptions: (1) multi-agent control systems have safety implications (e.g., collisions, emergent unsafe behaviors) that are not discussed or risk-mitigated; (2) the substantial compute requirements imply environmental and accessibility concerns that are not acknowledged; (3) data provenance and license for POGEMA/MovingAI usage are not described explicitly. Per rubric guidance, absence of an ethics statement leads to a conservative cap (2/5)."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes a pragmatic extension of recurrent-memory transformers to decentralized multi-agent pathfinding by pooling and broadcasting per-agent recurrent memories (SRMT). Empirically the authors report encouraging results across toy bottleneck tasks and the POGEMA benchmark with ablations and comparisons to several baselines. However, the submission lacks essential reproducibility artifacts (no code, missing appendices with hyperparameters and seeds, unclear compute details), and it omits an ethics/broader-impacts discussion. These omissions are material: per the review rubric and the RBCL (Reviewer Bias Correction Layer) Fatal-Flaw Logic, reproducibility <= 2/5 requires a conservative decision. Specifically: (1) Reproducibility is capped at 2 because code, seeds, exact hyperparameters, and environment setup are not provided, making verification and adoption infeasible; (2) Because reproducibility <= 2, RBCL §2 mandates that the overall decision be 'Reject' (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Additional concerns that support rejection: limited theoretical/analytical justification for stability or failure modes of shared recurrent memory; heavy compute demands that impede reproducibility; incomplete discussion of safety/ethical implications. Strengths: reasonable empirical breadth, sensible architectural design, comparative baselines and ablations, and reported generalization behavior. If the authors make the following changes, the paper could become acceptable: (a) release code, training scripts, seeds, and exact hyperparameters and environment versions; (b) provide clear instructions to reproduce key plots and a set of smaller-scale experiments runnable on modest compute; (c) add an ethics / broader impacts statement and discuss safety and compute costs; (d) strengthen analysis of failure modes, memory capacity limits, and costs of shared memory broadcasting. Until these transparency and robustness issues are addressed, the paper should be rejected under the conference standards. (Note: scores were kept conservative and adjusted in line with the RBCL Anti-Inflation Safeguard and Missing-Information rules—see reproducibility justification above.)"
+  }
+}

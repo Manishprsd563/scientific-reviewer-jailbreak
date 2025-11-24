@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper introduces a genuinely novel approach to root cause diagnosis by proposing in-distribution interventions (IDI) as an alternative to counterfactual reasoning. The key insight—that counterfactual methods suffer from abduction errors when applied to out-of-distribution anomalies—is well-motivated and technically sound. The theoretical characterization comparing interventional and counterfactual errors (Section 4) provides new understanding. However, the novelty is primarily methodological rather than conceptual; the use of interventions and Shapley values for multiple root causes are established techniques applied in a new context. The reliance on a known causal graph and standard SCM training limits the breadth of novelty."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "Root cause diagnosis in cloud systems is a practical and important problem with real-world impact. IDI addresses a genuine limitation of existing methods—the fragility of counterfactual estimation under distribution shift—which is a recognized pain point in the RCD literature. The improvements over baselines on PetShop are consistent but modest (IDI achieves 0.90 on most metrics, matching or marginally exceeding strong baselines like Traversal). The practical applicability is constrained by the requirement of a known causal graph and the assumption that training data is drawn from an oracle SCM, limiting deployment to well-characterized systems. The improvements do not overwhelmingly demonstrate transformative impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical analysis in Section 4 is well-structured and the main theorem (Theorem 4.1, comparing error bounds) appears sound. However, there are several concerns: (1) The theory primarily applies to additive noise models with chain graphs, limiting generality. (2) Assumption 1 (at most one root cause per simple path) is reasonable but somewhat restrictive and not thoroughly validated empirically. (3) The definition of the root cause distribution Q^{RC(j)} (Definition 1) conditions on observed anomalies in X_n, but the paper does not rigorously justify why sampling from this distribution via the inverse is fundamentally more reliable than counterfactual abduction. (4) Section 7's limitation acknowledges that in large training regimes, interventional errors plateau at exogenous variable std. dev while counterfactuals converge, which contradicts the paper's framing that IDI is generally superior. This suggests the approach is context-dependent rather than uniformly better."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments are conducted on toy datasets, PetShop, and synthetic cloud datasets, but several weaknesses limit validation: (1) The toy experiment (Section 6.1) uses only small sample sizes (n ∈ {25, 50, 100, 1000}) and a simple 4-variable graph, which does not convincingly demonstrate scalability. (2) PetShop results are mixed—IDI achieves 0.90 on most metrics, but Traversal (a simpler causal anomaly method) matches or exceeds this, and CIRCA outperforms IDI on Recall@3 for high latency. This undermines claims of consistent superiority. (3) No statistical significance testing or confidence intervals are provided; single-run results are reported. (4) Missing ablation studies: e.g., sensitivity to anomaly detector choice (only Z-score used), impact of SCM architecture, robustness to causal graph misspecification. (5) The synthetic datasets are not fully described in the main paper, limiting reproducibility of those results. (6) No comparison with SAGE (a prominent CF-based method) on the same datasets."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper states 'Code will be released at https://github.com/nlokeshiisc/IDI_release' but the code is not yet available for review, preventing independent verification of results. Hyperparameter settings for SCM training (e.g., MLP architecture for non-linear models: '3-layer MLP with 10 hidden nodes') are mentioned for the toy experiment but not for larger experiments. No random seeds are specified. The PetShop experiments leverage the existing library but implementation details for IDI within that framework are unclear. The synthetic datasets used in Section 6.4 are not fully specified in the main paper (details deferred to appendix, which is not provided in the review copy). Without access to code and complete experimental specifications, reproducibility is severely compromised. This is a critical issue for a top-tier venue."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper provides a reasonable categorization of prior work (Correlation, Causal Anomaly, Causal Fix) and cites relevant methods. However, there are gaps: (1) The relationship to SAGE (Gan et al., 2021), a prominent VAE-based counterfactual method mentioned briefly, is not thoroughly analyzed. The paper claims SAGE suffers from OOD conditioning of its encoder but does not empirically compare against SAGE on the same benchmarks. (2) The connection to broader literature on distribution shift and out-of-distribution generalization in causal inference is underdeveloped. (3) Recent work on robustness of causal inference under model misspecification could strengthen positioning. (4) The paper does not adequately discuss when counterfactuals might be preferable (e.g., in large training regimes, per Section 7's limitations). This undermines fair positioning. The citations are comprehensive but the comparative narrative is somewhat one-sided in favor of IDI."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no discussion of ethical implications, broader impacts, or safety considerations. While root cause diagnosis is a tool for system maintenance, the paper does not address potential misuse (e.g., incorrectly diagnosing root causes could lead to unnecessary system interventions, downtime, or resource waste). There is no discussion of data provenance for PetShop or synthetic datasets, no mention of licenses, and no consideration of fairness or bias in anomaly detection or root cause assignment. For a top-tier venue like NeurIPS/ICLR, an ethics section or broader impacts statement is expected. The absence is a notable gap. Per RBCL scoring rules, missing ethics discussion caps this criterion at 1-2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 20,
+    "confidence": 0.75,
+    "final_decision": "Borderline / Major Revision",
+    "final_justification": "IDI presents a novel and theoretically motivated approach to root cause diagnosis that addresses a real limitation of counterfactual methods under distribution shift. The core insight—that in-distribution interventions avoid abduction errors—is valuable. However, the paper has several significant weaknesses that prevent acceptance at a top venue: (1) **Reproducibility Crisis**: Code is not available, experimental details are incomplete, and no statistical significance testing is provided. Per RBCL Fatal-Flaw Logic, reproducibility ≤ 2 should trigger rejection. This is a critical issue. (2) **Empirical Validation Gaps**: Results on PetShop show IDI matches or marginally exceeds baselines, but does not consistently outperform simpler methods (e.g., Traversal achieves 0.80-1.00, matching IDI; CIRCA beats IDI on some metrics). Claims of 'consistent superiority' are overstated. (3) **Theoretical Limitations**: The theory primarily applies to additive noise models with chain graphs, yet experiments use more complex SCMs. Section 7 acknowledges a critical limitation: interventional errors plateau while counterfactuals converge in large-sample regimes, contradicting the framing that IDI is generally superior. (4) **Missing Ablations & Comparisons**: No statistical tests, no ablation studies on key design choices, no empirical comparison with SAGE (a relevant baseline). (5) **Ethics & Reproducibility**: No ethics discussion; code unavailable. (6) **Assumption Restrictiveness**: Assumption 1 (at most one root cause per path) is reasonable but limits applicability; the impact of violations is not empirically studied. Overall, while the paper makes a solid methodological contribution, the execution falls short of top-tier standards. The combination of reproducibility issues, modest empirical gains, and theoretical limitations that contradict the main claims place this in the 'Borderline / Major Revision' category. Significant revisions—especially code release, statistical testing, and honest framing of when IDI is/isn't superior—would be needed for acceptance."
+  }
+}
+```

@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a large-scale benchmark (StreamingBench) specifically targeted at streaming video understanding, which is a meaningful step beyond small existing streaming datasets (e.g., VStream-QA). This constitutes a useful empirical contribution rather than a new methodological insight; it is primarily a dataset/benchmark paper and not a novel algorithmic technique. Potential weaknesses / unverified assumptions: (1) the benchmark relies heavily on GPT-4o for automatic caption/QA generation for a large fraction of data, which may introduce systematic artifacts or biases that are not fully characterized; (2) converting streaming tasks into offline segment evaluations for currently non-streaming models undermines the claimed streaming focus and raises the question whether the benchmark truly captures streaming challenges. I applied the Anti-Inflation Safeguard (scores were considered conservatively and effectively reduced) and kept the score moderate because novelty is primarily dataset-level rather than methodological (per the rule that 4–5 is reserved for genuine new methodological insights)."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "A comprehensive benchmark for streaming video understanding would be valuable to the community and can drive research focus toward real-time multimodal models; the scale (900 videos, 4,300 QA) and task taxonomy (real-time, omni-source, contextual) indicate potential community impact. Potential weaknesses / unverified assumptions: (1) the paper does not provide sufficient evidence that the dataset distribution reflects real deployment scenarios (YouTube selection criteria, licensing, and representativeness are not fully documented); (2) the conversion-to-offline evaluation protocol used for experiments may limit the practical usefulness of the benchmark for true streaming-system research (latency, incremental processing, memory constraints are not evaluated). Because of these caveats the impact is promising but not yet fully substantiated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The benchmark construction and evaluation pipeline are generally plausible, and quality-control steps (human verification) are reported. However, there is a major methodological assumption: since target MLLMs cannot ingest true streaming video, the authors convert each streaming task into an offline segment (video from start to query timestamp) and use offline evaluation as a proxy for streaming performance. This is an unverified and consequential assumption — offline access to the full prefix does not replicate streaming system constraints such as incremental encoding, limited compute per frame, buffering/latency and stateful event detection. Additional technical weaknesses: (1) details about the human verification procedure, inter-annotator agreement, and the proportion of automatically vs. manually authored QA pairs are insufficiently specified; (2) the use of proprietary closed models (GPT-4o) in dataset construction creates opaque dependencies that can affect dataset neutrality. Because of these substantive methodological gaps and unverified assumptions I rate technical soundness low. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: the conversion-from-streaming-to-offline is a critical methodological limitation that undermines the core claim of measuring 'streaming' capabilities."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper evaluates 13 models (including strong proprietary and open-source baselines) and reports per-task results, human baseline sampling, and several analyses (video length, clue types, redundancy ablation). Strengths include breadth of evaluated models and task breakdown. Key weaknesses / unverified assumptions: (1) the core experimental protocol converts streaming tasks into offline prefix inputs — this choice likely biases results and is not validated against real streaming systems; (2) few statistical details are provided (no confidence intervals, no multiple runs or seeds, no hypothesis tests), and the human evaluation is limited to a 10% sample with little methodological detail; (3) some analyses (e.g., proactive output) evaluate only 50 of 250 available examples, which is explicitly noted as an efficiency shortcut and weakens conclusions. The experiments are informative but insufficiently rigorous to fully support claims about streaming performance."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The manuscript describes dataset size and annotation pipeline at a high level and states plans to release remaining PO questions, but it does not explicitly state that the full dataset, annotation scripts, evaluation code, model prompts, or seeds will be released. Important reproducibility weaknesses / unverified assumptions: (1) no explicit link to released data/code is provided in the paper text; (2) substantial parts of the pipeline rely on proprietary models (GPT-4o) for caption/QA generation and proprietary evaluated models (Gemini, GPT-4o, Claude), making exact replication difficult for researchers without access; (3) hyperparameters for model prompting, evaluation thresholds, and human evaluation protocol (annotator instructions, agreement) are either missing or not sufficiently detailed. Per scoring rules, missing or unclear information caps the score at 2/5. Because reproducibility is weak and <= 2, RBCL §2 Fatal-Flaw Logic applies and forces an overall Reject decision (see final_justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper presents a comparison table with many prior video benchmarks, discusses VStream-QA and other contemporaneous datasets, and positions StreamingBench as broader and multimodal. This is appropriate for a benchmark paper. Potential weaknesses / unverified assumptions: (1) the related-work discussion is dataset-focused and could under-emphasize recent streaming-oriented model-methods and system-level work (incremental encoders, online audio-visual alignment) that would be relevant to claim novelty; (2) the fairness of comparisons depends on matching task definitions and temporal assumptions — because StreamingBench converts streaming queries into offline prefixes for evaluation, the comparisons with offline benchmarks may not be apples-to-apples without clearer framing. Overall, positioning is adequate but could be more comprehensive regarding streaming-model literature and system constraints."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper lacks an explicit ethics or broader-impacts section. Potential ethical concerns and unverified assumptions: (1) dataset collection is from YouTube videos but the authors do not report licensing status, consent, or whether any content was restricted (privacy-sensitive footage); (2) there is no discussion of demographic skew, potential harms from model misinterpretation in real-time settings (e.g., safety-critical mistaken proactive outputs), or mitigation strategies; (3) reliance on proprietary model outputs for annotation introduces provenance and bias concerns that are not addressed. Per the rubric, missing ethics discussion caps the score and is an important omission for a dataset intended to guide real-world systems."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: StreamingBench fills a real need by assembling a large, multi-task benchmark focused on streaming video understanding and providing a useful taxonomy (real-time visual, omni-source, contextual). The empirical breadth (13 models) and analyses (clue timing, redundancy, sequence QA, proactive output) are informative. However, there are critical methodological and transparency shortcomings that prevent acceptance in its current form. Most importantly, the evaluation protocol converts streaming tasks into offline prefix inputs because current MLLMs cannot accept streaming video; this is a major unverified assumption that undermines the claim of assessing true streaming capabilities (RBCL §2 Fatal-Flaw Logic). Reproducibility is weak: there is no explicit data/code release or full protocol details, and the pipeline depends on proprietary models (GPT-4o) both for dataset generation and as evaluated baselines, making independent verification challenging. Experiments lack statistical rigor (no confidence intervals/multiple runs described), and parts of the benchmark (e.g., only 50/250 PO examples evaluated) are incompletely assessed. Ethical considerations, data licensing, and provenance are not addressed. Because both technical_soundness and reproducibility are <= 2, I must apply the RBCL fatal-flaw rule and recommend Reject: these are non-compensable flaws (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). To improve the paper: (1) provide full public release of dataset, annotation instructions, code, prompts, and evaluation scripts; (2) validate that the offline-prefix evaluation is an appropriate proxy for streaming (or, better, include an incremental/streaming evaluation protocol or system); (3) expand human-evaluation details and include statistical analyses; (4) add an explicit ethics / licensing / provenance section describing data sources, consent/licensing, and potential harms; (5) increase transparency about the GPT-4o-generated subset and provide analyses of artifacts introduced by automatic generation. With these fixes the benchmark could become widely useful, but as presented the methodological and reproducibility gaps are fatal for acceptance."
+  }
+}

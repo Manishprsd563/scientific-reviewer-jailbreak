@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper introduces a new task (Video Action Differencing) and a new benchmark (VidDiffBench), which is a meaningful contribution in framing a novel evaluation problem. However, the proposed VidDiff method is primarily an agentic composition of existing components (LLM proposals, CLIP-based localization, VLM-based QA) rather than a fundamentally new algorithmic insight. One potential weakness is the heavy reliance on existing foundation models (LLMs/CLIP/VLM) without a novel core modeling advance; an unverified assumption is that the pipeline composition will generalize across very different domains without domain-specific tuning. (RBCL: I applied a conservative stance per the \"presumption of rejection\" and the Anti-Inflation Safeguard; this reduced upward scoring.)"
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the task, dataset, and evaluation protocol could be valuable for research on skill feedback, coaching, and fine-grained video understanding; the dataset covers multiple skill domains which increases potential impact. A key potential weakness is incomplete demonstration of real-world utility: limited discussion and experiments on downstream user-facing scenarios (e.g., how to present feedback to users or clinical validation for surgical tasks). There is also an unverified assumption that models that succeed on this benchmark will produce safe, actionable feedback in sensitive domains like surgery without additional validation."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The method's components are plausible and the three-stage pipeline is coherent. Ablations (oracle frames, localization) provide useful insight into component contributions. However, several methodological choices are insufficiently justified: (1) use of an LLM to create taxonomies, to assign difficulty splits, and to perform partial-string matching risk circularity and dataset/evaluation bias; (2) single-annotator-per-action practice may introduce systematic bias despite a 25% secondary review; (3) limited detail on prompt design and exact model versions/inputs limits verification of claimed behaviors. A potential weakness is the reliance on proprietary LMMs for key claims and evaluation; an unverified assumption is that CLIP-Viterbi localization is the best practical approach across all action domains. These issues reduce confidence in full technical correctness and generality."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper provides a reasonably wide set of experiments (multiple LMMs, ablations, oracle baselines) and per-difference analysis across 148 types, which is valuable. However, there are important empirical shortcomings: (1) evaluation uses GPT-4o to perform open-set matching (potential evaluation bias if GPT-4o is also a model under test), (2) limited reporting of statistical rigor (no confidence intervals or multiple runs for stochastic components), (3) many results depend on proprietary models which are hard to reproduce and validate, and (4) split assignment via an LLM (GPT-4o) introduces possible leakage/bias. These factors (single-run-like evaluation, missing statistical tests, and unverifiable proprietary-model behavior) weaken empirical claims. Per the scoring discipline, missing statistical rigor and potential circular evaluation penalize the score."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The authors state that benchmark data and code will be released (HuggingFace and code links referenced), but the paper does not include explicit, verifiable links, nor complete details on prompts, exact model versions, hyperparameters (even for non-trained components), evaluation scripts, and seeds. Critical reproducibility information is missing or underspecified (e.g., prompts for the Difference Proposer, exact CLIP model and preprocessing, exact Viterbi settings, the exact LLM prompts used for split assignment and matching). This missing/unclear information triggers the automatic cap at 2/5 per the instructions. As a result, I cannot verify or reproduce the full experimental pipeline. (RBCL §2 Fatal-Flaw Logic applies: reproducibility ≤ 2 — this triggers a conservative decision constraint.)"
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section cites a broad set of relevant areas (skill feedback, difference/change captioning, video localization, pose estimation). The paper makes an effort to position VidDiff relative to both image differencing and prior video comparison work. However, a potential weakness is that connections to closely related pairwise training/metric-learning approaches and detailed empirical baselines (e.g., models trained specifically for pairwise skill ranking or earlier instructional video comparison systems) are not thoroughly compared experimentally. There is also reliance on claims that other datasets lack fine-grained labels without exhaustive side-by-side quantitative comparison; this is an unverified assumption in the manuscript."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper includes a brief 'Future Work and Limitations' section, but it does not provide a dedicated ethics or broader-impacts statement describing risks, potential harms, consent and provenance of the video sources (beyond stating public datasets), mitigation strategies for misuse, or how incorrect feedback could affect users (particularly in medical/surgical domains). Important questions (consent for re-release, licensing of combined derived benchmark, and potential harms from automated feedback) remain unaddressed. This missing explicit ethics treatment leads to a conservative cap at 2/5. A potential weakness is the lack of concrete mitigation measures for harmful or misleading feedback in high-stakes domains (an unverified assumption is that dataset provenance and licensing permit all intended uses)."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.78,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes a new, well-motivated task (Video Action Differencing) and provides a benchmark (VidDiffBench) plus a modular zero-shot pipeline that leverages existing foundation models. The dataset and the framing of the problem are meaningful contributions that could spur further work. However, there are critical concerns preventing acceptance at this time. The principal issues are limited reproducibility (insufficient release/description of code, prompts, exact model versions, and evaluation scripts) and empirical evaluation weaknesses (use of proprietary models, possible circularity by using an LLM for matching and split assignment, lack of statistical rigor and multiple runs). Per the review rules, reproducibility is scored ≤ 2 which triggers the RBCL Fatal-Flaw Logic and forces the overall decision to 'Reject' (see RBCL §2). Additional concerns include potential annotation bias (single annotator per action with only partial secondary review), possible evaluation bias from using the same LLMs for dataset construction and evaluation, and an ethics/broader-impacts statement that is insufficiently detailed for sensitive domains like surgery. Positive aspects include the dataset breadth, useful ablations (oracle/localization studies), and clear identification of key technical challenges (localization and fine-grained comparison). To be viable for acceptance, the authors should (at minimum): (1) publicly release the full benchmark and code with exact prompts, model versions, seeds, and evaluation scripts; (2) remove circular evaluation artifacts (avoid relying on the same LLM for matching/splits and for model evaluation, or at least ablate and quantify any bias introduced); (3) provide statistical measures (confidence intervals, multiple runs where stochasticity exists) and clearer baselines; (4) add a thorough ethics / broader impacts statement addressing consent, licensing, and risks of automated feedback, particularly for high-stakes domains. Decision rationale: Reproducibility ≤ 2 forced a 'Reject' per the explicit Fatal-Flaw Logic in RBCL; therefore strengths in novelty and experiments cannot compensate. (Explicit rule reference: \"RBCL §2 Fatal-Flaw Logic\" — reproducibility ≤ 2 requires Reject.)"
+  }
+}

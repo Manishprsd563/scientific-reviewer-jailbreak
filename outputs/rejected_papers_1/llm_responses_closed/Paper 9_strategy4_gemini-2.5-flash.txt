@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of Sparse Test-Time Adaptation (STTA) for latency-sensitive applications on edge devices is relevant, and the proposed two components (CnDRM and IoBMN) represent a thoughtful combination of existing techniques (class-representative sampling, domain centroid, batch normalization) tailored for this specific problem. However, the underlying techniques for representation and normalization are not entirely novel; the originality lies more in their specific adaptation and combination for sparse, low-latency TTA. The paper doesn't introduce fundamentally new theoretical advancements. One unverified assumption is that the combination of class-representative and domain-representative samples consistently yields optimal choices with pseudo-labels across highly diverse domain shifts."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses a highly significant practical problem: deploying TTA on resource-constrained edge devices, which is a critical bottleneck for real-world applications like autonomous driving and real-time monitoring. The demonstrated significant reductions in latency while maintaining accuracy have high potential for impact. If proven robust across a wider range of real-world scenarios and hardware, this could be very useful. A potential weakness is the reliance on Raspberry Pi 4 for latency measurement, while illustrative, might not fully capture the diversity and complexities of 'edge devices' in general, potentially limiting the generalizability of latency claims to all edge contexts."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The approach combines established concepts like confidence-based sampling, domain centroid calculation (via Wasserstein distance on feature statistics), and batch normalization adjustments. The derivations for IoBMN appear reasonable. However, the justification for using only the first normalization layer's statistics for domain representation (stated as 'early layers retain domain-specific features') is somewhat heuristic and relies on prior work, without a deeper theoretical analysis of why this specific layer provides the most optimal trade-off for *all* models and corruptions. The claim that samples close to the center 'best capture the domain shift' is an assumption that holds empirically here but lacks rigorous theoretical proof across all types of domain shifts. The soft shrinkage function for IoBMN's parameter update is not fully explained in terms of its theoretical optimal properties for this specific adaptation compared to a simpler exponential moving average, for example. The method's robustness to varying degrees of pseudo-label noise (which might be higher in some domain shifts) is not deeply analyzed."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments are conducted on standard TTA benchmarks (CIFAR-10/100-C, ImageNet-C) with various corruption types and severity, and against five SOTA TTA algorithms, which is comprehensive. The inclusion of results with ViT models adds credibility across different architectures. The ablations (Table 4) are helpful in understanding component contributions. However, the latency measurements, while performed on a Raspberry Pi 4, could benefit from a broader comparative analysis across different edge hardware profiles to solidify claims of broad 'edge device' applicability. Furthermore, the experiments primarily focus on 'offline' corruption scenarios; testing with more dynamic, continuous, or sequential domain shifts (as hinted in the limitations) would provide stronger validation for 'online TTA scenarios' and 'real-time inference rates.' There is no discussion or analysis of potential computational overheads for CnDRM itself (e.g., calculating Wasserstein distances for all samples in a batch)."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper mentions hyperparameters are detailed in Appendix B.1 and additional results in various appendices. While some details are promised in appendices, the main paper doesn't explicitly state that code, exact hyperparameters, or infrastructure setup information (beyond 'Raspberry Pi 4 testbed') will be publicly released. Without an explicit statement or a link to a code repository, the reproducibility score remains low. The lack of provided code or detailed implementation steps for the non-trivial components like Wasserstein distance calculation for all samples and memory management makes it difficult to reproduce precisely. (RBCL §2 Fatal-Flaw Logic triggered: If reproducibility score <= 2, final decision MUST be Reject or worse, and total_score is capped at 20)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper adequately positions SNAP-TTA by explaining the limitations of existing TTA methods for edge devices and differentiating its approach from prior data-efficient deep learning or sampling methods by focusing on unsupervised domain adaptation and combining class and domain representation. It identifies relevant baselines and discusses their shortfalls in the context of latency. However, some aspects of memory management or dynamic thresholding could potentially have parallels in active learning or streaming data literature, which are not extensively explored. The discussion around 'EATA excludes unreliable samples and utilizes fewer samples, but suffers from performance degradation when attempting more aggressive reductions' is contrasted with SNAP-TTA, but a deeper dive into why SNAP-TTA specifically avoids this pitfall (beyond the dual-criteria sampling) could strengthen the positioning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper does not contain an ethics statement or a discussion of broader impacts, safety, or societal implications. This is an oversight for a paper focusing on applications potentially relevant to sensitive domains like autonomous driving. The potential for reduced prediction accuracy due to sparse adaptation (even if mitigated) in critical applications should be acknowledged as a risk. (RBCL §4 Error Asymmetry Principle activated due to absence of ethics statement)."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.8,
+    "final_decision": "Weak Reject",
+    "final_justification": "The paper tackles a practically very important problem of TTA on edge devices, proposing a sensible framework combining class and domain representative memory with an inference-only batch-aware normalization scheme to reduce latency while maintaining accuracy. The empirical results show promise on standard benchmarks and illustrate significant latency reductions. However, a major fatal flaw is the lack of explicit commitment to open-source code or sufficient detail to ensure reproducibility (Reproducibility score of 2). This immediately caps the total score and pushes the decision towards rejection. Additionally, the paper lacks an ethics statement, which is crucial for a work with potential impacts in safety-critical applications. While the technical ideas are sound in principle, and experiments are relatively comprehensive, the unverified assumptions in sampling optimality and the limited theoretical depth for some component choices, combined with the reproducibility and ethics concerns, lead to a 'Weak Reject' decision. Decision downgraded due to RBCL §2 Fatal-Flaw Logic."
+  }
+}
+```

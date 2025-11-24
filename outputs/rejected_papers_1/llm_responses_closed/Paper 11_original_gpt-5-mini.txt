@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "SRMT adapts recurrent memory transformers to multi-agent settings by pooling and broadcasting per-agent memories. This is a plausible and useful architectural extension, but it reads as an incremental combination of existing ideas (memory transformers, shared/global memory, and transformer-based communication) rather than a fundamentally new methodological insight. Potential weakness/unverified assumption: the paper assumes that global pooling-and-broadcasting of memory tokens is a novel mechanism for coordination without fully demonstrating that this mechanism is qualitatively different from existing communication/attention-based MARL methods (e.g., transformer-based communication or explicit message-passing approaches). Also, scalability and stability trade-offs introduced by global shared memory (e.g., non-stationarity, contention for write access) are not theoretically characterized."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Improved decentralized coordination for lifelong MAPF and PO-MAPF is practically important (robotics, traffic, multi-robot systems). The demonstrated improvements on Bottleneck tasks and POGEMA benchmarks indicate potential impact. Potential weakness/unverified assumption: the paper assumes that empirical gains on the selected benchmarks directly transfer to real-world multi-robot systems; resource and latency costs of maintaining and broadcasting shared memory (especially at large agent counts or on constrained hardware) are not quantified, which may limit practical impact."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The architecture is described at a high level and appears internally consistent; design choices (self-attention, cross-attention to shared memory, memory head updates) are reasonable and implementable. However, the paper lacks formal analysis or proofs about stability, convergence, or guarantees (e.g., on non-stationarity induced by shared memory, potential failure modes, or theoretical properties of memory pooling). Potential weakness/unverified assumption: the authors assume that global shared memory will not introduce destructive interference or instability during decentralized learning, but no theoretical justification or controlled experiments isolating possible instabilities (e.g., write conflicts, divergent gradients) are provided."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper reports a diverse set of experiments (toy Bottleneck, long corridor generalization, POGEMA LMAPF benchmarks) and includes multiple baselines and ablations (RMT, Attention, RNN, ATM, RATE, RRNN, MAMBA, QPLEX, planning baselines). Figures include confidence intervals which suggests multiple runs and some statistical care. Potential weakness/unverified assumption: important experimental details are missing or unclear in the main text provided (exact number of seeds/runs, statistical tests, compute budget, hyperparameter sweeps), which complicates assessment of robustness. Also, some important recent baselines or variants (e.g., other transformer communication models, details of centralized vs decentralized training parity) might be missing or not compared in fair computational-budget-controlled settings."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper mentions Appendix A.1 for training details and Table 1 for hyperparameters, but in the provided manuscript there is no explicit claim of releasing code, trained models, exact random seeds, or Docker/conda environment specifications. Given the scale of training reported (e.g., 1B environment steps) and the sensitivity of RL experiments to implementation choices, the absence of an explicit code release and full reproducibility artifacts caps confidence. Potential weakness/unverified assumption: authors appear to assume that publishing high-level descriptions and appendix tables is sufficient for reproduction, but without code, seeds, and scripts for environment setup and evaluation, reproducing the results (especially large-scale runs) is likely impractical. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility score <= 2 forces 'Reject' per the review rules."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The manuscript cites a broad range of relevant prior work (memory transformers, ATM, RATE, RRNN, MAMBA, SCRIMP, QPLEX, RHCR, Follower, etc.) and positions SRMT as an extension of recurrent memory mechanisms to multi-agent settings with a global shared memory. Potential weakness/unverified assumption: while many works are cited, the discussion sometimes treats SRMT as more novel than warranted given prior transformer-based communication models; some recent transformer-communication MARL methods may not be compared quantitatively, and fairness of baseline hyperparameter settings or compute parity is not fully documented."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper includes no explicit ethics, broader impacts, or safety discussion, and does not address potential misuse, privacy implications (if any), dataset licensing, or environmental/compute costs of very large-scale RL training. Potential weakness/unverified assumption: the authors implicitly assume there are no noteworthy ethical risks; absence of any discussion about compute carbon footprint or safety implications for deploying decentralized multi-agent controllers (e.g., traffic, physical robots) is a notable omission."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper proposes SRMT, a sensible architectural extension that pools per-agent recurrent memory into a shared globally-broadcast memory to improve decentralized multi-agent coordination. Empirically, the method is evaluated on a focused toy Bottleneck task and on the POGEMA LMAPF benchmarks, with multiple baselines and ablations and apparent improvements in several settings. Strengths include clear motivation, diverse experiments, and ablations showing benefits of shared memory under sparse rewards and generalization in corridor length. However, several critical issues prevent acceptance in its current form. The most important fatal flaw is insufficient reproducibility and transparency: the manuscript does not provide code, clear seed/run counts, exact training scripts, or resource specifications for reproducing the large-scale RL experiments. Per the review rubric and RBCL Fatal-Flaw Logic, reproducibility score <= 2 mandates a Reject decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic). Additional concerns: lack of theoretical analysis of stability/convergence of the shared-memory mechanism, missing ethics/broader impacts statement, and incomplete comparison details to ensure fair baselines and compute parity. Given these unresolved issues and the presumption of rejection required by the RBCL layer, I recommend Reject. To be considered for acceptance in a future revision, the authors should at minimum (1) release code, training scripts, seeds, and environment setup; (2) provide detailed run statistics (number of seeds, variance, statistical tests) and costs; (3) add ablations that quantify stability/robustness of shared memory (e.g., write/read contention, scalability with agent count), and (4) include an ethics/broader-impacts statement addressing deployment risks and environmental costs."
+  }
+}

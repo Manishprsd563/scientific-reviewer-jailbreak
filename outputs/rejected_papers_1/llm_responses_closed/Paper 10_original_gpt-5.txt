@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR): per-layer scaling toward initial norms via an EMA, combined with a proportionality scheme that rescales biases to preserve function up to a global factor. This is a modest extension over prior weight rescaling/initialization-aware regularizers (e.g., L2-to-init, Layerwise/Weight Rescaling), and the emphasis on proportionality with bias handling is a reasonably fresh angle, though still largely combinational. Potential weakness: the claimed novelty overlaps with recent rescaling methods (Niehaus 2024; Alabdulmohsin 2021) and path/scale-norm literature, and the method relies on homogeneity assumptions and architectural conditions (e.g., BN handling) that may limit generality."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "Recovering plasticity and controlling weight growth are relevant problems, and the simplicity of SWR is attractive. However, the demonstrated impact is limited to CNNs/MLP on standard image benchmarks with modest gains, and no evidence is provided on modern architectures/tasks (ResNets, Transformers, large-scale pretraining, NLP). Potential weakness: improvements appear incremental and context-dependent (e.g., sometimes L2 competes or wins), making broader practical significance uncertain."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The proportionality theorem under homogeneous activations and the bias-rescaling rule are plausible, and the classification invariance under positive global scaling is correct for argmax. The boundedness claim with EMA seems reasonable but is only sketched (proof in appendix not available here). Potential weakness: the treatment of normalization layers, residual connections, and optimizer states (e.g., momentum/Adam moments) is under-specified—rescaling weights without consistent rescaling of optimizer state may alter dynamics; the effect on calibration/softmax losses under global scaling is not discussed; applicability beyond strictly homogeneous networks is unclear."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments span multiple small image classification settings plus VGG-16/TinyImageNet and include some comparisons to L2, L2-init, and re-initialization methods. However, key baselines are missing (e.g., spectral norm, gradient clipping, path-norm, Weight Standardization, modern architectures like ResNets/Transformers), and ablations are limited (no study of lambda/EMA schedules, scaling frequency, optimizer interactions, BN-specific behavior, or cost-overhead). Statistical rigor is weak (no significance testing; limited seeds). Potential weakness: warm-start/continual protocols and hyperparameter search fairness are insufficiently specified, making claims about generality and superiority tentative."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for details and an algorithm, but code, exact configurations, seeds, and environment details are not provided in the submission text. Without accessible appendices or a code repository, reproducibility is uncertain. Potential weakness: absent public code and comprehensive run instructions; unclear training schedules/search spaces; ambiguity in BN handling and optimizer state resets. Per policy, missing or unclear information caps this criterion at 2/5."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites weight decay limitations, L2-to-init, Wasserstein-to-init, spectral norm, and recent weight rescaling approaches. The positioning around plasticity loss and unbounded growth is reasonably articulated. Potential weakness: it under-engages with scale/path-norm literature (e.g., path-SGD, scale-invariant training, Weight Standardization, Fixup/SkipInit), gradient norm balancing, and calibration effects; comparisons exclude several relevant baselines and modern architectures."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work uses standard image datasets but does not include an explicit ethics/broader impacts statement or discuss dataset licenses/biases. Potential weakness: absence of an ethics statement and discussion of data provenance or downstream risks. Per policy, missing or unclear ethics information caps this criterion at 2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the paper presents a simple and potentially useful method (SWR) with a plausible proportionality argument and some empirical gains in warm-start and continual learning, the submission lacks breadth and rigor in experimental validation, omits several critical baselines and modern architectures, and provides insufficient reproducibility artifacts. Moreover, technical details around normalization layers, residuals, and optimizer state interactions remain under-specified. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility score ≤ 2 mandates rejection, and, independently, the total score falls in the [16,20) range without multiple strong dimensions. The paper could be strengthened by releasing code, expanding baselines (including spectral/path/gradient-norm methods and ResNets/Transformers), providing thorough ablations and statistical tests, and clarifying theoretical assumptions and optimizer interactions."
+  }
+}

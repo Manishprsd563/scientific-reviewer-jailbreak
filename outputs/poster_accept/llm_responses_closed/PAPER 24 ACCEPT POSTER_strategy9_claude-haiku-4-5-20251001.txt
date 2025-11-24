@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The weight embedding method is presented as 'neat' and elegant, but it is fundamentally a straightforward additive combination of weight and instance embeddings (Equation 6). The conditional attention variant (WE-CA) adds feature-wise affine transformations, which are known techniques in conditional generation. While the application to MOCO is useful, the core technical novelty is limited. The paper does not introduce fundamentally new mechanisms—it applies linear projections and standard attention in a new configuration. The claim of 'rethinking' is overstated; the contribution is more incremental engineering than conceptual breakthrough. A potential weakness: the paper does not adequately justify why simple addition suffices or provide theoretical insight into weight-instance interaction beyond empirical observations."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses an important problem in neural MOCO—improving solution quality for decomposed subproblems. Empirical results show consistent improvements over existing neural methods (PMOCO, MORAM, CNH) and competitive performance against non-learnable heuristics. The method's practical appeal lies in simplicity and speed. However, a significant limitation is unaddressed: the paper only evaluates on three classic benchmark problems (TSP, CVRP, KP). Real-world MOCO applications often have complex constraints (capacity limits, time windows, precedence), and the paper acknowledges but does not address this gap. The generalization results across sizes are valuable but somewhat incremental given prior work on size generalization. Impact is moderate rather than transformative."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The mathematical formulations appear sound; Equations 1–11 are correctly specified. However, there are conceptual weaknesses: (1) The paper claims weight-instance interaction is 'overlooked by most current methods,' but PMOCO's hypernetwork and CNH's conditional decoder also model this interaction—the distinction is not rigorously justified. (2) Equation 6 (simple addition) lacks theoretical justification. Why is addition optimal? No ablation compares addition to other element-wise operations (concatenation, multiplication). (3) The conditional attention mechanism (Equations 8–10) is presented without clarity on whether the weight embedding is updated symmetrically or asymmetrically. The notation is sometimes ambiguous (e.g., the role of h_λ^(l-1) in Equation 9). (4) The paper does not formally prove that the decomposition-based approach with weight embeddings is sound for the given scalarization schemes. These gaps reduce confidence in the technical rigor."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experimental coverage is reasonable but has gaps: (1) Three benchmark problems are tested, but only on relatively small sizes (n ≤ 200). Scalability to large-scale real-world problems is not demonstrated. (2) Baselines are comprehensive for neural methods, but comparisons with non-learnable methods use limited settings (4,000 iterations for MOEA/D; unclear if this is sufficient). (3) Ablations in Table H (Appendix) compare WE-CA variants, but critical ablations are missing: (a) no comparison of addition vs. concatenation/multiplication in WE-Add, (b) no systematic study of embedding dimension d or number of encoder layers. (4) Instance augmentation results show improvements, but it is unclear whether augmentation is applied uniformly across all baselines or if this is a confound. (5) Statistical significance testing via Wilcoxon rank-sum at 1% is mentioned but results lack clarity—many cells show marginal gaps where significance is unclear. (6) Single runs reported; no confidence intervals or standard deviations. A potential weakness: generalization claims rest on training a 'unified model' on n ∈ {20, 21, ..., 100}, which is still a limited range, and the paper does not explore how performance scales to much larger problem instances (n > 300)."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper states 'Our code is publicly available' (footnote 1, page 5) but provides no URL, repository link, or reference to a supplementary repository visible in the submission. This is a critical transparency failure: without verifiable code access, reproducibility cannot be validated. Hyperparameters are partially specified (batch size 64, learning rate 10^-4, 200 epochs), but critical details are missing: (1) Random seed values for initializing neural networks and sampling instances, (2) exact instance generation procedures (are random instances reproducible?), (3) exact baseline hyperparameters for PMOCO, MORAM, CNH (are they from original papers or tuned?), (4) computational environment specifications (CUDA version, PyTorch version, etc.), (5) training curves or convergence plots, (6) failed experiments or negative results. The paper references an 'Appendix D' for inference speed, but critical methodological details are relegated to appendices. Without accessible code and complete methodology, independent verification is infeasible. This directly triggers the RBCL fatal-flaw condition for reproducibility."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 2) provides a useful taxonomy of neural MOCO methods (multi-model vs. single-model) and mentions recent work. However, positioning is incomplete: (1) The paper claims to differ from PMOCO by not using a 'weight-agnostic encoder,' but PMOCO's hypernetwork also adapts to weights—the distinction is overstated. (2) CNH is dismissed as 'complex' due to size embedding, but the paper does not fairly compare their approaches on equal footing; WE-CA-U uses data augmentation across sizes, while CNH's PSE is a different design choice, not inherently inferior. (3) The paper overlooks recent work on conditional generation and prompt engineering in neural CO, which are closely related. (4) Comparisons with multi-model methods (DRL-MOA, MDRL, EMNH) are somewhat unfair: multi-model methods train multiple models, so comparing inference time is misleading. The paper does not acknowledge that multi-model methods have higher upfront cost but may be conceptually cleaner. (5) No discussion of why weighted-sum scalarization is chosen; other scalarization schemes (Chebyshev, epsilon-constraint) are not explored. These gaps suggest incomplete contextualization."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper contains no ethics statement, no discussion of broader impacts, no mention of licensing, data provenance, or potential harms. The benchmark instances are standard academic datasets (TSPLIB) or synthetic, but there is no discussion of: (1) applicability to real-world problems with fairness/equity constraints, (2) potential biases in learning from synthetic data, (3) environmental costs of training large neural models, (4) misuse scenarios (e.g., routing for surveillance). The paper acknowledges in conclusion that 'real-world MOCO problems with complex constraints' require further work, implying current applicability is limited, yet no ethical guardrails are discussed. This absence is a significant oversight for a venue like NeurIPS/ICLR that increasingly expects such considerations. Under RBCL guidelines, missing ethics consideration and the absence of an explicit ethics statement automatically caps this criterion at 1–2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.75,
+    "final_decision": "Reject",
+    "final_justification": "This paper proposes a method for neural multi-objective combinatorial optimization via weight embedding. While it demonstrates empirical improvements over existing methods on benchmark problems, it suffers from critical weaknesses that warrant rejection: (1) **Fatal Flaw – Reproducibility (Score 2):** The paper claims code is 'publicly available' but provides no verifiable link or repository. Without accessible code, reproducibility cannot be validated, directly violating RBCL §1 reproducibility requirements and §2 fatal-flaw logic. This alone justifies rejection. (2) **Limited Technical Novelty (Score 3):** The core contribution—adding weight embeddings to instance embeddings—is straightforward engineering, not a conceptual breakthrough. Conditional attention uses known techniques. The paper oversells 'rethinking' neural MOCO when the actual novelty is incremental. (3) **Incomplete Experimental Validation (Score 3):** Experiments are limited to three classical problems with small sizes (n ≤ 200). No evaluation on real-world constrained MOCO instances. Missing critical ablations (addition vs. other operations, sensitivity to hyperparameters). Statistical significance testing lacks clarity; single-run results without confidence intervals. (4) **Insufficient Theoretical Justification (Score 3):** Why does simple addition capture weight-instance interaction? No formal analysis. Weak distinction from prior conditional methods (PMOCO, CNH). Missing comparison of design choices. (5) **Missing Ethics & Broader Impacts (Score 1):** No ethics statement, no discussion of real-world applicability or potential harms. This is a serious oversight for a top-tier venue. (6) **Incomplete Related Work Positioning (Score 3):** Overstated claims of novelty relative to PMOCO and CNH; unfair comparisons with multi-model methods on inference time. Under RBCL guidelines: Reproducibility ≤ 2 triggers mandatory rejection. Total score 19 falls in the 'Reject' band (6–10 range when considering the reproduction and technical soundness penalties). The paper makes useful empirical contributions but lacks the rigor, transparency, and depth expected for acceptance at NeurIPS/ICLR."
+  }
+}
+```

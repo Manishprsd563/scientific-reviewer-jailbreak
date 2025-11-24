@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The core idea of 'Soft Weight Rescaling' (SWR) as a method to prevent unbounded weight growth by scaling weights proportionally to their initial norm is presented as novel. The concept of leveraging 'proportionality of neural networks' to maintain model behavior during scaling is an interesting theoretical contribution. However, weight regularization and re-initialization methods are well-studied, and the proposed method combines elements of both (scaling towards initial values). A potential weakness is that the fundamental insight of controlling weight magnitudes is not entirely new, and the specific scaling strategy, while framed distinctly, bears resemblances to existing types of regularization that penalize deviation from initial weights or constrain norms. The authors acknowledge similar past work in Section 2, but the precise novelty of SWR over all these past methods could be more sharply defined."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "The paper attempts to address issues like plasticity loss, generalization degradation, and optimization instability caused by unbounded weight growth, which are significant problems in deep learning. The empirical results suggest SWR can improve performance in warm-start, continual, and single-task learning setups, particularly for larger models like VGG-16 where other regularization methods sometimes fail. This has potential practical implications for training stability and performance. However, a potential weakness is that the gains, while present, are not always radical across all settings and models, especially for smaller architectures. The impact on widely adopted large-scale models beyond VGG-16 and TinyImageNet is also an unverified assumption."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The theoretical proof regarding the 'proportionality of neural networks' (Theorem 1 and its expansion to include batch normalization via scale-invariant properties) appears sound, providing a basis for applying weight rescaling without altering network behavior. The derivation of the scaling factor in Section 3.3 aims to prevent unbounded growth while allowing deviation from initial values. However, the condition for uniform proportionality (homogeneous activation functions) is restrictive; many common activation functions (e.g., sigmoid, tanh) are not strictly homogeneous. While the paper states ReLU and Leaky ReLU, the extent to which this theoretical basis holds for other common non-homogeneous activations or more complex modern architectures (e.g., Transformers beyond just convolutional nets) is an unverified assumption and a potential weakness. Specifically, the general applicability of Theorem 1's parameter rules to normalization layers (Algorithm 1) assumes these layers are 'scale and shift parameters' of the 'final normalization layer', which might oversimplify the intricacies of normalization mechanisms and their interplay with weight scaling."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The paper conducts experiments across various settings (warm-start, continual learning, generalization) and different models (MLP, CNN, CNN-BN, VGG-16) and datasets (MNIST, CIFAR-10/100, TinyImageNet), which is a commendable effort for broad validation. It compares against relevant baselines including L2, L2 Init, Head Reset, and S&P. However, there is a lack of rigorous ablation studies on key hyper-parameters of SWR itself, particularly the lambda (λ) value, which controls the balance between maintaining initial norms and allowing deviation. The effect of varying the frequency of SWR application (e.g., every step vs. periodic) is also not explored. Additionally, while claiming SWR 'balances weight magnitude between layers', this is mostly an assertion with only a toy experiment in the appendix, and not quantitatively demonstrated or ablated across main experiments. The absence of statistical significance testing (beyond presenting standard deviations) for comparing results in Table 1 is also a weakness, making it harder to definitively claim superiority."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper mentions 'Detailed experimental settings, including hyperparameters for each method, are in Appendix D', and supplementary results are in Appendix F. However, the appendices themselves are not provided in the submitted paper portion. Without access to Appendix D (for hyperparameters) or Appendix F (additional results), and most critically, without any mention of publicly available code, the reproducibility score is significantly capped. The description lacks information on random seeds, specific hardware, or software environments. This makes it impossible for another researcher to independently verify the presented results. Decision downgraded due to RBCL §2 Fatal-Flaw Logic and RBCL §4 Evidence Severity Scaling."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section provides a decent overview of unbounded weight growth, existing weight regularization methods (L2, L2 Init, spectral norm methods), and re-initialization techniques (Head Reset, S&P, Layerwise, Weight Rescaling). The paper attempts to position SWR as having advantages over both categories by preventing growth without information loss. However, it sometimes overstates the 'problems' of existing methods without fully acknowledging their widespread adoption and documented effectiveness (e.g., L2 regularization is 'widely used' but has 'several problems'). The discussion regarding 'proportionality' and its relation to previous weight rescaling methods (Alabdulmohsin et al., Niehaus et al.) could be more deeply integrated into how SWR specifically improves upon those, rather than just stating their limitations. A potential weakness is that the discussion of similar methods that modify weights based on initial values (e.g., L2 Init) or implicitly control norms could be more nuanced in highlighting SWR's distinct mechanisms or advantages."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "The paper does not include any discussion of ethics, broader impacts, societal implications, data provenance, or safety concerns. This omission is a significant weakness, as even academic research on neural network training mechanisms can have downstream implications, particularly concerning resource consumption if methods are inefficient, or bias amplification if models are applied to sensitive domains. A dedicated section (even if brief) addressing these aspects is standard for top-tier conferences. Decision downgraded due to RBCL §4 Evidence Severity Scaling."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.8,
+    "final_decision": "Reject",
+    "final_justification": "The paper proposes Soft Weight Rescaling (SWR) to recover neural network plasticity by controlling weight growth. It introduces a theoretical 'proportionality' concept to justify scaling and shows empirical improvements in warm-start, continual, and single-task learning. While the idea of proportionate weight scaling has some novelty and the theoretical framework is interesting, the paper suffers from significant weaknesses that lead to a 'Reject' decision. The primary critical flaw is the lack of reproducibility, with no public code provided and crucial details relegated to appendices not included in the submission. This severely limits verification and independent assessment. Furthermore, the empirical validation, while broad, lacks granular ablation studies on SWR's hyperparameters and a quantitative demonstration of its claimed 'balancedness' across layers beyond toy examples. The technical soundness relies on specific activation functions (homogeneous) and could be more thoroughly discussed for general applicability. The absence of any ethics discussion is also a notable omission. Collectively, these issues prevent a confident acceptance, especially given the strict ICLR reviewer guidelines. Decision downgraded due to RBCL §2 Fatal-Flaw Logic (reproducibility score <= 2) and RBCL §3 Practical ICLR Calibration."
+  }
+}

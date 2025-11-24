@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes composing global posteriors for Markovian simulators from local single-step transition estimators and adapts score-composition corrections from the i.i.d. setting to Markov time series. This is a thoughtful and useful extension of existing compositional SBI ideas (e.g., Geffner et al., Linhart et al., Boelts et al.) to a broader class of simulators. However, much of the machinery (score-based diffusion, local composition, covariance-weighted aggregation) is adapted rather than fundamentally new, and the FNLE/FNRE parts are straightforward consequences of the Markov factorization. Potential weakness: the claimed generality relies on strong assumptions (time-homogeneous first-order Markov structure and independence of the proposal from parameters), and it remains unclear how novel the theoretical contribution is beyond extending prior i.i.d. methods."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust and broadly applicable, the approach can substantially reduce simulation costs for amortized SBI on Markovian time series, which are common in scientific simulators, and may enable higher-dimensional applications (e.g., Kolmogorov flow). This could be impactful for practitioners facing expensive simulators. Potential weakness: practical gains hinge on careful proposal design, validity of the noisy-parameter composition approximation, and the method’s performance relative to strong non-factorized NLE/NRE baselines and data-assimilation methods—comparisons to which are limited in the current empirical section."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The a=0 decomposition follows from the Markov factorization and appears reasonable, and the paper acknowledges the loss of Markov structure for noisy parameters (a>0), adopting an approximation that weights local scores using denoising covariances. This is plausible but approximate. Potential weakness: the correctness and stability of the covariance-weighted composition (GAUSS/JAC) are not rigorously analyzed; its bias under multimodality and non-Gaussian local posteriors is unclear; and the treatment of proposal-induced mismatch (training x^t ~ tilde p independent of θ, then evaluating at arbitrary observation states) is only justified in the appendix and may be brittle when proposal support or independence conditions are violated. Extensions to time-varying transitions and higher-order Markov chains are deferred to appendices without thorough validation."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments on synthetic tasks, Lotka–Volterra, SIR, and Kolmogorov flow are promising and include multiple seeds and metrics (sW1, C2ST). However, comparisons center on a non-factorized NPE baseline; direct comparisons to strong non-factorized NLE/NRE with competitive sequence embeddings, data assimilation methods, or MCMC ground truth on lower-dimensional tasks are limited or absent; ablations on proposal design, composition strategy (GAUSS vs. JAC), and sensitivity to violations of assumptions are not comprehensive. Potential weakness: no statistical significance testing is reported, Kolmogorov-flow evaluation lacks strong baselines, and the calibration analysis suggests deterioration for longer sequences without a clear remedy."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references standard packages (e.g., sbi) and mentions multiple seeds, but there is no explicit statement that code, configuration files, hyperparameters, training schedules, and proposal-construction recipes are released. Key implementation details for FNSE (architecture, diffusion schedules, covariance estimation procedures, proposal distributions) and data preparation for Kolmogorov flow are not fully specified in the main text. Potential weakness: absent explicit code/data release and detailed reproducibility checklist, this criterion is capped per instructions."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper situates itself relative to i.i.d. compositional SBI, data assimilation with local scores, and time-series SBI embedding approaches, and discusses connections to Kalman filtering and ABC. This provides helpful context. Potential weakness: the contrast to strong non-factorized NLE/NRE with time-series architectures and to broader sequential inference frameworks (e.g., SMC, particle MCMC) is not deeply explored; computational trade-offs vs. Rozet & Louppe (2023) are only qualitatively discussed."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No dedicated ethics/broader impact statement is evident in the provided text. The work touches application areas (e.g., epidemiology) where miscalibrated inference could lead to harmful decisions; data provenance, licensing, and computational/energy impacts are not discussed. Potential weakness: missing explicit ethics discussion triggers a conservative score per guidelines."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper presents a thoughtful extension of compositional SBI from i.i.d. observations to Markovian time series, with a clear local-to-global strategy and practical score-composition approximations. The approach is promising and potentially impactful for simulation efficiency in scientific settings. However, (i) empirical validation is limited relative to the strength of the claims (missing strong non-factorized NLE/NRE and data-assimilation baselines, sparse ablations, limited ground-truth benchmarks for calibration), (ii) key technical components rely on unverified approximations (covariance-weighted composition under noisy parameters and possibly non-Gaussian/multimodal regimes), and (iii) reproducibility is not established (no explicit code/data release and incomplete training/proposal details). Decision downgraded due to RBCL §2 Fatal-Flaw Logic (Reproducibility ≤ 2 requires Reject) and RBCL Practical ICLR Calibration (scores in the borderline range default to Reject without exceptional breakthroughs). I encourage the authors to release code, strengthen baselines/ablations, and more rigorously analyze the composition approximation to make a compelling case for acceptance."
+  }
+}

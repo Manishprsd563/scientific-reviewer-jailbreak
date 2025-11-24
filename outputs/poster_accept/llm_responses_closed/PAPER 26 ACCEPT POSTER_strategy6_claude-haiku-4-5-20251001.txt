@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 4,
+      "justification": "The paper proposes two main technical contributions: (1) a cross-attention mechanism with linear complexity using representative nodes, and (2) a Self-Improved Training (SIT) algorithm that enables training without labeled data. The cross-attention idea is relatively straightforward—using a small set of representative nodes to mediate attention between all nodes is a known technique in efficient attention literature (e.g., Linformer, Performer). While the application to VRPs is useful, the core novelty of the attention mechanism itself is incremental. The SIT algorithm is more novel, combining iterative local reconstruction with pseudo-label training; however, local reconstruction and self-training are not new concepts independently. The paper does not sufficiently distinguish SIT from prior work on iterative refinement (Luo et al., 2023; Ye et al., 2024) beyond combining them. The originality is solid but not exceptional for a top-tier venue."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 4,
+      "justification": "The paper addresses a genuine and important problem: scaling neural combinatorial optimization to very large instances (up to 100K nodes). The claim of outperforming HGS (a classical state-of-the-art solver) on large CVRP instances is significant if true. However, several concerns temper the impact: (1) The improvements over baselines on synthetic benchmarks are notable but not revolutionary (e.g., 7.58% gap vs. 12.03% for w/o Cross-Attention on CVRP10K). (2) Real-world applicability is unclear—the paper does not demonstrate end-to-end practical deployment or validate on diverse real-world problem distributions beyond TSPLIB/CVRPLIB. (3) The sensitivity to $l_{max}$ (Table 5) raises questions about generalization across problem instances and the brittleness of the approach. (4) The comparison with HGS lacks detail on computational budgets and fairness of the comparison."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical framework is generally sound, but several concerns emerge: (1) The cross-attention mechanism (Eq. 1 adapted with representative nodes) is described intuitively but lacks formal theoretical justification. Why is attending through $m$ representative nodes sufficient to maintain effective node interactions? No theoretical analysis or approximation bounds are provided. (2) The claim of linear complexity is correct algebraically ($O(nm)$ vs $O(n^2)$), but the paper does not discuss the constant factors or practical overhead of the representative node computation. (3) The SIT algorithm description is somewhat vague. The loss function (Eq. 3) conditions on both the first and last nodes of a partial solution as representatives, but the justification for this specific design is weak. (4) The claim that local reconstruction avoids overlapping segments is correct (Appendix D), but the impact of this design choice on solution quality is not analyzed. (5) Missing assumption: the paper assumes that solutions to partial tours can be improved independently, which may not hold for constrained problems like CVRP where feasibility is global. This assumption is not explicitly validated."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "The experiments are extensive in scope but have notable gaps: (1) Synthetic benchmarks (Table 1) are limited to Euclidean TSP and CVRP with uniform demand. No evaluation on variants (e.g., time windows, heterogeneous fleets) that increase practical relevance. (2) Real-world benchmarks (Table 2) show mixed results—on TSPLIB, greedy inference has 8.244% gap, which is not clearly superior to baselines for all instance sizes (e.g., INViT greedy achieves 11.038% on 1K-5K nodes, but Ours achieves 6.767%, while on larger instances the advantage diminishes). (3) The ablation study (Table 3) is helpful but limited. The w/o SIT baseline trains on CVRP100, which is a very different distribution from CVRP1K/5K/10K, making the comparison unfair. A fairer comparison would train both methods on the same distribution. (4) No statistical significance testing or confidence intervals are reported. Given the stochastic nature of neural training, single-run results are insufficient. (5) PRC iterations vary across experiments (50 vs. 500 vs. 1000), making it difficult to isolate the contribution of the neural model vs. post-hoc search. (6) The paper does not report wall-clock time comparisons for the full pipeline (training + inference + PRC), which is critical for practical assessment. (7) Missing ablations: no systematic study of the number of representative nodes $m$ or the impact of partial solution size $\omega$."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper claims code is available at https://github.com/CIAM-Group/SIL, but this cannot be verified during review. Several critical details are missing: (1) Hyperparameters for training (learning rate, batch size, optimizer, scheduler, regularization) are not fully specified in the main paper or appendix. (2) Random seed and the number of runs for each experiment are not reported. (3) Hardware specifications (GPU model, memory) used for timing comparisons are not provided, making it difficult to reproduce Table 4. (4) The SIT training loop is described in text and pseudo-code (Appendix D) but lacks implementation details—e.g., how is the dataset $\\mathcal{D}$ updated during SIT iterations? How many iterations are performed? Is there an early stopping criterion? (5) For CVRP, the constraint handling is deferred to Appendix B but not clearly explained in the main paper. (6) The sensitivity analysis (Table 5) only tests $l_{max}$; other key hyperparameters are not explored. (7) No discussion of hyperparameter selection procedure—were they tuned on validation sets or chosen arbitrarily?"
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The related work section (Section 2) is well-structured and comprehensive, covering generalization-based, decomposition-based, and heatmap-based methods. However, positioning has gaps: (1) The relationship to Linformer and Performer (efficient attention mechanisms) is not discussed. The cross-attention mechanism is conceptually similar to set attention in these works, but the paper does not compare or position against them. (2) The comparison with HGS (a classical solver) is emphasized as a major achievement, but fair comparison requires ensuring equal computational budgets. The paper does not clearly specify the time limit given to HGS or whether PRC iterations are included in the comparison. (3) The paper positions SIT as novel, but the distinction from prior local reconstruction work (Luo et al., 2023; Ye et al., 2024) is not crisp. The main difference appears to be training with pseudo-labels instead of RL, but the novelty of this choice is not justified theoretically. (4) Missing comparison with recent heatmap-based methods on TSP, which the paper dismisses as TSP-specific. However, some may generalize (e.g., with different search strategies). (5) No discussion of recent work on graph neural networks for VRP, which could provide alternative architectural choices."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper provides no discussion of ethical considerations, broader impacts, data provenance, licensing, or safety concerns. Specific gaps: (1) No discussion of the societal implications of improving VRP solvers (e.g., impact on delivery worker efficiency, algorithmic bias in routing). (2) No statement on data licensing or provenance—TSPLIB and CVRPLIB are publicly available, but no clarification is provided. (3) No discussion of potential misuse (e.g., optimization for exploitative labor practices). (4) No statement on code licensing (claimed to be at GitHub but with no explicit license mentioned). (5) No discussion of environmental impact (energy consumption of training large models). (6) No acknowledgment of limitations or failure cases. This is a significant oversight for a top-tier venue, where ethics statements are increasingly expected."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 22,
+    "confidence": 0.75,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper tackles an important problem (scaling neural combinatorial optimization to large instances) and demonstrates strong empirical results on benchmarks. The combination of a cross-attention mechanism and self-improved training shows promise, and the reported performance on large CVRP instances (up to 100K nodes) is noteworthy. However, the paper has several critical weaknesses that prevent acceptance at a top-tier venue: (1) Technical Soundness (score 3): The cross-attention mechanism, while effective, lacks theoretical justification and is conceptually similar to prior efficient attention work (Linformer, Performer) without sufficient differentiation. The linear complexity claim is correct but oversimplified—constant factors and practical overhead are not discussed. The SIT algorithm combines known techniques (local reconstruction, pseudo-label training) without deep novelty. (2) Empirical Validation (score 3): Experiments use only two problem types (TSP, CVRP) with uniform distributions. No statistical significance testing is provided. The ablation study is unfair (w/o SIT trains on CVRP100 vs. larger instances). Comparison with HGS lacks detail on computational budgets. (3) Reproducibility (score 3): While code is claimed to be available, critical details (full hyperparameters, random seeds, number of runs, hardware specs) are missing from the paper. Implementation details of SIT (dataset updates, stopping criteria) are vague. (4) Related Work (score 3): Positioning against efficient attention mechanisms (Linformer) is absent. The novelty of SIT over prior local reconstruction work is not clearly articulated. (5) Ethics (score 2): No discussion of ethical implications, data provenance, or broader impacts—a significant oversight. Per RBCL guidelines, the absence of ethics consideration and missing reproducibility details cap the decision at 'Weak Reject' or lower. The technical contributions, while useful, are incremental combinations of known ideas. For a stronger paper, the authors should: (a) provide theoretical analysis or approximation bounds for the cross-attention mechanism; (b) conduct fair ablations with matched baselines; (c) include statistical significance tests; (d) add ethics discussion; (e) more clearly differentiate SIT from prior work; (f) verify reproducibility by including all hyperparameters and random seeds."
+  }
+}
+```

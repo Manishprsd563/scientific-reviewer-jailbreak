@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes structure-aware masks for identifying influence-critical parameters in Transformers (heads and filters). While the structural focus is somewhat novel, the core idea of using learnable masks for parameter selection is not fundamentally new. The contribution is primarily an application of existing masking techniques to the unlearning domain with a focus on Transformer-specific structures. The categorization of successive unlearning into memory-free and memory-aided variants is descriptive rather than technically novel. Potential weakness: the paper lacks theoretical justification for why head/filter-level granularity is optimal, and the connection to the lottery hypothesis is mentioned but not rigorously developed."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Machine unlearning for Transformers is a relevant problem with practical importance for privacy compliance. However, the impact is somewhat limited: (1) experiments focus only on small-to-medium Transformers (BERT-base, DistilBERT, RoBERTa-large), not modern large language models; (2) the improvement over baseline SO method is marginal (Table 2 shows nearly identical efficacy metrics); (3) the 90% sparsity requirement suggests most parameters are still being updated, limiting practical efficiency gains. The successive unlearning analysis is interesting but lacks compelling evidence that SPE-SO significantly outperforms SO in realistic scenarios. Potential weakness: unclear if the method scales to 7B+ parameter models where unlearning efficiency would be most valuable."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "Multiple technical concerns: (1) The derivation of the mask learning objective (Equations 8-9) is presented without sufficient justification. The paper states masks are 'derived by jointly considering desiderata of unlearning' but the optimization formulation lacks rigor. (2) The claim that structure-aware masks reduce approximation error 'by a factor proportional to sparsity' is stated but not proven. (3) Equation 3.3.1 for memory-free unlearning uses $\\mathcal{D}_r^t$ (remaining set at time t) but the theoretical justification for why this is appropriate is missing—it diverges from the original Taylor approximation assumption. (4) The diagonal FIM approximation validity for sparse masks is not analyzed. (5) Section 3.1 is referenced but the actual mask derivation methodology is incomplete in the provided text. Potential weakness: The paper lacks formal analysis of how mask sparsity affects the theoretical guarantees of second-order unlearning."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Significant experimental limitations: (1) Only 128 samples used for forgetting dataset—no sensitivity analysis across different forgetting set sizes. (2) Single run results reported; no error bars, confidence intervals, or multiple random seeds mentioned. (3) Missing critical ablations: no analysis of different sparsity levels for SPE-SO (authors claim 90% is sufficient but provide no systematic comparison), no ablation on mask learning algorithm components, no analysis of mask stability across different removal requests. (4) Memory-free unlearning analysis (Table 1) is superficial—only 10 removal requests tested, no comparison with SO baseline in successive settings. (5) Missing baselines: no comparison with other parameter-efficient techniques (adapters, LoRA-style methods) that could be relevant. (6) Membership Inference Attack evaluation uses only confidence-based predictor; more rigorous MIA attacks should be employed. (7) No statistical significance testing between methods. Potential weakness: Results appear cherry-picked; it's unclear if improvements hold across all random seeds and dataset selections."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 1,
+      "justification": "Critical reproducibility failures: (1) No code is mentioned to be available (anonymous submission but no supplementary materials referenced). (2) Section 3.1 describing the core mask derivation is missing from the provided text—\"SPE-Unlearn introduces a learnable pair of masks\" but the methodology is not explained. (3) Algorithm 1 is referenced but not provided. (4) Hyperparameter details deferred to 'Appendix A.1' which is not included. (5) No random seed specification mentioned. (6) The warm-start greedy search algorithm is mentioned as a key component but never detailed. (7) MIA predictor details relegated to citations without clarification. (8) Exact fine-tuning configurations for baseline methods not fully specified in main text. (9) No discussion of computational environment (GPU, memory specs, framework versions). This paper cannot be reproduced from the provided content alone. Potential weakness: Anonymous submission without supplementary materials makes verification impossible."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work section is present but has significant gaps: (1) Limited discussion of parameter-efficient fine-tuning methods (adapters, LoRA, prefix tuning) that could be adapted for unlearning—only mentions these exist without thorough comparison. (2) Does not adequately distinguish from Liu et al. (2024a) on sparsity-aware unlearning beyond claiming it's 'structure-oblivious'—the actual technical differences are unclear. (3) The lottery hypothesis connection is mentioned as inspiration but not properly developed or compared to lottery ticket pruning methods. (4) Missing comparison to recent work on selective parameter updates for other tasks. (5) The paper claims existing methods 'assess importance of parameters by comparing performance on forgetting and remaining datasets may result in sub-optimal selection'—but provides no evidence that structure-aware masks fundamentally solve this issue differently. (6) Positioning relative to continual learning and catastrophic forgetting literature is absent. Potential weakness: The paper does not convincingly argue why SPE-Unlearn is fundamentally better than adapting existing parameter-efficient learning techniques to unlearning."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics section or broader impact statement is present in the provided paper. (1) No discussion of potential misuse of unlearning techniques (e.g., removing traces of harmful model behavior rather than legitimate privacy requests). (2) No analysis of whether unlearning actually provides privacy guarantees or just obscures memorization. (3) No mention of data provenance for GLUE/SQuAD datasets. (4) No discussion of computational resource implications of repeated unlearning (carbon footprint). (5) No analysis of failure cases where unlearning could harm legitimate users. (6) No discussion of regulatory compliance beyond naming GDPR. (7) Missing informed consent considerations for removal requests. (8) The MIA evaluation is framed as a security test, but no discussion of what level of privacy protection is 'sufficient'. This is a critical omission for a privacy-focused paper. Potential weakness: A paper on machine unlearning motivated by 'right to be forgotten' regulations has minimal ethics discussion, which is a significant red flag for acceptance at top-tier venues."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses a relevant problem (parameter-efficient unlearning for Transformers) but has multiple critical flaws that prevent acceptance. Most significantly: (1) **Fatal-Flaw: Reproducibility (score 1)** — The core mask derivation methodology (Section 3.1) is missing, Algorithm 1 is referenced but not provided, and no code is available. The paper cannot be reproduced. Per RBCL Fatal-Flaw Logic, this alone warrants rejection. (2) **Fatal-Flaw: Technical Soundness (score 2)** — The mask learning objective derivation lacks rigor, theoretical claims about error reduction are unproven, and the application to memory-free unlearning diverges from stated assumptions without justification. (3) **Empirical Validation (score 2)** — Experiments lack statistical rigor (no error bars, single runs), critical ablations are missing (sparsity sensitivity, mask algorithm components), and improvements over baseline SO are marginal and potentially within noise. The successive unlearning experiments are particularly weak. (4) **Missing Ethics Section** — For a privacy-focused paper, the complete absence of broader impacts discussion is inappropriate. (5) **Limited Novelty (score 3)** — While structure-aware masking is somewhat novel, the core techniques are largely combinations of existing approaches. Improvement over SO baseline appears marginal. The paper also overstates contributions: results show SPE-SO achieves identical efficacy to SO on most metrics (Table 2), with gains primarily in memory usage, which is less significant than claimed. The 90% sparsity requirement suggests limited practical efficiency gains. For a top-tier venue, this work requires major revisions including: complete derivation of mask learning objective with theoretical analysis, provision of Algorithm 1 and code, comprehensive ablation studies with proper statistical testing, and an ethics section. The successive unlearning analysis should be substantially strengthened with comparison baselines."
+  }
+}
+```

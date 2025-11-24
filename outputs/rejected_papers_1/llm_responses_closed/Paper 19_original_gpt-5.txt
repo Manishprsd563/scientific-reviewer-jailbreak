@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic token tree for speculative decoding driven by a greedy selection of expandable nodes guided by draft probabilities, plus a thresholded layer-wise construction. This contrasts with fixed trees (SpecInfer, Sequoia) and self-speculative expand-prune approaches (EAGLE-2) that do not fit standard verification. The idea of dynamically allocating speculative budget at runtime for distribution-preserving verification appears moderately novel. However, the core heuristic—using draft probability as a surrogate for acceptance probability—and greedy expansion are conceptually close to prior tree-based or DP-based prioritization methods, and related dynamic expansion ideas exist (ReDrafter/EAGLE-2) albeit with different verification constraints. Potential weakness: the novelty relies on the unverified assumption SD[x] ≈ p_d[x] and an unspecified set of “mild assumptions” for claimed optimality; overlap with prior dynamic tree construction may limit originality beyond an algorithmic rearrangement."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, the reported throughput/latency gains (up to ~9x on Llama2-70B with CPU offloading) could be valuable for practical LLM inference. Dynamic trees that adapt to query distributions are of interest to the community. However, the strongest gains are shown in a CPU-offloaded 70B setting with an extreme T_t/T_d ratio, which may not reflect common high-throughput GPU deployments; improvements over strong baselines on smaller targets (7B/13B) appear more modest. No evaluation on newer model families or diverse hardware stacks is provided. Potential weakness: the impact assumes that gains persist under standard GPU-only serving, larger context lengths, and broader workloads; these scenarios are not evaluated."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The method’s core estimator SD[x] ≈ p_d[x] is motivated via a KL-bound intuition and empirical correlation but lacks a rigorous bound relating draft probability to acceptance probability under realistic model mismatch. The optimality claim for the greedy expansion is deferred to an appendix and hinges on unspecified “mild assumptions,” making it difficult to verify. The threshold rule (e.g., around 1/n) is heuristic without theoretical calibration or sensitivity analysis. It is also not fully clarified that the dynamic sampling/expansion policy preserves exact target distribution under standard verification in all cases; formal guarantees for unbiasedness with state-dependent sampling decisions are not provided in the main text. Potential weakness: key steps (surrogate objective, optimality, unbiasedness under dynamic policies) rely on unverified assumptions or proofs not available for scrutiny."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The paper reports speedups and accepted tokens across several datasets and temperatures relative to Sequoia and SpecInfer, with multiple target sizes. However, results appear to be single-run averages with no variance or statistical tests, and there are no ablations on key design choices (e.g., greedy vs. threshold mode, sensitivity to the threshold C, the effect of draft temperature, or depth/budget schedules). Important baselines such as Medusa or self-speculative methods (EAGLE/EAGLE-2) are not compared empirically, even if distribution-preserving verification differs, which limits the practical speedup context. Quality parity metrics to confirm unbiasedness and output fidelity are not reported. Potential weakness: lack of statistical rigor, incomplete baselines, and missing ablations make it hard to attribute gains to the proposed mechanisms or to assess robustness."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "While datasets, models, and high-level setups are mentioned, there is no indication of released code, detailed hyperparameters (e.g., threshold values, exact draft/target temperatures per setting, CUDA Graph capture details), seeds, or full implementation specifics for the C++ token-tree constructor and CPU offloading pipeline. The claimed optimality proof is in an appendix, but not accessible here. Potential weakness: absent code and missing low-level details cap reproducibility; small changes in sampling policy or scheduling might materially affect results and cannot be independently verified."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys SpecTr, SpecInfer, Medusa, Sequoia, EAGLE-2, ReDrafter, and dynamic depth decoding, and articulates why some self-speculative methods are not directly comparable under standard verification. The positioning as a dynamic, distribution-preserving tree approach is reasonably clear. Potential weakness: empirical comparisons omit some relevant strong baselines (e.g., Medusa/EAGLE families for speed/throughput context), and the discussion does not quantitatively analyze conditions where DYSPEC underperforms or ties. The relationship to dynamic-programming-based tree optimization (e.g., acceptance estimators) could be further formalized."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics or broader impact discussion is provided, despite relying on large web corpora (C4, OWT) with known data provenance and licensing considerations. Potential weakness: absence of discussion on deployment risks (e.g., bias amplification via faster generation), dataset licenses, and model usage constraints; this missing information caps the score per the rubric."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While DYSPEC presents a moderately novel dynamic tree construction strategy for speculative decoding with promising speedups, the submission falls short on technical verification and reproducibility. Key claims rely on unverified assumptions (SD[x] ≈ p_d[x]), an optimality result under unspecified mild assumptions with proof deferred, and lacking formal guarantees that dynamic, state-dependent expansion preserves exact target distribution under standard verification. Empirically, results are single-run without statistical rigor, missing key ablations, and omit important practical baselines for speed context. Critically, no code or comprehensive implementation details are provided. Per RBCL §2 Fatal-Flaw Logic and the stated overrides, Reproducibility ≤ 2 mandates a Reject decision regardless of other strengths; additionally, with a total score in the 16–20 range, ICLR calibration treats borderline outcomes conservatively. The decision is further kept strict by the Anti-Inflation Safeguard and Evidence Severity Scaling."
+  }
+}

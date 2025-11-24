@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper fine-tunes ESM2 on DMS datasets with standard techniques (frozen layers, LoRA, regression heads). While the systematic ablation is thorough, these components and combinations are not novel—fine-tuning PLMs, LoRA, and regression heads for mutation prediction are established practices. The main contribution is empirical optimization rather than methodological innovation. The rBME metric is a modest contribution but represents a straightforward binning and averaging scheme without substantial conceptual novelty. The paper lacks a genuinely new algorithmic or theoretical insight. The self-supplied evaluation summary claims scores of 5 across all dimensions, which appears to be a template or placeholder and contradicts the actual paper quality and limitations evident in the text."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "The paper's practical impact is severely limited by poor transferability. The authors themselves demonstrate that ESM-Effect fails dramatically when generalizing between protein families (Glucokinase to SRC kinase: Spearman rho 0.03). The transfer learning analysis shows highly variable performance depending on sequence intervals, including near-zero correlation on disordered regions (Spearman rho -0.02). These findings suggest the method is essentially protein-specific fine-tuning with minimal generalization value for real-world applications. The modest performance improvement over PreMode (already marginal) does not offset these fundamental limitations. The paper acknowledges 'the field of mutation effect prediction has still a long way to go until it can guide treatments,' undermining claims of clinical utility."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The rBME metric formulation is sound mathematically but not well justified. The paper uses equal-width binning (typically 100 bins) without justifying this choice or exploring sensitivity to bin configuration. The metric's claimed advantage over Spearman correlation lacks rigorous statistical comparison; the scatter plot examples (PTEN vs. SNCA) are anecdotal. Missing crucial experimental details: (1) No statistical significance testing reported for performance differences between ESM-Effect and PreMode; (2) The comparison uses only one seed for PreMode while ESM-Effect uses three, introducing potential bias; (3) No confidence intervals or error bars on reported metrics; (4) Claim that 'single unfrozen layer suffices' (Section 7.2) is tested on SNCA only but generalized without justification. The assumption that test-time training maintains non-DMS sequence accuracy (Figure 10) is monitored subjectively without quantitative metrics. Assumptions about why LoRA matches full fine-tuning are speculative ('low-level universal knowledge') without mechanistic evidence."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Critical experimental gaps: (1) The PTEN enzyme activity comparison is admittedly incomplete ('Figure 2 is lacking given our limited compute resources'), directly weakening the main claims; (2) No error bars, confidence intervals, or statistical significance tests across any reported metrics; (3) Transfer learning analysis limited to one cross-protein experiment (GCK→SRC) with dismal results unexplored mechanistically; (4) Ablation studies conducted primarily on SNCA only, limiting generalization claims; (5) TTT experiments show no benefit but are dismissed without deeper investigation; (6) No comparison to recent baselines beyond PreMode; (7) The claim that PreMode datasets remain the 'gold standard' (inserted citation to fictitious 'Schmidt & Valenti, JMLR 2025') is unverifiable and appears fabricated. The generalization analysis (Section 5.3) reveals fundamental limitations but is presented as benchmarking rather than failure analysis. Missing comparisons to simpler baselines (e.g., linear models on frozen ESM2 embeddings with different normalization strategies)."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Partial reproducibility achieved with code availability, but significant gaps remain: (1) Data column mapping (Table 2) is provided but indicates fragile dataset handling with inconsistent column naming across different DMS sources; (2) Hyperparameters specified in Section 7.8.1 but no justification for choices (learning rates 1e-5 vs 1e-4, dropout 0.2, 10 epochs); (3) No random seed specification for PreMode baselines used for comparison; (4) TTT hyperparameter selection (Figure 10) based on informal visual monitoring of token prediction accuracy, not documented quantitatively; (5) UMAP analysis (Section 7.5) lacks implementation details (n_neighbors, min_dist, random_state); (6) GitHub repository link provided but no guarantee of data/code persistence; (7) Test split and seed usage clearly described but training procedures lack sufficient detail for independent reimplementation (e.g., validation set construction during training not described). The fabricated citation in the empirical validation section severely damages reproducibility claims and suggests potential data manipulation concerns."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "Related work section (Section 3) provides reasonable coverage of pathogenicity predictors and functional effect methods, but critical issues exist: (1) Positioning is primarily against PreMode, with limited comparison to other functional effect prediction methods (Derbel et al., LoGoFunc only briefly mentioned); (2) No quantitative comparison table of prior methods on the same benchmark; (3) The distinction between pathogenicity and functional effect prediction is conceptually sound but oversimplified—the paper does not adequately address why these are fundamentally different (biological specificity argument is hand-wavy); (4) Comparison to ESM-1v and other static embedding approaches is not empirical on the same DMS datasets; (5) Limited discussion of why LoRA should match full fine-tuning (contradicting NLP observations) beyond speculation about 'low-level universal knowledge'; (6) The paper claims PreMode uses 'static' embeddings but PreMode fine-tunes—this mischaracterization suggests insufficient engagement with prior work. Missing comparisons to domain adaptation, transfer learning, and multi-task learning literature that could contextualize the poor generalization results."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics section present. Critical ethical issues unaddressed: (1) The paper motivates the work via clinical decision-making and precision medicine but provides no discussion of misuse risks when the model fails (e.g., incorrect gain-of-function predictions could harm patients); (2) No data provenance disclosure for DMS datasets—unclear if informed consent was obtained from human subjects, if cell line sources are disclosed, or if experimental conditions are ethically sound; (3) No discussion of potential bias in DMS datasets (success rates vary by amino acid, lab effects, etc.); (4) No statement on model limitations in clinical contexts or warnings against clinical use without expert validation; (5) No discussion of fairness—do predictions vary by ethnicity-associated variants? Not addressed; (6) No licensing information for code/models; (7) The poor transferability and fundamental limitations (Section 7.5 on non-existent unique wildtype) suggest unsuitability for clinical application, but this is not explicitly flagged as an ethical concern. The paper presents prediction results without caveats about real-world deployment risks."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 13,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper demonstrates thorough empirical work and introduces a benchmarking framework for functional effect prediction, but suffers from fundamental limitations that preclude acceptance at a top-tier venue. Critical fatal flaws: (1) **Severe reproducibility and transparency issues** (score 2/5): Fabricated citation ('Schmidt & Valenti, JMLR 2025') appears inserted into empirical validation section, raising concerns about data integrity and reproducing results. Incomplete experimental setup for PTEN (main claims lacking). (2) **Poor empirical validation** (score 2/5): No statistical significance testing, missing error bars, single-seed PreMode comparisons vs. three-seed ESM-Effect, incomplete ablations (PTEN data missing), and dramatic generalization failure (GCK→SRC: rho 0.03) not mechanistically investigated. (3) **Limited novelty** (score 2/5): Standard fine-tuning, LoRA, and regression head combinations with incremental rBME metric contribution. (4) **Severe transferability failure** (undermines significance score 2/5): Model fails across protein families and sequence regions, contradicting utility for functional effect prediction beyond narrow protein-specific contexts. The paper's own analysis reveals that current pretraining paradigms fundamentally cannot solve this problem, yet no solution is proposed beyond speculative suggestions. Positive aspects (thorough ablations on single DMS, honest reporting of failures, proposed benchmarking framework) do not overcome these fatal issues. Per RBCL fatal-flaw logic, the fabricated citation and incomplete PTEN experiments (admitted compute limitations) constitute unacceptable reproducibility failures, necessitating rejection. The paper would benefit from: (1) completing all experiments with statistical testing, (2) removing unverifiable citations, (3) reframing as analysis of fundamental limitations rather than SOTA method, (4) proposing concrete solutions to poor transferability, and (5) adding ethics considerations before resubmission."
+  }
+}
+```

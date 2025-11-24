@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Bi-Models Training (per-client local models maintained alongside a global model) and Multi-Models Training (training sub-FL models on disjoint client subsets and aggregating them). These ideas closely resemble known partitioned training/ensemble-style approaches (e.g., SISA-style partitioning and cluster-based FL unlearning like FedCIO), and aggregating local-only models is a straightforward extension of existing FL/FU paradigms. The conceptual overlap with prior partition-and-aggregate strategies suggests incremental novelty. Potential weakness: The claim of achieving exact unlearning appears to hinge on aggregating client-only models without a formal equivalence proof to retraining-from-scratch, which undercuts the claimed conceptual breakthrough."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "Improving post-unlearning performance while preserving exactness could be impactful in practice, but the approach requires maintaining and training extra models per client (BMT) or numerous sub-FL models (MMT), which raises substantial compute, storage, and communication costs. The authors also note MMT is infeasible for larger setups like CIFAR-100, substantially limiting scalability and practical impact. Potential weakness: The lack of resource/latency overhead analysis and deployment feasibility (especially on edge devices) makes it unclear whether these methods are viable in real-world FL systems."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The paper repeatedly claims exact federated unlearning but provides no formal proof that the resulting model is identical to retraining-from-scratch without the removed client(s). Aggregating per-client local models (initialized from the same random seed) and then resuming FL training is not shown to be theoretically equivalent to the retraining trajectory. Assumptions about avoiding double influence in MMT via disjoint subsets are insufficient to guarantee equivalence to global retraining. Potential weakness: Absence of a formal theorem or certified exactness guarantee, no convergence analysis for the proposed aggregation protocol, and no verification that post-unlearning models match retrained baselines under controlled seeds and protocols."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments span MNIST/FashionMNIST/CIFAR-10/CIFAR-100 and two NLP tasks, with some ablations (heterogeneity, branching factor, tree construction). However, there is no statistical rigor (no multiple seeds, confidence intervals, or significance tests), limited reporting on computational/communication overhead, and incomplete scalability (MMT reported as infeasible for CIFAR-100). The NLP setup is underspecified (e.g., exact labeling scheme via next-token prediction, hyperparameters, training schedules) and lacks clarity. Potential weakness: The key claim of exact unlearning is not empirically validated by demonstrating identity to retraining-from-scratch under controlled seeds; only performance curves are shown."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "While some hyperparameters and model choices are listed, critical details for reproduction are missing: no code release, no random seeds, incomplete algorithmic specifications (e.g., precise MMT construction, aggregation details, scheduling), and limited environment/setup instructions. According to the rubric, missing code caps this criterion. Potential weakness: Without code and precise protocols, reproducing the sub-FL structures, aggregation, and exact unlearning verification is unlikely."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites FL and FU literature and includes some baselines (FedCIO, Exact-Fun, FATS), but the positioning relative to partitioned training and ensemble-based unlearning is not fully articulated, and some important baselines (e.g., FedEraser) are cited but not compared experimentally. The overlap with existing cluster/partition approaches needs more rigorous differentiation and discussion. Potential weakness: The paper does not adequately justify how BMT/MMT differ fundamentally from prior partition-and-aggregate schemes or provide comprehensive comparisons across representative exact/approximate FU methods."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The paper mentions GDPR/CCPA motivations but does not substantively analyze broader risks (e.g., fairness impacts of selective unlearning, potential privacy leakage from sharing local-model checkpoints, implications for adversarial behavior, or license/data provenance issues for NLP datasets/models). Potential weakness: No concrete mitigation strategies, audits, or compliance details are provided; risks related to resource usage and environmental impact of training many auxiliary models are not discussed."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 14,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "Despite addressing an important problem, the paper’s central claim of exact federated unlearning lacks formal guarantees and rigorous empirical verification against retraining-from-scratch under controlled conditions. The methods appear incremental relative to partitioned/cluster-based unlearning, and the practicality is undermined by significant computational overhead and reported infeasibility at larger scales (MMT on CIFAR-100). Reproducibility is limited (no code, missing seeds and detailed protocols). Per RBCL §2 Fatal-Flaw Logic, the low Technical Soundness (≤2) and Reproducibility (≤2) trigger a mandatory rejection and cap the effective score, prioritizing correctness and verifiability over moderate empirical gains."
+  }
+}

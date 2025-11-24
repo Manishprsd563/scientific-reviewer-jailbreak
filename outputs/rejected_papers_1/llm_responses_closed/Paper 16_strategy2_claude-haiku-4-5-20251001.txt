@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper's core contribution is optimization of ESM2-based fine-tuning for mutation effect prediction. The technical components (fine-tuning ESM2, LoRA, regression heads) are all well-established. While the paper claims to demonstrate that fine-tuning outperforms static embeddings and that LoRA matches full fine-tuning, these findings are incremental given prior work by Schmirler et al. (2024) already showing ESM2 fine-tuning with LoRA on DMS. The proposed rBME metric is the only genuinely novel contribution, but it is a relatively straightforward extension of binned error analysis and not a significant methodological breakthrough. The paper lacks fundamental innovation in model architecture, pretraining strategy, or conceptual understanding of mutation effects. The authors themselves conclude that 'only low-level, universal knowledge...contributes meaningfully to DMS prediction,' which contradicts claims of a novel approach."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 2,
+      "justification": "The practical significance is limited by several critical factors: (1) The performance gains over PreMode are marginal (slightly better, not transformative), yet PreMode uses much richer information (structures, MSAs). (2) The proposed benchmarking framework, while useful, is not a technical contribution to mutation prediction itself. (3) The paper explicitly demonstrates severe generalization failures (e.g., Spearman rho 0.03 when training on GCK and testing on SRC kinase, near-zero performance on SNCA disordered regions), undermining clinical applicability. The authors acknowledge 'the field...still has a long way to go until it can guide treatments.' This admission of fundamental limitations suggests the work does not solve meaningful real-world problems. For precision medicine and protein engineering applications cited in the abstract, such poor generalization severely limits utility."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical execution is generally sound where present. The rBME metric formulation is mathematically correct. The ablation studies (layer probing, Transformer parts) are methodologically appropriate. However, critical issues exist: (1) Section 7.7 admits incomplete experiments on PTEN enzyme activity due to training instability and computational constraints—'the PTEN enzyme activity comparison in Figure 2 is lacking given our limited compute resources.' This is a fatal omission for a key dataset. (2) The claim that LoRA matches full fine-tuning lacks statistical significance testing (no confidence intervals, no p-values reported). (3) The paper contradicts itself: claiming ESM-Effect 'outperforms multimodal competitor PreMode' but then showing mixed and often poor generalization. (4) The test-time training (TTT) experiments show no benefit, and this null result is inadequately explained. (5) The transfer learning analysis (Figure 7) reveals context-dependent performance (rho 0.72 vs. -0.02) without a principled understanding of why, suggesting the model may be memorizing dataset-specific artifacts rather than learning generalizable principles."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experimental validation has substantial gaps: (1) INCOMPLETE EXPERIMENTS: Section 7.7 explicitly states that full fine-tuning on PTEN enzyme activity was not completed due to computational constraints. This is a major dataset and undermines the claimed SOTA performance. (2) NO STATISTICAL RIGOR: No error bars, confidence intervals, or significance tests are provided. Reported metrics lack uncertainty quantification despite claiming results across 'three random seeds.' (3) LIMITED BASELINES: Comparison is primarily against PreMode. Missing comparisons to other recent methods (e.g., ESM-1v NLR fine-tuned version, other approaches cited in related work). (4) SINGLE-RUN ANALYSIS: Many analyses (e.g., UMAP embedding visualization in Section 7.5, TTT experiments) appear to be single instances without replication. (5) CHERRY-PICKING: Results presented for SNCA (high performance) versus PTEN (poor performance) without systematic analysis of which datasets benefit from the approach. (6) ABLATION INCOMPLETENESS: Layer probing shows 'no impact' across many configurations, but the paper does not rigorously test all claimed advantages (e.g., the inductive bias regression head is not clearly ablated against simpler alternatives)."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Reproducibility is significantly compromised: (1) CODE AVAILABILITY: A GitHub link is provided, but code sharing before camera-ready is not standard for anonymous double-blind review. It is unclear if code is functional, documented, or complete. (2) MISSING CRITICAL DETAILS: Section 7.7 admits that PTEN enzyme activity experiments were not completed; therefore, readers cannot reproduce the claimed SOTA results on this dataset. (3) HYPERPARAMETER TRANSPARENCY: While some hyperparameters are provided (learning rates, batch sizes, epochs), the 'inductive bias regression head' is not clearly defined. What exactly is this head? Is it a simple linear layer, a multi-layer network, or something novel? This is vague. (4) DATA SPLITTING: The paper relies on PreMode's datasets and splits, but the exact DMS files used, score normalization procedures, and data preprocessing are not fully specified in the main text. (5) SEEDS AND REPLICATION: Only 3 seeds are mentioned for some experiments, which is minimal. No statement of how seeds were selected or if additional replication was performed. (6) ENVIRONMENT: No mention of software versions, PyTorch versions, or other dependencies. (7) ABLATION REPRODUCIBILITY: Some ablations (e.g., which specific Transformer components were unfrozen) lack sufficient detail for reproduction."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work coverage is reasonably comprehensive but positioning has issues: (1) FAIR COMPARISONS: The paper compares primarily to PreMode, which uses more features (structures, MSAs, 650M ESM2). Claiming 'slight superiority' while using a simpler, single-modality approach is somewhat misleading—the comparison is not apples-to-apples, and the marginal gain does not justify a major claim of SOTA. (2) MISSING RECENT WORK: The paper cites work up to 2024 but does not deeply engage with recent protein language model fine-tuning literature outside of mutation prediction (e.g., domain adaptation, transfer learning in PLMs). (3) CONTEXTUALIZATION OF CONTRIBUTIONS: The paper positions ESM-Effect as an answer to lack of benchmarks and complexity of multimodal approaches. However, the lack of generalization (SRC kinase rho 0.03) suggests the simpler approach may be fundamentally inadequate, not just a design choice. (4) POSITIONING ON SCALING: The paper makes a significant claim that 'scaling laws for model size are non-transferable' and 'LoRA matches full fine-tuning'—diverging from NLP trends. However, this is based on limited evidence (SNCA, PTEN incomplete) and may not generalize across all DMS datasets. (5) PATHOGENICITY VS. FUNCTIONAL EFFECTS: The distinction drawn is useful, but the paper does not clearly position whether ESM-Effect is intended only for protein-specific fine-tuning or for broader-scale applications."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "Ethical considerations are essentially absent: (1) NO ETHICS STATEMENT: The paper contains no discussion of ethical implications, despite focusing on mutation prediction for clinical decision-making. (2) CLINICAL APPLICATION RISKS: The paper explicitly mentions precision medicine and protein engineering applications, yet provides no discussion of risks from misuse or misinterpretation of poor-performing predictions (e.g., the rho 0.03 result on SRC kinase could lead to erroneous clinical decisions if deployed). (3) DATA PROVENANCE: While DMSs are from published sources, the paper does not discuss data licensing, consent, or potential biases in DMS data collection. (4) DEMOGRAPHIC BIAS: No analysis of whether model performance varies across genetic backgrounds or whether the datasets represent diverse populations. (5) MODEL LIMITATIONS: Although the paper discusses generalization failures, it does not clearly warn users about when the model should NOT be used or what confidence thresholds should be applied. (6) RESPONSIBLE DISCLOSURE: Given severe limitations (generalization failures, incomplete experiments), the paper should explicitly caution against deployment without further validation. The GitHub repository being made available raises concerns about misuse without appropriate guardrails or documentation of limitations."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 15,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "This paper addresses a relevant problem in computational biology (mutation effect prediction) but falls short of the standards expected for a top-tier venue like ICLR. Critical deficiencies include: (1) INCOMPLETE EXPERIMENTS: Section 7.7 explicitly admits that PTEN enzyme activity—a key DMS for claiming SOTA—was not fully trained due to computational constraints. This is a fatal flaw undermining the primary claims. (2) FATAL FLAW IN REPRODUCIBILITY: Without completion of experiments on one of the 9 main datasets and with vague descriptions of the 'inductive bias regression head,' readers cannot reproduce claimed results. This triggers the RBCL §2 Fatal-Flaw Logic, capping the decision at 'Reject.' (3) LIMITED NOVELTY: The technical contributions are incremental optimizations of known methods (ESM2 fine-tuning, LoRA). The rBME metric is a minor methodological addition. (4) SEVERE GENERALIZATION FAILURES: The paper's own experiments demonstrate near-zero generalization (Spearman rho 0.03 across kinase families, rho -0.02 in disordered regions), directly contradicting clinical utility claims. This is acknowledged but not addressed. (5) WEAK EMPIRICAL VALIDATION: No statistical significance testing, single runs for many analyses, cherry-picked dataset presentations (SNCA succeeds, PTEN fails), and incomplete comparisons to baselines. (6) ABSENT ETHICS DISCUSSION: Despite positioning the work for precision medicine, there is no ethical analysis of risks from poor generalization in clinical settings. (7) CONTRADICTORY CLAIMS: The paper claims ESM-Effect 'outperforms multimodal competitor PreMode' while being simpler, yet the marginal gains and severe generalization failures suggest that complexity in PreMode may be justified. The authors' own conclusion—that 'the field still has a long way to go'—undermines significance claims. Per RBCL error asymmetry, a false positive (accepting this work) would be more harmful than a false negative. The incomplete PTEN experiments alone warrant rejection under standard reproducibility requirements."
+  }
+}
+```

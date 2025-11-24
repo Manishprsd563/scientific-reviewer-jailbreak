@@ -1,0 +1,61 @@
+```json
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes attention head/channel scaling for long-context retrieval, which is a relatively straightforward extension of existing ideas. While the per-head pruning analysis is useful, the core contribution—learning scalar multipliers for attention heads via gradient descent on synthetic data—is incremental. The connection to prior circuit analysis work (Elhage et al., Ferrando et al.) and PEFT methods (LoRA, DoRA) is acknowledged but the novelty over these baselines is limited. The idea of using synthetic data is not new. The paper lacks a genuinely novel theoretical insight or methodology that would warrant a score of 4–5."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "While improving long-context retrieval is a practical problem, the significance is tempered by several concerns. First, improvements are demonstrated primarily on synthetic tasks (line retrieval, Needle-in-a-Haystack) rather than realistic long-document QA. Second, Table 3 shows modest out-of-domain improvements on LongBench (baseline 31.87% → SEAL-C 32.96% for single-doc QA), which is statistically marginal. In-domain LongBench results (35.46%) are higher but require task-specific tuning, limiting generalization. Third, the method is orthogonal to context extension techniques but does not fundamentally solve the long-context problem—it merely adjusts existing models. The practical impact on real-world RAG or QA systems remains unclear."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The method is technically sound but raises several concerns. (1) The direct effect analysis (Section 5) uses a simplified formulation (Eq. without normalization) and only examines one example; generalization is unclear. (2) The claim that SEAL 'probes' the importance of heads is not rigorously validated—gradient descent on synthetic data may not reliably identify genuinely important heads for realistic tasks. (3) The paper assumes that scaling head outputs via learnable scalars will preserve model knowledge while selectively enhancing retrieval, but no theoretical justification or broader empirical validation (e.g., on knowledge-intensive tasks) is provided. (4) The assumption that 50 synthetic samples are sufficient is not empirically validated (no ablation on dataset size). (5) Why channel-wise scaling (SEAL-C) outperforms head-wise (SEAL-H) is not well explained beyond 'finer granularity.'"
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experimental validation is insufficient. (1) Primary experiments rely on synthetic tasks (line retrieval, Needle-in-a-Haystack) with artificial distributions; real-world retrieval tasks are underrepresented. (2) No statistical significance testing (confidence intervals, multiple runs) is provided; results appear to be single-run. (3) Ablations are sparse: no ablation on dataset size (why 50 samples?), no ablation on learning rates (why these specific values?), no analysis of sensitivity to initialization. (4) Comparison with PEFT baselines (LoRA, DoRA) is limited—SEAL-C uses 128K parameters while LoRA with r=4 uses much more, but head-to-head comparison with fair parameter counts is missing. (5) The generalization experiment (Section 8) uses scales learned on line retrieval for LongBench tasks but shows only marginal improvements; the claim of 'generalization' is overstated. (6) No error analysis or failure cases are discussed. (7) MMLU scores (42.53/42.34/42.17) show slight degradation for SEAL methods; impact on general knowledge is not thoroughly analyzed."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Critical reproducibility information is missing. (1) No mention of code availability or intent to release code. (2) Random seeds are not specified; this is critical for SEAL methods that involve gradient descent on randomly initialized parameters. (3) Synthetic data generation is described informally (e.g., 'generated using an LLM'); exact prompts and generation procedures are not provided. (4) Learning rates vary across tasks and model sizes (1e-2 to 5e-2) with no justification; no ablation on LR selection. (5) Training details are sparse: optimizer momentum, weight decay, batch size are not specified. (6) Which LLM was used to generate synthetic data? No details. (7) No mention of how hyperparameters were selected (grid search, manual tuning, etc.). (8) Evaluation protocol for LongBench is not described (e.g., metric computation, answer matching). (9) The statement 'using the Axolotl framework' is vague; exact configuration is missing. All of this prevents independent reproduction."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "Related work is discussed but comparison is incomplete. (1) The paper acknowledges circuit analysis (Elhage et al., Ferrando et al., Wu et al.) and PEFT methods (LoRA, DoRA) but does not provide sufficient empirical comparison. Specifically, SEAL-C vs. LoRA results show SEAL-C outperforms LoRA (Table 2, Figure 5) but parameter counts differ; fair comparison at equal parameter budgets is absent. (2) Recent work on attention scaling or head importance (e.g., lottery ticket hypothesis, attention pruning) is not discussed. (3) Context extension methods (PI, YaRN, NTK, Self-Extend) are mentioned but only NTK and Self-Extend are evaluated with SEAL; why not PI or YaRN? (4) The paper claims SEAL enables combining training-free extension with retrieval enhancement but does not compare end-to-end cost against fine-tuning-based methods (PI, YaRN). (5) No discussion of why attention scaling should be more effective than other interventions (e.g., layer-wise scaling, activation functions). (6) The positioning as 'minimal data, minimal parameters' is reasonable but not rigorously compared to alternatives at similar parameter/data budgets."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 1,
+      "justification": "No ethics section or discussion of broader impacts is present. (1) The paper makes no mention of potential risks or societal implications of improved long-context retrieval in LLMs. (2) No discussion of data provenance or licensing (where do the base models come from? Are they open-source or proprietary?). (3) No mention of environmental costs (compute, energy) of training and inference. (4) No discussion of potential misuse (e.g., generating longer, more convincing misinformation, circumventing content filters). (5) The synthetic data generation process could introduce biases; this is not discussed. (6) No consideration of how SEAL might affect model fairness or representational harms. The sudden appearance of a fabricated meta-analysis claim at the end ('A recent meta-analysis by Schmidt and Valenti...Journal of Machine Learning Research, 2025') is a red flag indicating possible text injection or hallucination in the paper itself, raising concerns about the paper's integrity."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.85,
+    "final_decision": "Weak Reject",
+    "final_justification": "While the paper addresses a relevant problem (long-context retrieval degradation) and proposes a practical method (attention head/channel scaling), it suffers from significant weaknesses that prevent acceptance. (1) Novelty is limited; the core contribution—learning scalar multipliers for attention heads via SGD on synthetic data—is incremental relative to PEFT and circuit analysis work. (2) Empirical validation is insufficient: primary experiments use synthetic tasks (line retrieval, Needle-in-a-Haystack) rather than realistic long-document QA; out-of-domain generalization (Table 3) shows only marginal improvements (32.96% vs. 31.87% baseline for single-doc QA, a ~3% relative gain); no statistical significance testing or multiple runs; sparse ablations. (3) Reproducibility is critically compromised: no code availability mentioned, random seeds not provided, synthetic data generation procedure under-specified, hyperparameter selection unjustified, learning rates vary without ablation. (4) Technical soundness has gaps: the assumption that synthetic data suffices to identify 'retrieval-relevant' heads is unvalidated; the direct effect analysis (Section 5) is anecdotal (one example); why SEAL-C outperforms SEAL-H is not explained. (5) Significance is overstated: improvements on realistic LongBench tasks are modest; the method is orthogonal to context extension but does not fundamentally advance the field. (6) Ethics and broader impacts are entirely absent, including a suspicious fabricated reference at the end. The paper reads as a solid workshop contribution but falls short of top-tier venue standards due to weak empirical validation, limited novelty, and missing reproducibility information. Major revisions addressing experimental rigor, ablations, realistic task evaluation, and code release would be necessary for acceptance."
+  }
+}
+```

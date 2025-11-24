@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes Soft Weight Rescaling (SWR), a simple per-layer rescaling toward an EMA blend of the initial and current weight norms, coupled with a proportionality argument to preserve outputs. While the proportionality perspective is clean, weight rescaling toward initialization closely overlaps with recent weight-rescaling/normalization and initialization-anchoring methods (e.g., Niehaus et al., 2024; Kumar et al., 2023), making this feel incremental rather than a fundamentally new methodological insight. A potential weakness is that the claimed novelty may largely stem from repackaging known components (layerwise rescaling, EMA, and homogeneity-based scaling) rather than introducing a genuinely new principle; the dependence on homogeneous activations and assumptions about normalization layers further limits generality."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, a low-overhead technique that stabilizes weight growth and mitigates plasticity loss across warm-start and continual learning could be practically useful. The empirical gains, especially on VGG-16/TinyImageNet, suggest some promise. However, the scope is limited to standard CNNs and small-to-mid-scale datasets; there is no evaluation on transformers, large-scale regimes, or strong modern training baselines (e.g., AdamW with tuned weight decay/learning-rate schedules, spectral/path norm methods, or established continual learning methods like EWC/SI). A potential weakness is that the improvements may be modest and setting-dependent, making broad impact uncertain without broader architectures and stronger baselines."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 2,
+      "justification": "The proportionality theorem for homogeneous activations is plausible, but its extension to networks with normalization layers (especially batch normalization in training mode with running statistics and epsilon) is asserted rather than rigorously justified; stating that one only needs to focus on the final normalization layer may be an oversimplification. The method’s guarantees (boundedness and inter-layer balance) are deferred to appendices without visible details, and interactions with residual connections, non-homogeneous components, or mixed-precision training are not analyzed. A potential weakness is that key claims (e.g., maintaining proportionality with BN/LayerNorm during training) may not hold exactly due to data-dependent statistics, making the theoretical foundation incomplete for commonly used architectures."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Experiments cover multiple datasets and models and report means±std in some cases, which is positive. However, key omissions include: (i) limited baselines (no AdamW/tuned decoupled weight decay, spectral norm, path-norm methods, or standard continual learning baselines like EWC/SI); (ii) missing ablations on the EMA parameter, lambda, rescaling frequency, and sensitivity to initialization; (iii) no statistical significance tests beyond simple ± values; and (iv) no overhead/efficiency measurements despite claims of minimal cost. A potential weakness is that the validation may not be sufficient to support broad claims of effectiveness, especially across architectures with normalization and in realistic non-stationary settings."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper references appendices for details, but in the provided content there is no code link, no explicit training scripts, and limited disclosure of hyperparameters, seeds, exact optimizer configurations, or rescaling frequency/implementation nuance (especially with BN/LayerNorm). Without accessible code or exhaustive settings, reproducing results remains uncertain. A potential weakness is the absence of public code and full configuration details, which triggers the RBCL cap for this criterion."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites several relevant threads (weight decay, spectral norm, re-initialization, and recent rescaling to initialization) and positions SWR among them. However, it does not sufficiently engage with or compare to strong modern baselines (e.g., AdamW/decoupled weight decay, orthonormalization/weight standardization, path-norm/spectral path methods) and established continual learning methods (EWC, SI, LwF). A potential weakness is that the empirical comparisons may not reflect the state of the art, making the positioning incomplete."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics/broader impact discussion, dataset licensing, or data provenance details are provided in the excerpt. While the application is standard image classification, the absence of a dedicated section or discussion limits transparency. A potential weakness is the lack of acknowledgment of potential misuse, dataset biases, or licensing constraints, which caps this score under the RBCL rules."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 16,
+    "confidence": 0.68,
+    "final_decision": "Reject",
+    "final_justification": "While the idea of soft, proportional weight rescaling is simple and potentially useful, the work appears incremental relative to prior rescaling/initialization-anchoring methods, and its theoretical claims for networks with normalization layers are not convincingly established. Empirical validation lacks key ablations and stronger baselines, and reproducibility is limited by missing code and exhaustive configuration details. Decision downgraded due to RBCL §2 Fatal-Flaw Logic: technical soundness ≤ 2 and reproducibility ≤ 2 mandate rejection; per the override rule, acceptance cannot be justified despite moderate empirical signals."
+  }
+}

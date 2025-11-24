@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 2,
+      "justification": "The paper proposes applying low-cost learnable head- and channel-wise attention scaling (SEAL-H / SEAL-C) using a small amount of generated, format-preserving data to improve long-context retrieval. While the combination of attention-component scaling with synthetic format-focused tuning is practically useful, it appears largely incremental relative to existing PEFT (LoRA, DoRA) and circuit-analysis literature; the core mechanisms reuse known components (scalars, channel-wise vectors, LoRA-style modules). Potential weakness/unverified assumption: the claim of conceptual novelty is not strongly supported — SEAL may be a pragmatic engineering combination rather than a genuinely new methodological insight. Also, the paper assumes the head/channel importance discovered on one model/task will meaningfully transfer across models without theoretically justified conditions."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If robust, SEAL is practically significant: it offers a very low-cost way to recover retrieval performance on long contexts and to complement training-free context-extension techniques, which matters for deploying LLMs with extended context in resource-constrained settings. Potential weakness/unverified assumption: the practical impact depends strongly on generalization beyond the evaluated models and tasks; reliance on synthetic format-only data and small tuning budgets may limit applicability for diverse real-world retrieval problems. Another risk is that tuning attention scales could interact unpredictably with safety or downstream behavior in untested tasks."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The technical approach is conceptually straightforward and plausible: learnable multiplicative scales applied to attention outputs can modulate contribution of heads/channels and be learned by gradient-based updates. The qualitative direct-effect analyses support the mechanism. Potential weakness/unverified assumption: the paper lacks rigorous theoretical analysis of why scaling preserves overall model coherency or why small synthetic datasets reliably identify retrieval-relevant heads without altering other behaviors; the assumption that scaled parameters can be multiplied into neighbor weights offline without side effects is not fully validated. There is limited analysis of failure modes (e.g., when scaling harms non-retrieval capabilities) beyond a single MMLU check."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "The experiments cover multiple models and two long-context retrieval tasks and report large improvements in several settings, which is promising. However, important empirical gaps remain: tuning uses only 50 synthetic samples and single-run experiments (no multiple seeds or variance reporting), ablations are limited (e.g., sensitivity to dataset size, impact per-layer vs per-head vs per-channel beyond a few examples), and some important baselines (extensive fine-tuning for context extension, other strong retrieval-improvement baselines) are not thoroughly compared. Potential weakness/unverified assumption: absence of statistical significance testing and single-run reporting risks overestimating effect sizes and reproducibility."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "The paper provides some tuning details (optimizer, learning rates, single A100 80GB, number of epochs) and the high-level dataset generation protocol, but it does not provide code, exact synthetic-data prompts, random seeds, full hyperparameter lists, or a clear statement about releasing artifacts. According to the instructions, missing or unclear information caps this criterion at 2/5. Potential weakness/unverified assumption: without released code, seeds, and exact generation prompts, the experiments are difficult to reproduce; this missing reproducibility information triggers an RBCL downgrade and forces a conservative decision (see final justification)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper cites relevant literature in circuit analysis, context window extension, and PEFT, and positions SEAL as complementary to existing approaches. It discusses LoRA/DoRA baselines and training-free context extension methods. Potential weakness/unverified assumption: the comparison is not fully comprehensive or quantitative in some places — e.g., more direct comparisons to strong fine-tuning-based context-extension methods, or to alternative retrieval-focused interventions, would strengthen claims. The paper sometimes treats related methods at a high level without matching experimental setups for exact apples-to-apples comparisons."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The manuscript lacks an explicit ethics or broader-impacts section and does not discuss potential misuse, data provenance for any real datasets used, licensing of models, or how synthetic-data generation could encode biases. Potential weakness/unverified assumption: the authors implicitly assume low ethical risk because they use synthetic data, but tuning attention could still amplify undesired behaviors (e.g., retrieval of sensitive tokens, overconfidence); absence of an ethics statement and provenance details caps this criterion at 2/5."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 17,
+    "confidence": 0.72,
+    "final_decision": "Reject",
+    "final_justification": "Summary: The paper presents a pragmatic, low-cost method (SEAL) to improve long-context retrieval by learning head- and channel-wise attention scaling from a small set of synthetic, format-preserving examples. Results across several models and tasks indicate potentially large retrieval improvements, and the approach is operationally attractive (very few parameters, short tuning). However, key weaknesses prevent acceptance in its current form: (1) reproducibility and transparency are insufficient — code, exact synthetic prompts, seeds, and full hyperparameters are not provided, which caps reproducibility and makes verification difficult; (2) empirical validation lacks essential rigor (single-run results, no statistical tests, limited ablations on dataset size and sensitivity), and (3) novelty is incremental (a combination of known PEFT ideas and circuit-analysis observations) without strong theoretical justification. Per the review rules, reproducibility is rated <= 2/5, which triggers the RBCL Fatal-Flaw Logic and the explicit override requiring a rejection decision (Decision downgraded due to RBCL §2 Fatal-Flaw Logic: reproducibility <= 2). Additional RBCL principles applied: presumption of rejection, Anti-Inflation safeguard, and Error Asymmetry — these motivated conservative scoring and the insistence on reproducibility and multiple-run statistical evidence. Recommendation to authors: (a) release code, synthetic-data generation prompts, seeds, and full training config; (b) run multiple seeds and report variance/confidence intervals and statistical tests; (c) provide more extensive ablations (sensitivity to number of synthetic examples, which heads generalize across tasks/models, interaction with PEFT ranks, and failure cases), and (d) include an ethics/broader-impacts section describing risks and provenance. With these remedial steps and stronger reproducible evidence, the work could become a solid contribution; as presented, the missing reproducibility and limited empirical rigor necessitate a Reject."
+  }
+}

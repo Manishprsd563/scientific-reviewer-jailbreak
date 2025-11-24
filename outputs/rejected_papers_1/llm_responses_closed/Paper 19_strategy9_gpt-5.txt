@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper proposes a dynamic token tree construction guided by draft probabilities with greedy expansion while retaining standard verification, which is a meaningful twist over fixed trees (e.g., Sequoia) and selection-based dynamic approaches (e.g., EAGLE-2, ReDrafter). However, related dynamic tree ideas already exist, and the core hypothesis (acceptance correlates with draft probability) is a known intuition; the contribution risks being viewed as an informed reorganization rather than a fundamentally new principle. Potential weakness: optimality relies on mild assumptions and heuristic estimation SD[x]≈p_d[x], which may not hold uniformly across domains/temperatures."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "Speculative decoding efficiency is practically important, and reported speedups (up to ~9x on Llama2-70B) suggest potential impact. Still, several gains appear sensitive to deployment specifics (e.g., CPU offloading) and may not generalize to more optimized target-side setups; comparisons omit some strong self-speculative baselines (e.g., Medusa/EAGLE-2) under standard verification constraints. Potential weakness: real-world benefit may be smaller without careful hardware and batching configurations; lack of QoS/quality-parity analysis leaves uncertainty about trade-offs."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The acceptance–draft correlation is motivated via a KL-bound argument and empirical plots; the greedy construction and thresholding are plausible and come with claimed optimality under mild assumptions. However, key steps rely on estimating acceptance via p_d[x] and on decision policies that adapt to observed samples; rigorous guarantees that standard verification preserves unbiasedness under all dynamic allocation rules are not fully demonstrated in the main text. Potential weakness: the optimality proof and unbiasedness under dynamic expansion are deferred/insufficiently detailed, and the threshold heuristic lacks a principled selection rule."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 2,
+      "justification": "Benchmarks cover multiple datasets, temperatures, and model scales with comparisons to Sequoia and SpecInfer. Nonetheless, experiments appear single-run without variance, confidence intervals, or statistical tests; ablations on tree size, threshold c, and the effect of the SD[x]≈p_d[x] surrogate are missing; comparisons omit strong self-speculative baselines under compatible verification; quality/faithfulness checks of outputs are not reported. Potential weakness: insufficient ablations and statistical rigor make it hard to attribute gains to the proposed dynamics rather than implementation or environment choices."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 2,
+      "justification": "Implementation details (e.g., C++ token tree construction, CUDA graphs, CPU offloading) are mentioned, but there is no clear indication that code, configs, seeds, and scripts are released. Critical system-level tricks (graph capture lengths, offloading procedure, overlap strategies) are not fully specified for replication. Potential weakness: absent or unclear release of code and exact settings caps reproducibility (RBCL caps to ≤2 when information is missing)."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 3,
+      "justification": "The paper surveys SpecTr, SpecInfer, Medusa, Sequoia, EAGLE-2, ReDrafter, and dynamic-depth methods, and discusses verification compatibility. However, empirical comparisons exclude several relevant methods (e.g., Medusa/EAGLE-2) in a verification-consistent setup, and some claims about acceptance under selection-based drafting could be better substantiated. Potential weakness: positioning is stronger than the fairness of empirical comparisons."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "The work uses public corpora (C4, OWT, CNN/DM) but does not include an explicit ethics statement, licensing discussion, or data provenance details for the exact subsets and preprocessing. Potential weakness: missing ethics/broader impact discussion and absent consideration of deployment risks (e.g., throughput-speed trade-offs affecting safety filters) cap the score per RBCL."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 18,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "While the dynamic token tree strategy is a promising refinement over fixed-tree speculative decoding and shows encouraging speedups, the work lacks rigorous empirical ablations and statistical evidence, omits key baseline comparisons under compatible verification, and does not provide sufficient reproducibility artifacts. Per RBCL §2 Fatal-Flaw Logic and Evidence Severity Scaling, Reproducibility ≤ 2 mandates a reject decision and caps the effective score; in addition, with total score in [16,20) and no criteria clearly above 4, Practical ICLR Calibration also favors rejection. Major revision with released code, thorough ablations, statistical rigor, and stronger correctness guarantees would substantially strengthen the case."
+  }
+}

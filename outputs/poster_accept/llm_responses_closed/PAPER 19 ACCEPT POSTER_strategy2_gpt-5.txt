@@ -1,0 +1,59 @@
+{
+  "criteria_evaluation": [
+    {
+      "id": "novelty",
+      "name": "Novelty / Originality",
+      "description": "Is there a new idea, insight, or technique? Beyond incremental improvement.",
+      "score": 3,
+      "justification": "The paper reframes offline MBO as a ranking problem, proposes AUPCC as an evaluation metric, and trains surrogates with listwise/pairwise LTR losses. Applying LTR to offline MBO and emphasizing order preservation over MSE is a useful reframing, and the metric is tailored to top-k selection. However, core elements (learning-to-rank losses, order-preserving optimality, generalization bounds from prior LTR work) are established techniques adapted to MBO. The equivalence theorem is straightforward, and AUPCC is conceptually close to existing ranking metrics (e.g., NDCG/precision@k variants). Potential weakness: prior art in preference-based or rank-based BO and risk/robustness-aware surrogates may overlap; positioning the exact novelty relative to these is not fully verified."
+    },
+    {
+      "id": "significance",
+      "name": "Significance / Impact / Usefulness",
+      "description": "If the method works, does it matter to the field / community / applications?",
+      "score": 3,
+      "justification": "If reliable, a ranking-based surrogate could improve robustness to OOD miscalibration in offline MBO and simplify evaluation by focusing on top-k selection quality. Reported gains over numerous baselines across discrete and continuous tasks suggest practical impact. However, AUPCC requires access to ground-truth scores on OOD sets for evaluation, limiting its practical deployability beyond benchmarks. Potential weakness: unclear whether rank-based training consistently improves over strong uncertainty-aware methods in more challenging, real-world OOD regimes or with different optimizers; sensitivity to list length and data augmentation design is not fully explored."
+    },
+    {
+      "id": "technical_soundness",
+      "name": "Technical Soundness / Correctness",
+      "description": "Are derivations/theory correct? Are assumptions justified?",
+      "score": 3,
+      "justification": "The equivalence of optima under strictly monotone transformations is correct but elementary. The generalization bound relies on existing LTR theory with linear models and bounded inputs and does not directly cover deep neural surrogates or the OOD generalization central to offline MBO. The practical link between maximizing AUPCC on the training distribution and producing reliable gradients for search in OOD regions is asserted but not theoretically guaranteed. Potential weakness: the compatibility of gradient ascent with rank-optimized surrogates (e.g., gradient quality and stepwise optimization under non-calibrated scales) is not formally analyzed; the effect of monotone but highly nonlinear transforms on optimization dynamics is unverified."
+    },
+    {
+      "id": "empirical_validation",
+      "name": "Empirical / Experimental Validation",
+      "description": "Are experiments adequate to support the claims (datasets, baselines, ablations)?",
+      "score": 3,
+      "justification": "Experiments span five Design-Bench tasks, compare against many baselines (forward, backward, and others), use 8 seeds, and include ablations and correlation analyses (MSE vs. AUPCC). This is reasonably thorough for benchmarks. Potential weakness: statistical significance tests and confidence intervals are not clearly reported; fairness of hyperparameters and compute budgets across 20 baselines is not fully documented; details of the OOD dataset construction and variability across different OOD splits are deferred to appendices; robustness to optimizer choice and hyperparameter sensitivity (e.g., list length m, augmentation n) is only partially explored."
+    },
+    {
+      "id": "reproducibility",
+      "name": "Reproducibility / Transparency",
+      "description": "Are code, data, hyperparameters, random seeds, environment, instructions, etc. provided?",
+      "score": 3,
+      "justification": "The paper states that code is available and provides many training details (architecture, optimizer, learning rate, weight decay, seeds, search steps). It uses public benchmarks (Design-Bench). Potential weakness: the repository link in the text appears malformed (extra space), and reproducibility depends on appendices for key construction details (e.g., OOD dataset); environment and exact baseline configurations are not fully specified in the main text; exact random seeds and full training scripts are not verified here."
+    },
+    {
+      "id": "related_work",
+      "name": "Related Work & Positioning",
+      "description": "Are comparisons to prior work fair and comprehensive? Does it contextualize contributions?",
+      "score": 2,
+      "justification": "The paper cites many offline MBO works and compares to a broad set of baselines. However, it omits or under-discusses closely related lines such as preference-based Bayesian optimization, rank-preserving surrogates, and risk-averse/uncertainty-calibrated modeling that also aim to mitigate OOD exploitation. It also does not deeply compare against top-k oriented metrics like NDCG or discuss why AUPCC is preferable. Potential weakness: insufficient positioning versus preference-based BO and related ranking-centric optimization literature makes the novelty boundaries less clear."
+    },
+    {
+      "id": "ethics",
+      "name": "Ethics / Broader Impacts / Safety",
+      "description": "Did authors address risks, societal implications, licenses, data provenance, ethical concerns?",
+      "score": 2,
+      "justification": "No explicit ethics or broader impacts discussion is evident in the provided text. While the work is primarily methodological on public benchmarks, offline optimization can have safety implications when deployed (e.g., misleading surrogates in high-stakes design). Potential weakness: absence of discussion on data licenses/provenance (for Design-Bench subsets), model misuse, or safety mitigation; per the rubric, missing ethics discussion caps this criterion."
+    }
+  ],
+  "final_evaluation": {
+    "total_score": 19,
+    "confidence": 0.7,
+    "final_decision": "Reject",
+    "final_justification": "The paper advances a clear and practically motivated idea: optimize rank quality rather than squared error for offline MBO, introduce AUPCC as a top-k aligned metric, and adapt LTR losses for surrogate training. Empirically, the method appears competitive across multiple benchmarks and seeds. However, the theoretical support primarily reuses generic LTR bounds under restrictive assumptions and does not address OOD generalization or gradient-based search dynamics for rank-optimized surrogates. The related work omits close connections to preference-based BO and rank-centric optimization, leaving the precise novelty and positioning unclear. Ethics/broader impacts are not addressed. While promising, the evidence does not yet surpass the bar for top-tier acceptance. Decision downgraded to Reject per RBCL Practical ICLR Calibration (scores in [15,20) default to Reject absent multiple clearly ≥4 dimensions) and due to missing ethics discussion."
+  }
+}
